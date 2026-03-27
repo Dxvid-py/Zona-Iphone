@@ -812,6 +812,123 @@ function showToast(msg) {
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 3000);
 }
+
+// ===== EVENTS =====
+const events=[
+  {id:'newyear',name:'Año Nuevo',date:'1 enero',emoji:'🎆',theme:'newyear',particles:'confetti',endDate:new Date(new Date().getFullYear(),0,3)},
+  {id:'reyes',name:'Reyes Magos',date:'6 enero',emoji:'⭐',theme:'newyear',particles:'stars',endDate:new Date(new Date().getFullYear(),0,8)},
+  {id:'carnival',name:'Carnaval Barranquilla',date:'Feb/Mar',emoji:'🎭',theme:'carnival',particles:'confetti',endDate:new Date(new Date().getFullYear(),1,28)},
+  {id:'sanjose',name:'San José',date:'19 marzo',emoji:'🌷',theme:'love',particles:'hearts',endDate:new Date(new Date().getFullYear(),2,21)},
+  {id:'semanasanta',name:'Semana Santa',date:'Mar/Abr',emoji:'✝️',theme:'love',particles:'stars',endDate:new Date(new Date().getFullYear(),3,5)},
+  {id:'diadelniño',name:'Día del Niño',date:'Abr',emoji:'🧒',theme:'carnival',particles:'confetti',endDate:new Date(new Date().getFullYear(),3,30)},
+  {id:'madre',name:'Día de la Madre',date:'10 mayo',emoji:'💐',theme:'mothers',particles:'hearts',endDate:new Date(new Date().getFullYear(),4,12)},
+  {id:'padre',name:'Día del Padre',date:'Jun',emoji:'👔',theme:'love',particles:'hearts',endDate:new Date(new Date().getFullYear(),5,20)},
+  {id:'independencia',name:'Independencia Colombia',date:'20 julio',emoji:'🇨🇴',theme:'independence',particles:'confetti',endDate:new Date(new Date().getFullYear(),6,22)},
+  {id:'boyaca',name:'Batalla de Boyacá',date:'7 agosto',emoji:'⚔️',theme:'independence',particles:'confetti',endDate:new Date(new Date().getFullYear(),7,9)},
+  {id:'amor',name:'Amor y Amistad',date:'Sep',emoji:'💖',theme:'love',particles:'hearts',endDate:new Date(new Date().getFullYear(),8,30)},
+  {id:'halloween',name:'Halloween',date:'31 octubre',emoji:'🎃',theme:'halloween',particles:'bats',endDate:new Date(new Date().getFullYear(),10,2)},
+  {id:'velitas',name:'Día de las Velitas',date:'8 dic',emoji:'🕯️',theme:'christmas',particles:'stars',endDate:new Date(new Date().getFullYear(),11,10)},
+  {id:'navidad',name:'Navidad',date:'25 dic',emoji:'🎄',theme:'christmas',particles:'snow',endDate:new Date(new Date().getFullYear(),11,27)},
+  {id:'findeanyo',name:'Fin de Año',date:'31 dic',emoji:'🎉',theme:'newyear',particles:'fireworks',endDate:new Date(new Date().getFullYear(),11,31)},
+];
+const eventMessages={
+  love:{title:'AMOR Y AMISTAD',subtitle:'Regala el mejor iPhone 💖',badge:'💖 Edición Especial'},
+  christmas:{title:'NAVIDAD',subtitle:'El regalo perfecto 🎄',badge:'🎄 Navidad'},
+  halloween:{title:'HALLOWEEN',subtitle:'Precios de terror 🎃',badge:'🎃 Halloween'},
+  carnival:{title:'CARNAVAL',subtitle:'¡Que baile el iPhone! 🎭',badge:'🎭 Carnaval Barranquilla'},
+  mothers:{title:'DÍA DE LA MADRE',subtitle:'El mejor regalo 💐',badge:'💐 Día de la Madre'},
+  independence:{title:'¡COLOMBIA!',subtitle:'Precios independientes 🇨🇴',badge:'🇨🇴 Día Patrio'},
+  newyear:{title:'AÑO NUEVO',subtitle:'Estrena el año ✨',badge:'✨ Año Nuevo'},
+};
+
+function applyEvent(id) {
+  document.body.classList.remove('event-active','event-christmas','event-halloween','event-love','event-carnival','event-mothers','event-independence','event-newyear');
+  const banner = document.getElementById('event-banner');
+  if (!id) { banner.classList.remove('active'); stopParticles(); return; }
+  const ev = events.find(e=>e.id===id); if(!ev) return;
+  document.body.classList.add('event-active','event-'+ev.theme);
+  banner.classList.add('active');
+  const msgs = eventMessages[ev.theme] || {title:ev.name.toUpperCase(),subtitle:'Precios especiales',badge:ev.emoji+' Evento'};
+  document.getElementById('event-badge').textContent = msgs.badge;
+  document.getElementById('event-title').innerHTML = msgs.title;
+  document.getElementById('event-subtitle').textContent = msgs.subtitle;
+  document.getElementById('event-products').innerHTML = store.products.slice(0,3).map(p=>`
+    <div class="event-product-card" onclick="openModal(${p.id})">
+      <div class="event-discount-badge">HOT</div>
+      <div class="event-product-emoji">${p.emoji}</div>
+      <div class="event-product-name">${p.name}</div>
+      <div class="event-product-price">${formatPrice(p.price)}</div>
+    </div>`).join('');
+  startParticles(ev.particles);
+  startTimer(ev.endDate);
+}
+
+function startTimer(endDate) {
+  function update() {
+    const diff = endDate - new Date();
+    if (diff <= 0) { ['t-days','t-hours','t-mins','t-secs'].forEach(i=>document.getElementById(i).textContent='00'); return; }
+    document.getElementById('t-days').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
+    document.getElementById('t-hours').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('t-mins').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('t-secs').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+  }
+  update(); setInterval(update, 1000);
+}
+
+let particleInterval = null;
+function stopParticles() {
+  if (particleInterval) clearInterval(particleInterval);
+  const c = document.getElementById('particles-canvas');
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+function startParticles(type) {
+  stopParticles();
+  const c = document.getElementById('particles-canvas');
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  const ctx = c.getContext('2d');
+  // Lighter particles — text chars instead of emoji for performance
+  const sets = {
+    hearts:['♥','♡','❤'],
+    snow:['*','·','❄'],
+    confetti:['+','×','◆','◇'],
+    stars:['★','☆','·'],
+    bats:['*','◆','·'],
+    fireworks:['*','·','★']
+  };
+  const set = sets[type] || sets.confetti;
+  const ps = Array.from({length:25}, ()=>(({
+    x:Math.random()*c.width, y:Math.random()*c.height - c.height,
+    speed:0.8+Math.random()*1.2, size:10+Math.random()*10,
+    char:set[Math.floor(Math.random()*set.length)],
+    angle:Math.random()*Math.PI*2, spin:(Math.random()-0.5)*0.04,
+    sway:Math.random()*1.5-0.75, swaySpeed:0.01+Math.random()*0.02, swayAngle:Math.random()*Math.PI*2,
+    opacity:0.3+Math.random()*0.4
+  })));
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    ps.forEach(p=>{
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.font = `${p.size}px serif`;
+      ctx.fillStyle = 'rgba(201,168,76,1)';
+      ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+      ctx.fillText(p.char, 0, 0);
+      ctx.restore();
+      p.y += p.speed; p.angle += p.spin; p.swayAngle += p.swaySpeed; p.x += Math.sin(p.swayAngle)*p.sway;
+      if (p.y > c.height+20) { p.y = -20; p.x = Math.random()*c.width; }
+    });
+  }
+  particleInterval = setInterval(draw, 50); // 20fps — lighter
+  window.addEventListener('resize', ()=>{ c.width=window.innerWidth; c.height=window.innerHeight; });
+}
+
+window.showToast = showToast;
+window.toggleMenu = function() { document.getElementById('mobile-menu').classList.toggle('open'); };
+window.closeMobileMenu = function() { document.getElementById('mobile-menu').classList.remove('open'); };
+
+initStore();
+</script>
+
 <!-- AUTH MODAL -->
 <div class="auth-overlay" id="auth-overlay">
   <div class="auth-box">
@@ -1032,118 +1149,7 @@ window.doRegister = async function() {
 window.doSignOut = async function() {
   await signOut(auth);
 };
-</script>
 
-// ===== EVENTS =====
-const events=[
-  {id:'newyear',name:'Año Nuevo',date:'1 enero',emoji:'🎆',theme:'newyear',particles:'confetti',endDate:new Date(new Date().getFullYear(),0,3)},
-  {id:'reyes',name:'Reyes Magos',date:'6 enero',emoji:'⭐',theme:'newyear',particles:'stars',endDate:new Date(new Date().getFullYear(),0,8)},
-  {id:'carnival',name:'Carnaval Barranquilla',date:'Feb/Mar',emoji:'🎭',theme:'carnival',particles:'confetti',endDate:new Date(new Date().getFullYear(),1,28)},
-  {id:'sanjose',name:'San José',date:'19 marzo',emoji:'🌷',theme:'love',particles:'hearts',endDate:new Date(new Date().getFullYear(),2,21)},
-  {id:'semanasanta',name:'Semana Santa',date:'Mar/Abr',emoji:'✝️',theme:'love',particles:'stars',endDate:new Date(new Date().getFullYear(),3,5)},
-  {id:'diadelniño',name:'Día del Niño',date:'Abr',emoji:'🧒',theme:'carnival',particles:'confetti',endDate:new Date(new Date().getFullYear(),3,30)},
-  {id:'madre',name:'Día de la Madre',date:'10 mayo',emoji:'💐',theme:'mothers',particles:'hearts',endDate:new Date(new Date().getFullYear(),4,12)},
-  {id:'padre',name:'Día del Padre',date:'Jun',emoji:'👔',theme:'love',particles:'hearts',endDate:new Date(new Date().getFullYear(),5,20)},
-  {id:'independencia',name:'Independencia Colombia',date:'20 julio',emoji:'🇨🇴',theme:'independence',particles:'confetti',endDate:new Date(new Date().getFullYear(),6,22)},
-  {id:'boyaca',name:'Batalla de Boyacá',date:'7 agosto',emoji:'⚔️',theme:'independence',particles:'confetti',endDate:new Date(new Date().getFullYear(),7,9)},
-  {id:'amor',name:'Amor y Amistad',date:'Sep',emoji:'💖',theme:'love',particles:'hearts',endDate:new Date(new Date().getFullYear(),8,30)},
-  {id:'halloween',name:'Halloween',date:'31 octubre',emoji:'🎃',theme:'halloween',particles:'bats',endDate:new Date(new Date().getFullYear(),10,2)},
-  {id:'velitas',name:'Día de las Velitas',date:'8 dic',emoji:'🕯️',theme:'christmas',particles:'stars',endDate:new Date(new Date().getFullYear(),11,10)},
-  {id:'navidad',name:'Navidad',date:'25 dic',emoji:'🎄',theme:'christmas',particles:'snow',endDate:new Date(new Date().getFullYear(),11,27)},
-  {id:'findeanyo',name:'Fin de Año',date:'31 dic',emoji:'🎉',theme:'newyear',particles:'fireworks',endDate:new Date(new Date().getFullYear(),11,31)},
-];
-const eventMessages={
-  love:{title:'AMOR Y AMISTAD',subtitle:'Regala el mejor iPhone 💖',badge:'💖 Edición Especial'},
-  christmas:{title:'NAVIDAD',subtitle:'El regalo perfecto 🎄',badge:'🎄 Navidad'},
-  halloween:{title:'HALLOWEEN',subtitle:'Precios de terror 🎃',badge:'🎃 Halloween'},
-  carnival:{title:'CARNAVAL',subtitle:'¡Que baile el iPhone! 🎭',badge:'🎭 Carnaval Barranquilla'},
-  mothers:{title:'DÍA DE LA MADRE',subtitle:'El mejor regalo 💐',badge:'💐 Día de la Madre'},
-  independence:{title:'¡COLOMBIA!',subtitle:'Precios independientes 🇨🇴',badge:'🇨🇴 Día Patrio'},
-  newyear:{title:'AÑO NUEVO',subtitle:'Estrena el año ✨',badge:'✨ Año Nuevo'},
-};
-
-function applyEvent(id) {
-  document.body.classList.remove('event-active','event-christmas','event-halloween','event-love','event-carnival','event-mothers','event-independence','event-newyear');
-  const banner = document.getElementById('event-banner');
-  if (!id) { banner.classList.remove('active'); stopParticles(); return; }
-  const ev = events.find(e=>e.id===id); if(!ev) return;
-  document.body.classList.add('event-active','event-'+ev.theme);
-  banner.classList.add('active');
-  const msgs = eventMessages[ev.theme] || {title:ev.name.toUpperCase(),subtitle:'Precios especiales',badge:ev.emoji+' Evento'};
-  document.getElementById('event-badge').textContent = msgs.badge;
-  document.getElementById('event-title').innerHTML = msgs.title;
-  document.getElementById('event-subtitle').textContent = msgs.subtitle;
-  document.getElementById('event-products').innerHTML = store.products.slice(0,3).map(p=>`
-    <div class="event-product-card" onclick="openModal(${p.id})">
-      <div class="event-discount-badge">HOT</div>
-      <div class="event-product-emoji">${p.emoji}</div>
-      <div class="event-product-name">${p.name}</div>
-      <div class="event-product-price">${formatPrice(p.price)}</div>
-    </div>`).join('');
-  startParticles(ev.particles);
-  startTimer(ev.endDate);
-}
-
-function startTimer(endDate) {
-  function update() {
-    const diff = endDate - new Date();
-    if (diff <= 0) { ['t-days','t-hours','t-mins','t-secs'].forEach(i=>document.getElementById(i).textContent='00'); return; }
-    document.getElementById('t-days').textContent = String(Math.floor(diff/86400000)).padStart(2,'0');
-    document.getElementById('t-hours').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
-    document.getElementById('t-mins').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-    document.getElementById('t-secs').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-  }
-  update(); setInterval(update, 1000);
-}
-
-let particleInterval = null;
-function stopParticles() {
-  if (particleInterval) clearInterval(particleInterval);
-  const c = document.getElementById('particles-canvas');
-  c.getContext('2d').clearRect(0,0,c.width,c.height);
-}
-function startParticles(type) {
-  stopParticles();
-  const c = document.getElementById('particles-canvas');
-  c.width = window.innerWidth; c.height = window.innerHeight;
-  const ctx = c.getContext('2d');
-  // Lighter particles — text chars instead of emoji for performance
-  const sets = {
-    hearts:['♥','♡','❤'],
-    snow:['*','·','❄'],
-    confetti:['+','×','◆','◇'],
-    stars:['★','☆','·'],
-    bats:['*','◆','·'],
-    fireworks:['*','·','★']
-  };
-  const set = sets[type] || sets.confetti;
-  const ps = Array.from({length:25}, ()=>(({
-    x:Math.random()*c.width, y:Math.random()*c.height - c.height,
-    speed:0.8+Math.random()*1.2, size:10+Math.random()*10,
-    char:set[Math.floor(Math.random()*set.length)],
-    angle:Math.random()*Math.PI*2, spin:(Math.random()-0.5)*0.04,
-    sway:Math.random()*1.5-0.75, swaySpeed:0.01+Math.random()*0.02, swayAngle:Math.random()*Math.PI*2,
-    opacity:0.3+Math.random()*0.4
-  })));
-  function draw() {
-    ctx.clearRect(0,0,c.width,c.height);
-    ps.forEach(p=>{
-      ctx.save();
-      ctx.globalAlpha = p.opacity;
-      ctx.font = `${p.size}px serif`;
-      ctx.fillStyle = 'rgba(201,168,76,1)';
-      ctx.translate(p.x, p.y); ctx.rotate(p.angle);
-      ctx.fillText(p.char, 0, 0);
-      ctx.restore();
-      p.y += p.speed; p.angle += p.spin; p.swayAngle += p.swaySpeed; p.x += Math.sin(p.swayAngle)*p.sway;
-      if (p.y > c.height+20) { p.y = -20; p.x = Math.random()*c.width; }
-    });
-  }
-  particleInterval = setInterval(draw, 50); // 20fps — lighter
-  window.addEventListener('resize', ()=>{ c.width=window.innerWidth; c.height=window.innerHeight; });
-}
-
-initStore();
 </script>
 </body>
 </html>
