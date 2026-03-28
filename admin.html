@@ -789,12 +789,27 @@ details[open] summary { border-radius: var(--radius-sm) var(--radius-sm) 0 0; bo
       ════════════════════════ -->
       <div class="section" id="sec-otros">
         <div class="section-header"><div class="section-title">Otros productos</div></div>
-        <div class="card" style="max-width:520px;margin-bottom:20px;">
+        <div class="card" style="max-width:580px;margin-bottom:20px;">
           <div class="form-grid" style="margin-bottom:12px;">
             <div class="field"><label class="field-label">Nombre</label><input class="input" id="o-name" placeholder="Samsung Galaxy S24"></div>
-            <div class="field"><label class="field-label">Emoji</label><input class="input" id="o-emoji" placeholder="📲"></div>
+            <div class="field"><label class="field-label">Emoji (si no hay imagen)</label><input class="input" id="o-emoji" placeholder="📲"></div>
           </div>
           <div class="field" style="margin-bottom:12px;"><label class="field-label">Precio (COP)</label><input class="input" id="o-price" type="number" placeholder="2500000"></div>
+          <div class="field" style="margin-bottom:14px;">
+            <label class="field-label">Imagen desde galería (opcional)</label>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all 0.2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+                🖼️ Elegir imagen
+                <input type="file" id="o-img-file" accept="image/*" style="display:none;" onchange="previewOtroImg(this)">
+              </label>
+              <div id="o-img-preview" style="display:none;align-items:center;gap:8px;">
+                <img id="o-img-preview-img" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" alt="preview">
+                <button onclick="clearOtroImg()" class="btn btn-danger btn-sm" type="button">✕ Quitar</button>
+              </div>
+              <span id="o-img-none" style="font-size:12px;color:var(--text3);">Sin imagen — se usará el emoji</span>
+            </div>
+            <input type="hidden" id="o-img-b64" value="">
+          </div>
           <button class="btn btn-primary" onclick="addOtro()">+ Agregar</button>
         </div>
         <div class="table-wrap card" style="padding:0;">
@@ -1798,7 +1813,7 @@ window.saveEdit = async function(){
 // ─── OTROS ────────────────────────────────────────────
 function renderOtros(){
   document.getElementById('otros-body').innerHTML=store.otros.map(o=>`
-    <tr><td>${o.emoji} ${o.name}</td><td style="color:var(--gold-dark);font-weight:600;">${fp(o.price)}</td>
+    <tr><td style="display:flex;align-items:center;gap:10px;">${o.img?`<img src="${o.img}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">`:o.emoji} ${o.name}</td><td style="color:var(--gold-dark);font-weight:600;">${fp(o.price)}</td>
     <td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="editOtro(${o.id})" style="margin-right:6px;">✏</button><button class="btn btn-danger btn-sm" onclick="deleteOtro(${o.id})">🗑</button></td></tr>
   `).join('')||'<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3);">Sin productos</td></tr>';
 }
@@ -1807,9 +1822,30 @@ window.addOtro=async function(){
   const price=document.getElementById('o-price').value;
   if(!name||!price){showToast('Nombre y precio requeridos','error');return;}
   const newId=Math.max(0,...store.otros.map(o=>o.id))+1;
-  store.otros.push({id:newId,name,emoji:document.getElementById('o-emoji').value||'📲',price:Number(price)});
+  const img=document.getElementById('o-img-b64')?.value||'';
+  store.otros.push({id:newId,name,emoji:document.getElementById('o-emoji').value||'📲',price:Number(price),img});
   await saveToFirebase({otros:store.otros}); renderOtros();
   ['o-name','o-emoji','o-price'].forEach(i=>document.getElementById(i).value='');
+  clearOtroImg();
+};
+window.previewOtroImg=function(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const b64=e.target.result;
+    document.getElementById('o-img-b64').value=b64;
+    document.getElementById('o-img-preview-img').src=b64;
+    document.getElementById('o-img-preview').style.display='flex';
+    document.getElementById('o-img-none').style.display='none';
+  };
+  reader.readAsDataURL(file);
+};
+window.clearOtroImg=function(){
+  document.getElementById('o-img-b64').value='';
+  document.getElementById('o-img-file').value='';
+  document.getElementById('o-img-preview').style.display='none';
+  document.getElementById('o-img-preview-img').src='';
+  document.getElementById('o-img-none').style.display='';
 };
 window.editOtro=async function(id){
   const o=store.otros.find(x=>x.id===id);
