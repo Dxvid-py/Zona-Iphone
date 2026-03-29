@@ -74,6 +74,19 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .section{display:none;}
 .section.active{display:block;animation:fadeIn 0.2s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+/* ─ Smooth transitions ─ */
+.stat-card,.card,.venta-item,.prod-card{transition:box-shadow 0.2s ease,transform 0.2s ease,opacity 0.2s ease;}
+.nav-item,.btn{transition:all 0.15s ease;}
+.section{animation-duration:0.25s;}
+/* ─ Real-time pulse (new data indicator) ─ */
+@keyframes rtPulse{0%{opacity:1;}50%{opacity:0.6;}100%{opacity:1;}}
+.rt-updating{animation:rtPulse 0.6s ease;}
+/* ─ Toast improvement ─ */
+.toast{transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s ease;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+/* ─ Stat card value fade on update ─ */
+@keyframes valueUpdate{0%{color:var(--gold);}100%{color:inherit;}}
+.val-updated{animation:valueUpdate 0.8s ease;}
 .section-header{margin-bottom:20px;}
 .section-title{font-family:var(--font-display);font-size:26px;color:var(--text);margin-bottom:3px;}
 .section-sub{font-size:13px;color:var(--text3);}
@@ -289,6 +302,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <div class="topbar-right">
         <span class="topbar-date" id="topbar-date"></span>
         <span class="topbar-badge" id="topbar-factura-badge">Factura #00001</span>
+        <span class="topbar-badge" id="rt-badge" style="background:var(--green-bg);color:var(--green);border-color:rgba(45,122,79,0.25);">🟢 En vivo</span>
       </div>
     </header>
     <div class="content">
@@ -864,6 +878,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, Timestamp, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -883,7 +898,7 @@ const gastosCol = collection(db,'gastos');
 const proveedoresCol = collection(db,'proveedores');
 const empleadosCol = collection(db,'empleados');
 
-const ADMIN_PASS = 'Dios2026';
+const ADMIN_PASS = 'zonaiphone2025';
 const WA_NUMBER  = '573233039179';
 
 // ─── HELPERS ───
@@ -899,18 +914,31 @@ function showToast(msg,type=''){
 }
 
 // ─── AUTH ───
+const SESSION_KEY='zi_admin_logged';
+function enterAdmin(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('admin-app').classList.add('visible');
+  initAdmin();
+}
+// Auto-login if session exists
+(function checkSession(){
+  try{
+    if(sessionStorage.getItem(SESSION_KEY)==='1') enterAdmin();
+  }catch(e){}
+})();
+
 window.checkLogin=function(){
   const p=document.getElementById('login-pass').value;
   if(p===ADMIN_PASS){
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('admin-app').classList.add('visible');
-    initAdmin();
+    try{ sessionStorage.setItem(SESSION_KEY,'1'); }catch(e){}
+    enterAdmin();
   } else {
     document.getElementById('login-error').style.display='block';
     document.getElementById('login-pass').value='';
   }
 };
 window.logout=function(){
+  try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
   document.getElementById('admin-app').classList.remove('visible');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-pass').value='';
@@ -964,11 +992,39 @@ async function initAdmin(){
     else await setDoc(storeRef,defaultStore);
   } catch(e){ console.warn(e); }
 
-  await Promise.all([loadVentas(),loadGastos(),loadProveedores(),loadEmpleados()]);
+  await Promise.all([loadProveedores(),loadEmpleados()]);
   updateFacturaBadge();
-  renderAll();
   initVentaForm();
-  onSnapshot(storeRef,snap=>{if(snap.exists()){store={...defaultStore,...snap.data()};renderAll();}});
+
+  // ── REAL-TIME LISTENERS ──
+  // ventas
+  const ventasQ=query(ventasCol,orderBy('fecha','desc'));
+  onSnapshot(ventasQ,snap=>{
+    allVentas=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderDashboard();
+    renderHistorial();
+    updateFacturaBadge();
+  },{error:async e=>{
+    // fallback to getDocs if listener fails
+    await loadVentas();
+    renderDashboard();renderHistorial();
+  }});
+
+  // gastos
+  const gastosQ=query(gastosCol,orderBy('fecha','desc'));
+  onSnapshot(gastosQ,snap=>{
+    allGastos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderDashboard();
+    renderGastos();
+  },{error:async e=>{await loadGastos();renderDashboard();}});
+
+  // store config
+  onSnapshot(storeRef,snap=>{
+    if(snap.exists()){
+      store={...defaultStore,...snap.data()};
+      renderProducts();renderOtros();renderClients();renderEvents();renderVideo();
+    }
+  });
 }
 
 async function saveToFirebase(updates){
@@ -1107,6 +1163,12 @@ function renderDashboard(){
   renderRecentTable(v2.slice(0,8),'recent-l2',false);
 
   document.getElementById('dash-subtitle').textContent=`Total ventas: ${allVentas.length} · Ingresos del mes: ${fp(totalIngresos)}`;
+  // Flash indicator on update
+  document.querySelectorAll('.stat-value').forEach(el=>{
+    el.classList.remove('val-updated');
+    void el.offsetWidth; // reflow
+    el.classList.add('val-updated');
+  });
 }
 
 function renderChart30(canvasId,ventas,color){
@@ -1344,431 +1406,286 @@ window.generarPDF=function(venta){
   const fd=venta.fecha?.toDate?venta.fecha.toDate():new Date();
   const fechaStr=fd.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
   const horaStr=fd.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
-  // Build payment detail HTML
-  let pagoHtml='';
+  const cajaLabel=venta.caja==='caja1'?'Local 1 — Caja 1':'Local 2 — Caja 2';
   const tpLabel={contado:'PAGO DE CONTADO',credito:'VENTA A CRÉDITO',tradein:'TRADE-IN / PAGO CON CELULAR'}[venta.tipoPago]||'';
-  pagoHtml+=`<p style="font-weight:700;margin:4px 0 3px;">${tpLabel}</p>`;
+  const fileName='FacturaZI_'+numFactura(venta.facturaNum||1)+'_'+(venta.cliente||'cliente').replace(/\s/g,'_')+'.pdf';
+
+  // ── Build pago block ──
+  let pagoRows='';
   if(venta.tipoPago==='contado'&&venta.metodoPago){
-    pagoHtml+=`<p>Método: ${venta.metodoPago}</p>`;
+    pagoRows=`<tr><td colspan="2">Método: <b>${venta.metodoPago}</b></td></tr>`;
   } else if(venta.tipoPago==='credito'&&venta.datosCredito){
     const dc=venta.datosCredito;
-    pagoHtml+=`<p>Abono inicial: <b>${fp(dc.abono)}</b></p>`;
-    pagoHtml+=`<p>${dc.ncuotas} cuotas de <b>${fp(dc.cuota)}</b> c/u</p>`;
-    pagoHtml+=`<p>1ra cuota: ${dc.fechaPrimeraCuota||'—'}</p>`;
-    pagoHtml+=`<p>Saldo pendiente: <b>${fp(Math.max(0,(venta.total||0)-dc.abono))}</b></p>`;
+    const saldo=Math.max(0,(venta.total||0)-dc.abono);
+    pagoRows=`
+      <tr><td>Abono inicial:</td><td style="text-align:right"><b>${fp(dc.abono)}</b></td></tr>
+      <tr><td>${dc.ncuotas} cuotas de:</td><td style="text-align:right"><b>${fp(dc.cuota)}</b></td></tr>
+      <tr><td>1ra cuota:</td><td style="text-align:right">${dc.fechaPrimeraCuota||'—'}</td></tr>
+      <tr><td>Saldo:</td><td style="text-align:right"><b>${fp(saldo)}</b></td></tr>`;
   } else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){
     const dt=venta.datosTradeIn;
-    pagoHtml+=`<p>Celular recibido: <b>${dt.modelo}</b></p>`;
-    if(dt.imei) pagoHtml+=`<p>IMEI: ${dt.imei}</p>`;
-    pagoHtml+=`<p>Valor recibido: <b>${fp(dt.valor)}</b></p>`;
-    pagoHtml+=`<p>Diferencia a pagar: <b>${fp(dt.restante)}</b></p>`;
+    pagoRows=`
+      <tr><td>Celular recibido:</td><td style="text-align:right"><b>${dt.modelo}</b></td></tr>
+      ${dt.imei?`<tr><td>IMEI:</td><td style="text-align:right">${dt.imei}</td></tr>`:''}
+      <tr><td>Valor recibido:</td><td style="text-align:right"><b>${fp(dt.valor)}</b></td></tr>
+      <tr><td>Diferencia:</td><td style="text-align:right"><b>${fp(dt.restante)}</b></td></tr>`;
   }
 
-  // Build products rows
-  const prodsRows=(venta.productos||[]).map(p=>`
-    <tr>
-      <td style="padding:4px 3px;vertical-align:top;word-break:break-word;max-width:120px;">${p.nombre}</td>
-      <td style="padding:4px 3px;text-align:center;white-space:nowrap;">${p.cantidad}</td>
-      <td style="padding:4px 3px;text-align:right;white-space:nowrap;">${fp(p.precio)}</td>
-      <td style="padding:4px 3px;text-align:right;white-space:nowrap;font-weight:700;">${fp(p.subtotal)}</td>
+  // ── Build products rows ──
+  const prodRows=(venta.productos||[]).map(p=>`
+    <tr class="prod-row">
+      <td class="prod-name">${p.nombre||''}</td>
+      <td class="prod-cant">${p.cantidad}</td>
+      <td class="prod-vr">${fp(p.precio)}</td>
+      <td class="prod-total">${fp(p.subtotal)}</td>
     </tr>`).join('');
 
-  const cajaLabel=venta.caja==='caja1'?'Local 1 — Caja 1':'Local 2 — Caja 2';
-  const obsHtml=venta.observaciones?`<p style="margin-top:4px;font-style:italic;color:#444;">${venta.observaciones}</p>`:'';
+  const obsRow=venta.observaciones?`<tr><td colspan="2" style="font-style:italic;color:#555;padding-top:3px;">${venta.observaciones}</td></tr>`:'';
 
-  const ticketHTML=`<!DOCTYPE html>
+  // ── Full ticket HTML ──
+  const html=`<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    font-family:'Source Code Pro',Courier,monospace;
-    font-size:11px;
-    line-height:1.55;
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{
+    width:75mm;
+    font-family:Courier,monospace;
+    font-size:10px;
+    line-height:1.6;
     color:#111;
     background:#fff;
+  }
+  .ticket{
     width:75mm;
-    margin:0 auto;
-    padding:6mm 5mm 10mm 5mm;
+    padding:6mm 4mm 10mm 4mm;
   }
-  .center{text-align:center;}
-  .left{text-align:left;}
-  .right{text-align:right;}
-  .bold{font-weight:700;}
-  .sep{
-    border:none;
-    border-top:1.5px dashed #999;
-    margin:6px 0;
-  }
-  .sep-solid{
-    border:none;
-    border-top:1.5px solid #333;
-    margin:6px 0;
-  }
-  .section{margin:6px 0;}
-  /* Header */
-  .header{text-align:center;margin-bottom:6px;}
-  .logo-wrap{margin-bottom:4px;}
-  .logo-wrap img{max-height:52px;max-width:160px;object-fit:contain;}
-  .biz-name{font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
-  .biz-sub{font-size:9.5px;color:#555;margin-top:2px;}
-  .biz-detail{font-size:9.5px;color:#444;margin-top:1px;}
-  /* Factura badge */
-  .factura-badge{
+  /* ─ header ─ */
+  .hd{text-align:center;margin-bottom:5px;}
+  .hd-sub{font-size:8px;color:#666;text-transform:uppercase;letter-spacing:0.5px;}
+  .hd-name{font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin:2px 0;}
+  .hd-info{font-size:8.5px;color:#444;margin-top:1px;}
+  /* ─ separators ─ */
+  .sep{border:none;border-top:1px dashed #aaa;margin:5px 0;}
+  .sep-bold{border:none;border-top:1.5px solid #222;margin:5px 0;}
+  /* ─ factura badge ─ */
+  .fac-badge{
     text-align:center;
-    font-size:13px;
-    font-weight:700;
-    letter-spacing:1px;
-    padding:4px 0;
-    margin:6px 0;
-    border-top:2px solid #111;
-    border-bottom:2px solid #111;
-  }
-  .date-row{
-    display:flex;
-    justify-content:space-between;
-    font-size:9.5px;
-    color:#333;
-    margin:3px 0;
-  }
-  /* Cliente */
-  .section-label{
-    font-size:10px;
-    font-weight:700;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    color:#111;
-    margin-bottom:3px;
-  }
-  .client-name{font-size:12px;font-weight:700;margin-bottom:2px;}
-  .client-detail{font-size:9.5px;color:#444;margin-bottom:1px;}
-  /* Table */
-  .prod-table{width:100%;border-collapse:collapse;margin:4px 0;}
-  .prod-table thead th{
-    font-size:9px;
-    font-weight:700;
-    text-transform:uppercase;
-    padding:3px 3px 4px;
-    border-bottom:1.5px solid #333;
+    font-size:12px;
+    font-weight:bold;
     letter-spacing:0.5px;
+    padding:4px 0;
+    border-top:1.5px solid #111;
+    border-bottom:1.5px solid #111;
+    margin:4px 0;
   }
-  .prod-table thead th:first-child{text-align:left;}
-  .prod-table thead th:nth-child(2){text-align:center;}
-  .prod-table thead th:nth-child(3){text-align:right;}
-  .prod-table thead th:nth-child(4){text-align:right;}
-  .prod-table tbody tr{border-bottom:1px dashed #ddd;}
-  .prod-table tbody tr:last-child{border-bottom:none;}
-  .prod-table tfoot td{
-    font-size:9.5px;
-    padding:3px 3px;
-    color:#666;
+  /* ─ date row ─ */
+  .dt-row{display:flex;justify-content:space-between;font-size:8.5px;color:#333;margin:3px 0;}
+  /* ─ section label ─ */
+  .sec-lbl{font-size:8.5px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+  /* ─ client ─ */
+  .cli-name{font-size:11px;font-weight:bold;margin-bottom:2px;}
+  .cli-detail{font-size:8.5px;color:#444;margin-bottom:1px;}
+  /* ─ products table ─ */
+  .prod-table{width:100%;border-collapse:collapse;margin:3px 0;}
+  .prod-table thead th{
+    font-size:8px;
+    font-weight:bold;
+    text-transform:uppercase;
+    padding:2px 2px 3px;
+    border-bottom:1px solid #333;
   }
-  /* Descuento */
-  .dscto-row{
-    display:flex;
-    justify-content:space-between;
-    font-size:9.5px;
-    color:#777;
-    padding:2px 3px;
+  .prod-table thead th.prod-name{text-align:left;width:42%;}
+  .prod-table thead th.prod-cant{text-align:center;width:10%;}
+  .prod-table thead th.prod-vr{text-align:right;width:22%;}
+  .prod-table thead th.prod-total{text-align:right;width:26%;}
+  .prod-row td{padding:3px 2px;font-size:8.5px;border-bottom:1px dashed #ddd;vertical-align:top;}
+  .prod-row:last-child td{border-bottom:none;}
+  .prod-name{text-align:left;word-break:break-word;}
+  .prod-cant{text-align:center;}
+  .prod-vr{text-align:right;white-space:nowrap;}
+  .prod-total{text-align:right;white-space:nowrap;font-weight:bold;}
+  /* ─ dscto ─ */
+  .dscto{display:flex;justify-content:space-between;font-size:8.5px;color:#888;padding:2px 0;}
+  /* ─ total ─ */
+  .total-blk{
+    display:flex;justify-content:space-between;align-items:center;
+    border-top:1.5px solid #111;border-bottom:1.5px solid #111;
+    padding:4px 0;margin:4px 0;
   }
-  /* Total */
-  .total-block{
-    margin:6px 0;
-    padding:5px 3px;
-    border-top:2px solid #111;
-    border-bottom:2px solid #111;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-  }
-  .total-label{font-size:13px;font-weight:700;letter-spacing:1px;}
-  .total-value{font-size:15px;font-weight:700;}
-  /* Legal */
-  .legal{font-size:8.5px;color:#555;text-align:center;margin:4px 0;line-height:1.4;}
-  /* Pago */
-  .pago-block{margin:5px 0;}
-  .pago-block p{font-size:9.5px;margin:1.5px 0;color:#333;}
-  /* Garantía */
-  .garantia-block{margin:5px 0;}
-  .garantia-title{font-size:10px;font-weight:700;display:flex;justify-content:space-between;margin-bottom:3px;}
-  .garantia-text{font-size:9px;color:#444;line-height:1.5;}
-  /* Caja / Local */
-  .caja-label{font-size:9px;color:#888;text-align:center;margin:4px 0;}
-  /* Footer */
-  .footer{text-align:center;margin-top:8px;padding-top:6px;border-top:1.5px dashed #999;}
-  .thanks{font-size:14px;font-weight:700;letter-spacing:0.5px;margin-bottom:3px;}
-  .biz-footer{font-size:9.5px;color:#555;}
-  @media print{
-    body{width:75mm;padding:2mm 3mm 6mm 3mm;}
-    .no-print{display:none;}
-  }
+  .total-lbl{font-size:12px;font-weight:bold;letter-spacing:1px;}
+  .total-val{font-size:14px;font-weight:bold;}
+  /* ─ legal ─ */
+  .legal{font-size:7.5px;color:#666;text-align:center;margin:3px 0;line-height:1.4;}
+  /* ─ pago table ─ */
+  .pago-lbl{font-size:9px;font-weight:bold;margin:3px 0 2px;}
+  .pago-table{width:100%;border-collapse:collapse;}
+  .pago-table td{font-size:8.5px;padding:1.5px 0;color:#333;}
+  /* ─ garantia ─ */
+  .gar-row{display:flex;justify-content:space-between;font-size:9px;font-weight:bold;margin-bottom:3px;}
+  .gar-text{font-size:7.5px;color:#555;line-height:1.5;}
+  /* ─ caja ─ */
+  .caja-lbl{text-align:center;font-size:8px;color:#999;margin:3px 0;}
+  /* ─ footer ─ */
+  .footer{text-align:center;margin-top:7px;padding-top:5px;border-top:1px dashed #aaa;}
+  .thanks{font-size:12px;font-weight:bold;margin-bottom:2px;}
+  .footer-sub{font-size:8px;color:#666;}
 </style>
 </head>
 <body>
+<div class="ticket">
 
-<!-- HEADER -->
-<div class="header">
-  ${store.configuracion?.logoUrl?`<div class="logo-wrap"><img src="${store.configuracion.logoUrl}" alt="Logo"></div>`:''}
-  <div class="biz-sub">CELULARES &amp; ACCESORIOS</div>
-  <div class="biz-name">${negocio}</div>
-  <div class="biz-detail">NIT: ${nit}</div>
-  <div class="biz-detail">${dir}</div>
-  <div class="biz-detail">${telN}</div>
-  <div class="biz-detail">${emailN}</div>
-</div>
+  <!-- HEADER -->
+  <div class="hd">
+    <div class="hd-sub">Celulares &amp; Accesorios</div>
+    <div class="hd-name">${negocio}</div>
+    <div class="hd-info">NIT: ${nit}</div>
+    <div class="hd-info">${dir}</div>
+    <div class="hd-info">${telN}</div>
+    <div class="hd-info">${emailN}</div>
+  </div>
 
-<hr class="sep-solid">
+  <hr class="sep-bold">
 
-<!-- FACTURA # -->
-<div class="factura-badge">FACTURA # ${numFactura(venta.facturaNum||1)}</div>
+  <!-- FACTURA # -->
+  <div class="fac-badge">FACTURA # ${numFactura(venta.facturaNum||1)}</div>
 
-<!-- FECHA / HORA -->
-<div class="date-row">
-  <span>FECHA: ${fechaStr}</span>
-  <span>HORA: ${horaStr}</span>
-</div>
+  <!-- FECHA / HORA -->
+  <div class="dt-row">
+    <span>Fecha: ${fechaStr}</span>
+    <span>Hora: ${horaStr}</span>
+  </div>
 
-<hr class="sep">
+  <hr class="sep">
 
-<!-- CLIENTE -->
-<div class="section">
-  <div class="section-label">Cliente</div>
-  <div class="client-name">${venta.cliente||'—'}</div>
-  ${venta.cedula?`<div class="client-detail">CC/NIT: ${mascaraCedula(venta.cedula)}</div>`:''}
-  ${venta.telefono?`<div class="client-detail">Tel: ${venta.telefono}</div>`:''}
-  <div class="client-detail">Ciudad: ${ciudad}</div>
-</div>
+  <!-- CLIENTE -->
+  <div class="sec-lbl">Cliente</div>
+  <div class="cli-name">${venta.cliente||'—'}</div>
+  ${venta.cedula?`<div class="cli-detail">CC/NIT: ${mascaraCedula(venta.cedula)}</div>`:''}
+  ${venta.telefono?`<div class="cli-detail">Tel: ${venta.telefono}</div>`:''}
+  <div class="cli-detail">Ciudad: ${ciudad}</div>
 
-<hr class="sep-solid">
+  <hr class="sep-bold">
 
-<!-- PRODUCTOS -->
-<table class="prod-table">
-  <thead>
-    <tr>
-      <th style="text-align:left;width:45%;">DESC</th>
-      <th style="text-align:center;width:10%;">CANT</th>
-      <th style="text-align:right;width:22%;">VR.</th>
-      <th style="text-align:right;width:23%;">TOTAL</th>
-    </tr>
-  </thead>
-  <tbody>${prodsRows}</tbody>
-</table>
+  <!-- PRODUCTOS -->
+  <table class="prod-table">
+    <thead>
+      <tr>
+        <th class="prod-name">DESC</th>
+        <th class="prod-cant">CANT</th>
+        <th class="prod-vr">VR.</th>
+        <th class="prod-total">TOTAL</th>
+      </tr>
+    </thead>
+    <tbody>${prodRows}</tbody>
+  </table>
 
-<hr class="sep">
-<div class="dscto-row"><span>DSCTO. - $0, 0</span><span>$0</span></div>
-<hr class="sep-solid">
+  <hr class="sep">
+  <div class="dscto"><span>DSCTO. - $0, 0</span><span>$0</span></div>
+  <hr class="sep-bold">
 
-<!-- TOTAL -->
-<div class="total-block">
-  <span class="total-label">TOTAL</span>
-  <span class="total-value">${fp(venta.total)}</span>
-</div>
+  <!-- TOTAL -->
+  <div class="total-blk">
+    <span class="total-lbl">TOTAL</span>
+    <span class="total-val">${fp(venta.total)}</span>
+  </div>
 
-<!-- LEGAL -->
-<div class="legal">ESTA FACTURA PRESTA MERITO EJECUTIVO COMO<br>LETRA DE CAMBIO ART.774 COD DE COMERCIO</div>
+  <!-- LEGAL -->
+  <div class="legal">ESTA FACTURA PRESTA MERITO EJECUTIVO COMO<br>LETRA DE CAMBIO ART.774 COD DE COMERCIO</div>
 
-<hr class="sep">
+  <hr class="sep">
 
-<!-- TIPO DE PAGO -->
-<div class="pago-block">
-  ${pagoHtml}
-</div>
-${obsHtml}
+  <!-- TIPO DE PAGO -->
+  <div class="pago-lbl">${tpLabel}</div>
+  <table class="pago-table">
+    <tbody>${pagoRows}</tbody>
+  </table>
+  ${obsRow}
 
-<hr class="sep">
+  <hr class="sep">
 
-<!-- GARANTÍA -->
-<div class="garantia-block">
-  <div class="garantia-title">
+  <!-- GARANTÍA -->
+  <div class="gar-row">
     <span>GARANTIA</span>
     <span>${garantiaTiempo}</span>
   </div>
-  <div style="font-size:9.5px;font-weight:700;margin-bottom:3px;">GARANTÍA Y SOPORTE</div>
-  <div class="garantia-text">${garantiaTexto}</div>
+  <div class="sec-lbl" style="font-size:8px;">GARANTÍA Y SOPORTE</div>
+  <div class="gar-text">${garantiaTexto}</div>
+
+  <hr class="sep">
+
+  <!-- CAJA -->
+  <div class="caja-lbl">${cajaLabel}</div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="thanks">${mensajeFinal}</div>
+    <div class="footer-sub">${negocio} · PREMIUM SERVICES</div>
+  </div>
+
 </div>
-
-<hr class="sep">
-
-<!-- CAJA -->
-<div class="caja-label">${cajaLabel}</div>
-
-<!-- FOOTER -->
-<div class="footer">
-  <div class="thanks">${mensajeFinal}</div>
-  <div class="biz-footer">${negocio} · PREMIUM SERVICES</div>
-</div>
-
 </body>
 </html>`;
 
-  // Open in new window and trigger print (using html2pdf-like approach via iframe)
-  const printWin=window.open('','_blank','width=400,height=700');
-  if(!printWin){ showToast('⚠️ Permite ventanas emergentes para imprimir','error'); return; }
-  printWin.document.write(ticketHTML);
-  printWin.document.close();
-  printWin.focus();
-  // Small delay for fonts, then offer print/save as PDF
-  setTimeout(()=>{
-    printWin.print();
-    showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' lista para imprimir','success');
-  }, 600);
+  // ── Render into hidden div, then use html2pdf ──
+  const container=document.createElement('div');
+  container.style.cssText='position:fixed;left:-9999px;top:0;width:75mm;background:#fff;';
+  container.innerHTML=html;
+  document.body.appendChild(container);
 
-  // Also trigger jsPDF as backup download
-  _generarPDFjsPDF(venta, cfg, negocio, nit, dir, ciudad, telN, emailN, garantiaTiempo, garantiaTexto, mensajeFinal, fechaStr, horaStr, tpLabel);
-};
+  const ticketEl=container.querySelector('.ticket');
 
-// jsPDF backup (compact ticket, 75mm)
-function _generarPDFjsPDF(venta,cfg,negocio,nit,dir,ciudad,telN,emailN,garantiaTiempo,garantiaTexto,mensajeFinal,fechaStr,horaStr,tpLabel){
-  const {jsPDF}=window.jspdf;
-  const W=75, M=3.5;
-  const doc=new jsPDF({orientation:'p',unit:'mm',format:[W,400],compress:true});
-  let y=4;
+  // Detect Safari
+  const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-  const C=(txt,fy,sz,st='normal',col=[0,0,0])=>{
-    doc.setFontSize(sz);doc.setFont('courier',st);doc.setTextColor(...col);
-    doc.text(String(txt||''),W/2,fy,{align:'center'});
-  };
-  const L=(txt,fy,sz,st='normal')=>{
-    doc.setFontSize(sz);doc.setFont('courier',st);doc.setTextColor(0,0,0);
-    doc.text(String(txt||''),M,fy);
-  };
-  const R=(txt,fy,sz,st='normal')=>{
-    doc.setFontSize(sz);doc.setFont('courier',st);doc.setTextColor(0,0,0);
-    doc.text(String(txt||''),W-M,fy,{align:'right'});
-  };
-  const SEP=(fy,ch='─')=>{
-    doc.setFontSize(6.5);doc.setFont('courier','normal');doc.setTextColor(140,140,140);
-    const rep=ch.repeat(ch==='-'?34:34);
-    doc.text(rep,W/2,fy,{align:'center'});
-  };
-  const BOLD_LINE=(fy)=>{
-    doc.setDrawColor(30,30,30);doc.setLineWidth(0.35);
-    doc.line(M,fy,W-M,fy);
-  };
-  const DASH_LINE=(fy)=>{
-    doc.setDrawColor(160,160,160);doc.setLineWidth(0.15);
-    doc.setLineDash([1,1],0);
-    doc.line(M,fy,W-M,fy);
-    doc.setLineDash([],0);
-  };
-  const WRAP=(txt,fy,sz,maxW)=>{
-    doc.setFontSize(sz);doc.setFont('courier','normal');doc.setTextColor(60,60,60);
-    const lines=doc.splitTextToSize(String(txt||''),maxW);
-    lines.forEach(l=>{doc.text(l,M,fy);fy+=sz*0.38;});
-    return fy;
+  const opt={
+    margin:[2,2,2,2],
+    filename:fileName,
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{
+      scale:3,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:'#ffffff',
+      logging:false,
+      width:284,       // 75mm @ 96dpi ≈ 283.5px
+      windowWidth:284,
+    },
+    jsPDF:{
+      unit:'mm',
+      format:[79,400],  // tall, will be cropped to content
+      orientation:'portrait',
+      compress:true,
+    },
+    pagebreak:{mode:'avoid-all'},
   };
 
-  // Header
-  C('CELULARES & ACCESORIOS',y+3,7,'normal',[80,80,80]);y+=5;
-  C(negocio.toUpperCase(),y+4,12,'bold');y+=6;
-  C('NIT: '+nit,y+3,7,'normal',[80,80,80]);y+=4.5;
-  C(dir,y+3,7,'normal',[80,80,80]);y+=4;
-  C(telN,y+3,7,'normal',[80,80,80]);y+=4;
-  C(emailN,y+3,7,'normal',[80,80,80]);y+=5;
+  showToast('⏳ Generando factura…');
 
-  BOLD_LINE(y);y+=1;
-  C('FACTURA # '+numFactura(venta.facturaNum||1),y+4.5,11,'bold');y+=6;
-  BOLD_LINE(y);y+=3;
+  const worker=html2pdf().set(opt).from(ticketEl);
 
-  // Fecha/hora
-  doc.setFontSize(7.5);doc.setFont('courier','normal');doc.setTextColor(0,0,0);
-  doc.text('Fecha: '+fechaStr,M,y+3);doc.text('Hora: '+horaStr,W-M,y+3,{align:'right'});
-  y+=5;DASH_LINE(y);y+=3;
-
-  // Cliente
-  doc.setFontSize(8);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-  doc.text('CLIENTE',M,y+3);y+=4.5;
-  doc.setFontSize(8.5);doc.setFont('courier','bold');
-  doc.text((venta.cliente||'—').toUpperCase().slice(0,28),M,y+3);y+=5;
-  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(60,60,60);
-  if(venta.cedula){doc.text('CC: '+mascaraCedula(venta.cedula),M,y+3);y+=4;}
-  if(venta.telefono){doc.text('Tel: '+venta.telefono,M,y+3);y+=4;}
-  doc.text('Ciudad: '+ciudad,M,y+3);y+=5;
-  BOLD_LINE(y);y+=3;
-
-  // Products header
-  doc.setFontSize(7.5);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-  doc.text('DESC',M,y+3.5);
-  doc.text('CANT',M+30,y+3.5,{align:'center'});
-  doc.text('VR.',M+48,y+3.5,{align:'right'});
-  doc.text('TOTAL',W-M,y+3.5,{align:'right'});
-  y+=5;DASH_LINE(y);y+=2.5;
-
-  // Products rows
-  doc.setFont('courier','normal');doc.setTextColor(0,0,0);
-  (venta.productos||[]).forEach(p=>{
-    doc.setFontSize(7);
-    const nm=String(p.nombre||'');
-    const lines=doc.splitTextToSize(nm,26);
-    lines.forEach((l,i)=>{doc.text(l,M,y+3+(i*3));});
-    const rh=Math.max(5,lines.length*3+1);
-    doc.setFontSize(7.5);
-    doc.text(String(p.cantidad),M+30,y+3,{align:'center'});
-    doc.text(fp(p.precio),M+48,y+3,{align:'right'});
-    doc.text(fp(p.subtotal),W-M,y+3,{align:'right'});
-    y+=rh;
-  });
-
-  y+=1;
-  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(100,100,100);
-  doc.text('DSCTO. - $0, 0',M,y+3);doc.text('$0',W-M,y+3,{align:'right'});
-  y+=4.5;BOLD_LINE(y);y+=1;BOLD_LINE(y);y+=4;
-
-  // Total
-  doc.setFontSize(12);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-  doc.text('TOTAL',M,y+5);doc.text(fp(venta.total),W-M,y+5,{align:'right'});
-  y+=7;BOLD_LINE(y);y+=1;BOLD_LINE(y);y+=4;
-
-  // Legal
-  doc.setFontSize(6.5);doc.setFont('courier','normal');doc.setTextColor(80,80,80);
-  y=WRAP('ESTA FACTURA PRESTA MERITO EJECUTIVO COMO LETRA DE CAMBIO ART.774 COD DE COMERCIO',y,6.5,W-M*2);
-  y+=3;DASH_LINE(y);y+=3;
-
-  // Pago
-  doc.setFontSize(8);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-  doc.text(tpLabel||'PAGO',M,y+3);y+=5;
-  doc.setFont('courier','normal');doc.setFontSize(7);doc.setTextColor(50,50,50);
-  if(venta.tipoPago==='contado'&&venta.metodoPago){doc.text('Método: '+venta.metodoPago,M,y+3);y+=4;}
-  else if(venta.tipoPago==='credito'&&venta.datosCredito){
-    const dc=venta.datosCredito;
-    doc.text('Abono: '+fp(dc.abono),M,y+3);y+=4;
-    doc.text(dc.ncuotas+' cuotas de '+fp(dc.cuota),M,y+3);y+=4;
-    doc.text('1ra cuota: '+(dc.fechaPrimeraCuota||'—'),M,y+3);y+=4;
-    doc.text('Saldo: '+fp(Math.max(0,(venta.total||0)-dc.abono)),M,y+3);y+=4;
-  } else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){
-    const dt=venta.datosTradeIn;
-    doc.text('Cel recibido: '+dt.modelo,M,y+3);y+=4;
-    if(dt.imei){doc.text('IMEI: '+dt.imei,M,y+3);y+=4;}
-    doc.text('Valor: '+fp(dt.valor),M,y+3);y+=4;
-    doc.text('Diferencia: '+fp(dt.restante),M,y+3);y+=4;
+  if(isSafari){
+    // Safari: open blob URL in new tab
+    worker.outputPdf('bloburl').then(url=>{
+      document.body.removeChild(container);
+      window.open(url,'_blank');
+      showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' abierta en nueva pestaña','success');
+    }).catch(err=>{
+      document.body.removeChild(container);
+      showToast('❌ Error: '+err.message,'error');
+    });
+  } else {
+    // Chrome / Firefox: download directly
+    worker.save().then(()=>{
+      document.body.removeChild(container);
+      showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' descargada','success');
+    }).catch(err=>{
+      document.body.removeChild(container);
+      showToast('❌ Error PDF: '+err.message,'error');
+    });
   }
-  if(venta.observaciones){y+=1;y=WRAP(venta.observaciones,y,7,W-M*2);y+=1;}
-  y+=2;DASH_LINE(y);y+=3;
-
-  // Garantía
-  doc.setFontSize(8);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-  doc.text('GARANTIA',M,y+3);doc.text(garantiaTiempo,W-M,y+3,{align:'right'});y+=5;
-  y=WRAP(garantiaTexto,y,7,W-M*2);
-  y+=4;DASH_LINE(y);y+=3;
-
-  // Caja / Footer
-  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(120,120,120);
-  const cajaL=venta.caja==='caja1'?'Local 1 — Caja 1':'Local 2 — Caja 2';
-  doc.text(cajaL,W/2,y+3,{align:'center'});y+=6;
-
-  doc.setFontSize(10);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
-  doc.text(mensajeFinal,W/2,y+4,{align:'center'});y+=7;
-  doc.setFontSize(7.5);doc.setFont('courier','bold');
-  doc.text(negocio.toUpperCase(),W/2,y+3,{align:'center'});y+=4;
-  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(100,100,100);
-  doc.text('PREMIUM SERVICES',W/2,y+3,{align:'center'});
-
-  doc.internal.pageSize.height=Math.max(y+12,100);
-  doc.save('FacturaZI_'+numFactura(venta.facturaNum||1)+'_'+(venta.cliente||'cliente').replace(/\s/g,'_')+'.pdf');
-}
+};
 // ─── WHATSAPP ───
 window.enviarWhatsApp=function(venta){
   const v=venta||getVentaActual(); if(!v){showToast('⚠️ Completa la venta primero','error');return;}
