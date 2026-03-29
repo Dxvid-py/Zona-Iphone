@@ -272,6 +272,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <button class="nav-item" onclick="showSection('proveedores',this)"><span class="nav-icon">🏭</span>Proveedores</button>
       <button class="nav-item" onclick="showSection('gastos',this)"><span class="nav-icon">💸</span>Gastos</button>
       <div class="sidebar-section-label">Config</div>
+      <button class="nav-item" onclick="showSection('ajustes',this)"><span class="nav-icon">⚙️</span>Configuración</button>
       <button class="nav-item" onclick="showSection('eventos',this)"><span class="nav-icon">🎉</span>Eventos</button>
       <button class="nav-item" onclick="showSection('video',this)"><span class="nav-icon">🎬</span>Video</button>
     </nav>
@@ -484,12 +485,34 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 <!-- ═══ HISTORIAL ═══ -->
 <div class="section" id="sec-historial">
   <div class="section-header"><div class="section-title">Historial de ventas</div></div>
-  <div class="filter-bar" style="margin-bottom:14px;">
-    <label>Buscar:</label><input class="input" id="hist-search" placeholder="Nombre, teléfono…" style="width:200px;" oninput="renderHistorial()">
-    <label>Tipo:</label><select class="select" id="hist-tipo" style="width:130px;" onchange="renderHistorial()"><option value="">Todos</option><option value="contado">Contado</option><option value="credito">Crédito</option><option value="tradein">Trade-In</option></select>
-    <label>Caja:</label><select class="select" id="hist-caja" style="width:130px;" onchange="renderHistorial()"><option value="">Ambas</option><option value="caja1">Local 1</option><option value="caja2">Local 2</option></select>
+  <div class="tab-bar" style="margin-bottom:16px;">
+    <button class="tab-btn active" onclick="switchHistTab('activas',this)">✅ Ventas activas</button>
+    <button class="tab-btn" onclick="switchHistTab('canceladas',this)">🚫 Canceladas / Reembolsadas</button>
   </div>
-  <div id="historial-list"><div style="text-align:center;padding:48px;color:var(--text3);">Cargando…</div></div>
+  <!-- ACTIVAS -->
+  <div id="hist-tab-activas">
+    <div class="filter-bar" style="margin-bottom:14px;">
+      <label>Buscar:</label><input class="input" id="hist-search" placeholder="Nombre, teléfono…" style="width:200px;" oninput="renderHistorial()">
+      <label>Tipo:</label><select class="select" id="hist-tipo" style="width:130px;" onchange="renderHistorial()"><option value="">Todos</option><option value="contado">Contado</option><option value="credito">Crédito</option><option value="tradein">Trade-In</option></select>
+      <label>Caja:</label><select class="select" id="hist-caja" style="width:130px;" onchange="renderHistorial()"><option value="">Ambas</option><option value="caja1">Local 1</option><option value="caja2">Local 2</option></select>
+    </div>
+    <div id="historial-list"><div style="text-align:center;padding:48px;color:var(--text3);">Cargando…</div></div>
+  </div>
+  <!-- CANCELADAS -->
+  <div id="hist-tab-canceladas" style="display:none;">
+    <div style="background:var(--red-bg);border:1px solid rgba(192,57,43,0.15);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:20px;">⚠️</span>
+      <div>
+        <div style="font-weight:700;font-size:13px;color:var(--red);">Ventas canceladas / reembolsadas</div>
+        <div style="font-size:12px;color:var(--text3);">Estas ventas <strong>no cuentan</strong> en las ganancias del dashboard. Quedan aquí como registro.</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-size:11px;color:var(--text3);">Total cancelado</div>
+        <div style="font-family:var(--font-display);font-size:20px;color:var(--red);" id="total-cancelado">$0</div>
+      </div>
+    </div>
+    <div id="historial-canceladas-list"><div style="text-align:center;padding:48px;color:var(--text3);">Sin cancelaciones</div></div>
+  </div>
 </div>
 
 <!-- ═══ PRODUCTOS ═══ -->
@@ -637,13 +660,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Forma pago</label><select class="select" id="cm-formapago"><option value="credito">💳 Crédito</option><option value="contado">💵 Contado</option><option value="transferencia">🏦 Transferencia</option></select></div><div class="field"><label class="field-label">Estado</label><select class="select" id="cm-estadopago"><option value="al_dia">✅ Al día</option><option value="mora">⚠️ Mora</option><option value="pagado">🎉 Pagado</option></select></div></div>
       </div>
       <div class="field" style="margin-bottom:10px;"><label class="field-label">Notas</label><textarea class="textarea" id="cm-notas" placeholder="Observaciones…"></textarea></div>
-      <div style="background:var(--accent-bg);border:1px solid rgba(201,168,76,0.25);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;">
-        <div class="card-title" style="color:var(--gold-dark);">🔐 PIN</div>
-        <div style="display:flex;gap:10px;align-items:flex-end;">
-          <div class="field" style="flex:1;margin:0;"><input class="input" id="cm-pin" placeholder="1234" maxlength="4" type="number" style="letter-spacing:8px;font-size:16px;text-align:center;"></div>
-          <button onclick="generatePin()" class="btn btn-outline" style="flex-shrink:0;">🎲</button>
-        </div>
-      </div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeClientModal()">Cancelar</button><button class="btn btn-primary" onclick="saveClient()">💾 Guardar</button></div>
     </div>
@@ -734,6 +751,51 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   <button class="btn btn-danger" onclick="deactivateEvent()">✕ Desactivar evento</button>
 </div>
 
+<!-- ═══ CONFIGURACIÓN ═══ -->
+<div class="section" id="sec-ajustes">
+  <div class="section-header"><div class="section-title">Configuración</div><div class="section-sub">Datos del negocio y textos de factura</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
+    <!-- Datos del negocio -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;">🏪 Datos del negocio</div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Nombre del negocio</label><input class="input" id="cfg-nombre" placeholder="ZONA iPHONE"></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">NIT</label><input class="input" id="cfg-nit" placeholder="900.123.456-1"></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Dirección</label><input class="input" id="cfg-direccion" placeholder="Cra 4 # 5-21, Barranquilla"></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Ciudad</label><input class="input" id="cfg-ciudad" placeholder="Barranquilla, Atlántico"></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="cfg-telefono" placeholder="+57 323 303 9179"></div>
+      <div class="field" style="margin-bottom:14px;"><label class="field-label">Correo electrónico</label><input class="input" id="cfg-email" placeholder="zonaiphone@gmail.com" type="email"></div>
+      <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Guardar datos</button>
+    </div>
+    <!-- Textos de factura -->
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:14px;">📄 Textos de factura</div>
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Tiempo de garantía</label>
+          <input class="input" id="cfg-garantia-tiempo" placeholder="6 MESES">
+          <span class="field-hint">Se muestra en: "GARANTIA: 6 MESES"</span>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Texto de garantía y condiciones</label>
+          <textarea class="textarea" id="cfg-garantia-texto" rows="6" placeholder="Nuestros equipos cuentan con una garantía..."></textarea>
+          <span class="field-hint">Este texto aparece completo en la factura</span>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Mensaje de cierre</label>
+          <input class="input" id="cfg-mensaje-final" placeholder="¡Gracias por su compra!">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Guardar textos</button>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">🖨️ Vista previa ticket</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:14px;font-family:monospace;font-size:11px;line-height:1.7;color:#111;max-height:260px;overflow-y:auto;" id="ticket-preview">
+          Guarda la configuración para ver la vista previa
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ VIDEO ═══ -->
 <div class="section" id="sec-video">
   <div class="section-header"><div class="section-title">Video principal</div></div>
@@ -754,9 +816,49 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="modal-header"><div class="modal-title">Detalle de venta</div><button class="modal-close" onclick="closeVentaModal()">✕</button></div>
     <div class="modal-body" id="venta-modal-body"></div>
     <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="venta-modal-delete" onclick="promptDeleteVenta()" title="Cancelar venta">🗑 Cancelar</button>
+      <div style="flex:1;"></div>
       <button class="btn btn-outline" onclick="closeVentaModal()">Cerrar</button>
       <button class="btn btn-green" id="venta-modal-wa">💬 WhatsApp</button>
       <button class="btn btn-primary" id="venta-modal-pdf">📄 PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pin-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">🔐 Confirmar acción</div>
+      <button class="modal-close" onclick="closePinModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:18px;">
+        <div style="font-size:32px;margin-bottom:8px;">⚠️</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px);">¿Cancelar esta venta?</div>
+        <div style="font-size:12px;color:var(--text3);">La venta se eliminará de los resultados activos y <strong>se descontará de las ganancias</strong>. Quedará registrada en la sección de canceladas.</div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label class="field-label" style="display:block;margin-bottom:6px;text-align:center;">Ingresa el PIN de confirmación</label>
+        <input class="input" id="pin-input" type="password" maxlength="6" placeholder="••••" style="text-align:center;font-size:22px;letter-spacing:10px;font-weight:700;" oninput="clearPinError()" onkeydown="if(event.key==='Enter')confirmDeleteVenta()">
+        <div id="pin-error" style="color:var(--red);font-size:12px;text-align:center;margin-top:6px;display:none;">❌ PIN incorrecto. Inténtalo de nuevo.</div>
+      </div>
+      <div style="margin-top:10px;">
+        <label class="field-label" style="display:block;margin-bottom:5px;">Motivo (opcional)</label>
+        <select class="select" id="pin-motivo">
+          <option value="">— Seleccionar motivo —</option>
+          <option value="Error de registro">Error de registro</option>
+          <option value="Cliente solicitó cancelación">Cliente solicitó cancelación</option>
+          <option value="Producto sin stock">Producto sin stock</option>
+          <option value="Reembolso">Reembolso al cliente</option>
+          <option value="Duplicado">Venta duplicada</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px;">
+      <button class="btn btn-outline" onclick="closePinModal()">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmDeleteVenta()">🗑 Confirmar cancelación</button>
     </div>
   </div>
 </div>
@@ -781,7 +883,7 @@ const gastosCol = collection(db,'gastos');
 const proveedoresCol = collection(db,'proveedores');
 const empleadosCol = collection(db,'empleados');
 
-const ADMIN_PASS = 'zonaiphone2025';
+const ADMIN_PASS = 'Dios2026';
 const WA_NUMBER  = '573233039179';
 
 // ─── HELPERS ───
@@ -834,7 +936,18 @@ const defaultStore={
     {id:4,name:'Audífonos Bluetooth',emoji:'🎵',price:150000,img:''},
   ],
   clients:[],orders:[],activeEvent:null,videoUrl:'',clientesCRM:[],
-  nextFactura:1
+  nextFactura:1,
+  configuracion:{
+    nombre:'ZONA iPHONE',
+    nit:'NIT: —',
+    direccion:'Barranquilla, Colombia',
+    ciudad:'Barranquilla',
+    telefono:'+57 323 303 9179',
+    email:'zonaiphone@gmail.com',
+    garantiaTiempo:'6 MESES',
+    garantiaTexto:'Nuestros equipos cuentan con una garantía otorgada por almacén que va de 6 o 12 meses (VER FACTURA), a partir de la fecha de compra. Vale aclarar que los artículos deberán ser devueltos en su empaque original, sin rupturas, humedad, raspaduras ni daños, puesto que esto invalida automáticamente la garantía.',
+    mensajeFinal:'¡Gracias por su compra!'
+  }
 };
 let store={...defaultStore};
 let allVentas=[], allGastos=[], allProveedores=[], allEmpleados=[];
@@ -876,7 +989,7 @@ function renderAll(){
 }
 
 // ─── NAV ───
-const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',eventos:'Eventos',video:'Video'};
+const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
 window.showSection=function(id,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(s=>s.classList.remove('active'));
@@ -921,6 +1034,7 @@ function renderDashboard(){
   function filterV(all){
     return all.filter(v=>{
       if(!v.fecha) return false;
+      if(v.estado==='cancelada'||v.estado==='reembolsada') return false; // exclude cancelled
       const d=v.fecha.toDate?v.fecha.toDate():new Date(v.fecha);
       if(filterFrom && d<new Date(filterFrom)) return false;
       if(filterTo && d>new Date(filterTo+'T23:59:59')) return false;
@@ -941,7 +1055,7 @@ function renderDashboard(){
   function sumArr(arr){ return arr.reduce((s,v)=>s+(v.total||0),0); }
 
   // General stats (always from full allVentas for period cards)
-  const sumPeriod=from=>allVentas.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
+  const sumPeriod=from=>allVentas.filter(v=>{if(v.estado==='cancelada'||v.estado==='reembolsada')return false;const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
   periodStats(sumPeriod(new Date(hoyStr)),'sg-hoy','sg-hoy-n');
   periodStats(sumPeriod(lunes),'sg-sem','sg-sem-n');
   periodStats(sumPeriod(mesStart),'sg-mes','sg-mes-n');
@@ -1216,175 +1330,445 @@ function resetVentaForm(){
 
 // ─── PDF (diseño tipo factura real) ───
 window.generarPDF=function(venta){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'p',unit:'mm',format:'a4'});
-  const W=210,M=16;let y=M;
+  const cfg=store.configuracion||{};
+  const negocio=cfg.nombre||'ZONA iPHONE';
+  const nit=cfg.nit||'—';
+  const dir=cfg.direccion||'Barranquilla, Colombia';
+  const ciudad=cfg.ciudad||'Barranquilla';
+  const telN=cfg.telefono||'+57 323 303 9179';
+  const emailN=cfg.email||'zonaiphone@gmail.com';
+  const garantiaTiempo=cfg.garantiaTiempo||'6 MESES';
+  const garantiaTexto=cfg.garantiaTexto||'Nuestros equipos cuentan con una garantía otorgada por almacén. Los artículos deberán ser devueltos en su empaque original, sin rupturas, humedad ni daños, puesto que esto invalida la garantía.';
+  const mensajeFinal=cfg.mensajeFinal||'¡Gracias por su compra!';
 
-  // ── LOGO header ──
-  doc.setFillColor(10,10,10);
-  doc.rect(0,0,W,52,'F');
+  const fd=venta.fecha?.toDate?venta.fecha.toDate():new Date();
+  const fechaStr=fd.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const horaStr=fd.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-  // Logo SVG-like text mark
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(9);doc.setFont('helvetica','bold');
-  doc.text('CELULARES & ACCESORIOS',W/2,14,{align:'center'});
-  doc.setFontSize(22);doc.setFont('helvetica','bold');
-  doc.text('ZONA iPHONE',W/2,26,{align:'center'});
-  doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.setTextColor(201,168,76);
-  doc.text('Barranquilla, Colombia  ·  +57 323 303 9179',W/2,33,{align:'center'});
-  doc.text('zonaiphone@gmail.com',W/2,39,{align:'center'});
-
-  // Factura number line
-  doc.setFillColor(201,168,76);
-  doc.rect(M,44,W-M*2,8,'F');
-  doc.setTextColor(10,10,10);doc.setFontSize(11);doc.setFont('helvetica','bold');
-  doc.text(`FACTURA # ${numFactura(venta.facturaNum||1)}`,W/2,50,{align:'center'});
-
-  y=60;
-  // Date / hour row
-  doc.setTextColor(60,60,60);doc.setFontSize(8);doc.setFont('helvetica','normal');
-  const now=new Date();
-  doc.text(`FECHA: ${venta.fecha?.toDate?venta.fecha.toDate().toLocaleDateString('es-CO'):now.toLocaleDateString('es-CO')}`,M,y);
-  doc.text(`HORA: ${now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`,W-M,y,{align:'right'});
-  y+=3;
-  doc.setDrawColor(180,180,180);
-  for(let i=0;i<38;i++) doc.text('=',M+i*4.5,y+2);
-  y+=7;
-
-  // CLIENTE block
-  doc.setFillColor(240,240,240);
-  doc.rect(M,y,W-M*2,7,'F');
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(10,10,10);
-  doc.text(' CLIENTE',M,y+5);
-  y+=10;
-  doc.setFont('helvetica','bold');doc.setFontSize(11);
-  doc.text((venta.cliente||'').toUpperCase(),M,y); y+=6;
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(60,60,60);
-  if(venta.cedula) {doc.text(`CC/NIT : ${mascaraCedula(venta.cedula)}`,M,y);y+=5;}
-  if(venta.telefono) {doc.text(`Tel/Cel. : ${venta.telefono}`,M,y);y+=5;}
-  doc.text(`Ciudad : BARRANQUILLA`,M,y);y+=4;
-
-  for(let i=0;i<38;i++) doc.text('=',M+i*4.5,y+2);
-  y+=7;
-
-  // Products table header
-  doc.setFillColor(10,10,10);
-  doc.rect(M,y,W-M*2,7,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
-  doc.text('DESC',M+3,y+5);
-  doc.text('CANT',130,y+5,{align:'center'});
-  doc.text('VR.',158,y+5,{align:'center'});
-  doc.text('TOTAL',W-M-2,y+5,{align:'right'});
-  y+=10;
-
-  // Products
-  doc.setFont('helvetica','normal');doc.setTextColor(10,10,10);
-  (venta.productos||[]).forEach((p,i)=>{
-    if(i%2===0){doc.setFillColor(248,248,248);doc.rect(M,y-1,W-M*2,7,'F');}
-    doc.setFontSize(9);
-    const nm=p.nombre.length>36?p.nombre.slice(0,36)+'…':p.nombre;
-    doc.text(nm,M+2,y+4);
-    doc.text(String(p.cantidad),130,y+4,{align:'center'});
-    doc.text(fp(p.precio),158,y+4,{align:'right'});
-    doc.text(fp(p.subtotal),W-M-2,y+4,{align:'right'});
-    y+=7;
-  });
-
-  // Descuento
-  y+=2;
-  doc.setFontSize(8);doc.setTextColor(60,60,60);
-  doc.text('DSCTO. - $0, 0',M,y+3);
-  doc.text(fp(0),W-M-2,y+3,{align:'right'});
-  y+=5;
-
-  // Separator
-  for(let i=0;i<38;i++) doc.text('=',M+i*4.5,y+2);
-  y+=8;
-
-  // TOTAL
-  doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(10,10,10);
-  doc.text('TOTAL',M,y+5);
-  doc.setFontSize(18);doc.setTextColor(10,10,10);
-  doc.text(fp(venta.total),W-M-2,y+5,{align:'right'});
-  y+=8;
-  for(let i=0;i<38;i++) doc.text('=',M+i*4.5,y+2);
-  y+=8;
-
-  // Legal text
-  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(60,60,60);
-  doc.text('ESTA FACTURA PRESTA MERITO EJECUTIVO COMO',W/2,y,{align:'center'});y+=4;
-  doc.text('LETRA DE CAMBIO ART.774 COD DE COMERCIO',W/2,y,{align:'center'});y+=6;
-
-  // Payment details box
-  const tipoLabel={contado:'PAGO DE CONTADO',credito:'VENTA A CRÉDITO',tradein:'TRADE-IN / PAGO CON CELULAR'}[venta.tipoPago]||'';
-  doc.setFillColor(251,246,236);
-  const boxStart=y;
-  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(154,122,46);
-  doc.text(tipoLabel,M+4,y+7);y+=11;
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(60,60,60);
-  if(venta.tipoPago==='contado'){
-    doc.text('Método: '+venta.metodoPago,M+4,y);y+=5;
+  // Build payment detail HTML
+  let pagoHtml='';
+  const tpLabel={contado:'PAGO DE CONTADO',credito:'VENTA A CRÉDITO',tradein:'TRADE-IN / PAGO CON CELULAR'}[venta.tipoPago]||'';
+  pagoHtml+=`<p style="font-weight:700;margin:4px 0 3px;">${tpLabel}</p>`;
+  if(venta.tipoPago==='contado'&&venta.metodoPago){
+    pagoHtml+=`<p>Método: ${venta.metodoPago}</p>`;
   } else if(venta.tipoPago==='credito'&&venta.datosCredito){
     const dc=venta.datosCredito;
-    doc.text(`Abono inicial: ${fp(dc.abono)}`,M+4,y);y+=5;
-    doc.text(`${dc.ncuotas} cuotas de ${fp(dc.cuota)} c/u`,M+4,y);y+=5;
-    doc.text(`1ra cuota: ${dc.fechaPrimeraCuota||'—'}  ·  Saldo: ${fp((venta.total||0)-dc.abono)}`,M+4,y);y+=5;
+    pagoHtml+=`<p>Abono inicial: <b>${fp(dc.abono)}</b></p>`;
+    pagoHtml+=`<p>${dc.ncuotas} cuotas de <b>${fp(dc.cuota)}</b> c/u</p>`;
+    pagoHtml+=`<p>1ra cuota: ${dc.fechaPrimeraCuota||'—'}</p>`;
+    pagoHtml+=`<p>Saldo pendiente: <b>${fp(Math.max(0,(venta.total||0)-dc.abono))}</b></p>`;
   } else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){
     const dt=venta.datosTradeIn;
-    doc.text(`Celular recibido: ${dt.modelo}`,M+4,y);y+=5;
-    if(dt.imei){doc.text(`IMEI: ${dt.imei}`,M+4,y);y+=5;}
-    doc.text(`Valor recibido: ${fp(dt.valor)}  ·  Diferencia: ${fp(dt.restante)}`,M+4,y);y+=5;
+    pagoHtml+=`<p>Celular recibido: <b>${dt.modelo}</b></p>`;
+    if(dt.imei) pagoHtml+=`<p>IMEI: ${dt.imei}</p>`;
+    pagoHtml+=`<p>Valor recibido: <b>${fp(dt.valor)}</b></p>`;
+    pagoHtml+=`<p>Diferencia a pagar: <b>${fp(dt.restante)}</b></p>`;
   }
-  doc.setFillColor(251,246,236);
-  doc.roundedRect(M,boxStart,W-M*2,y-boxStart+4,2,2,'F');
-  // Redraw text over fill
-  let yy=boxStart;
-  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(154,122,46);
-  doc.text(tipoLabel,M+4,yy+7);yy+=11;
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(60,60,60);
-  if(venta.tipoPago==='contado'){doc.text('Método: '+venta.metodoPago,M+4,yy);yy+=5;}
-  else if(venta.tipoPago==='credito'&&venta.datosCredito){const dc=venta.datosCredito;doc.text(`Abono inicial: ${fp(dc.abono)}`,M+4,yy);yy+=5;doc.text(`${dc.ncuotas} cuotas de ${fp(dc.cuota)} c/u`,M+4,yy);yy+=5;doc.text(`1ra cuota: ${dc.fechaPrimeraCuota||'—'}  ·  Saldo: ${fp((venta.total||0)-dc.abono)}`,M+4,yy);}
-  else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){const dt=venta.datosTradeIn;doc.text(`Celular recibido: ${dt.modelo}`,M+4,yy);yy+=5;if(dt.imei){doc.text(`IMEI: ${dt.imei}`,M+4,yy);yy+=5;}doc.text(`Valor recibido: ${fp(dt.valor)}  ·  Diferencia: ${fp(dt.restante)}`,M+4,yy);}
-  y+=6;
 
-  // GARANTIA
-  y+=4;
-  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(10,10,10);
-  doc.text('GARANTIA',M,y);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);
-  doc.text('6 MESES',M+28,y);
-  if(venta.observaciones){y+=5;doc.text(venta.observaciones.slice(0,80),M,y);}
-  y+=6;
+  // Build products rows
+  const prodsRows=(venta.productos||[]).map(p=>`
+    <tr>
+      <td style="padding:4px 3px;vertical-align:top;word-break:break-word;max-width:120px;">${p.nombre}</td>
+      <td style="padding:4px 3px;text-align:center;white-space:nowrap;">${p.cantidad}</td>
+      <td style="padding:4px 3px;text-align:right;white-space:nowrap;">${fp(p.precio)}</td>
+      <td style="padding:4px 3px;text-align:right;white-space:nowrap;font-weight:700;">${fp(p.subtotal)}</td>
+    </tr>`).join('');
 
-  // Garantía text block
-  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('GARANTÍA Y SOPORTE',M,y);y+=5;
-  const gtext=['Nuestros Equipos cuentan con una garantía otorgada por almacén que va de 6 o 12 meses','(VER FACTURA), a partir de la fecha de compra y/o instalación de los equipos durante la cual','se podrá hacer efectiva en el momento y circunstancia que requiera.','','Vale aclarar que los artículos entregados deberán ser devueltos en su empaque y estructura','original, no deben presentar rupturas, humedad, raspaduras, y/o daños causados con o sin','intención; en el equipo y/o display, puesto que esto invalida automáticamente la garantía.'];
-  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(60,60,60);
-  gtext.forEach(line=>{doc.text(line,M,y);y+=4;});
+  const cajaLabel=venta.caja==='caja1'?'Local 1 — Caja 1':'Local 2 — Caja 2';
+  const obsHtml=venta.observaciones?`<p style="margin-top:4px;font-style:italic;color:#444;">${venta.observaciones}</p>`:'';
 
-  // Footer
-  doc.setFillColor(248,248,248);
-  doc.rect(0,274,W,23,'F');
-  doc.setFontSize(13);doc.setFont('helvetica','bolditalic');doc.setTextColor(10,10,10);
-  doc.text('¡Gracias!',M+4,284);
-  doc.setFont('helvetica','italic');doc.setFontSize(8);
-  doc.text('por tu compra',M+4,290);
-  // Premium badge
-  doc.setFillColor(10,10,10);
-  doc.roundedRect(W-50,275,40,18,3,3,'F');
-  doc.setTextColor(201,168,76);doc.setFontSize(8);doc.setFont('helvetica','bold');
-  doc.text('PREMIUM',W-30,283,{align:'center'});
-  doc.text('SERVICES',W-30,289,{align:'center'});
-  // Caja indicator
-  const cajaLabel=venta.caja==='caja1'?'LOCAL 1':'LOCAL 2';
-  doc.setTextColor(120,120,120);doc.setFontSize(7);doc.setFont('helvetica','normal');
-  doc.text(cajaLabel,W/2,282,{align:'center'});
+  const ticketHTML=`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Source Code Pro',Courier,monospace;
+    font-size:11px;
+    line-height:1.55;
+    color:#111;
+    background:#fff;
+    width:75mm;
+    margin:0 auto;
+    padding:6mm 5mm 10mm 5mm;
+  }
+  .center{text-align:center;}
+  .left{text-align:left;}
+  .right{text-align:right;}
+  .bold{font-weight:700;}
+  .sep{
+    border:none;
+    border-top:1.5px dashed #999;
+    margin:6px 0;
+  }
+  .sep-solid{
+    border:none;
+    border-top:1.5px solid #333;
+    margin:6px 0;
+  }
+  .section{margin:6px 0;}
+  /* Header */
+  .header{text-align:center;margin-bottom:6px;}
+  .logo-wrap{margin-bottom:4px;}
+  .logo-wrap img{max-height:52px;max-width:160px;object-fit:contain;}
+  .biz-name{font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .biz-sub{font-size:9.5px;color:#555;margin-top:2px;}
+  .biz-detail{font-size:9.5px;color:#444;margin-top:1px;}
+  /* Factura badge */
+  .factura-badge{
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1px;
+    padding:4px 0;
+    margin:6px 0;
+    border-top:2px solid #111;
+    border-bottom:2px solid #111;
+  }
+  .date-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:9.5px;
+    color:#333;
+    margin:3px 0;
+  }
+  /* Cliente */
+  .section-label{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:#111;
+    margin-bottom:3px;
+  }
+  .client-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+  .client-detail{font-size:9.5px;color:#444;margin-bottom:1px;}
+  /* Table */
+  .prod-table{width:100%;border-collapse:collapse;margin:4px 0;}
+  .prod-table thead th{
+    font-size:9px;
+    font-weight:700;
+    text-transform:uppercase;
+    padding:3px 3px 4px;
+    border-bottom:1.5px solid #333;
+    letter-spacing:0.5px;
+  }
+  .prod-table thead th:first-child{text-align:left;}
+  .prod-table thead th:nth-child(2){text-align:center;}
+  .prod-table thead th:nth-child(3){text-align:right;}
+  .prod-table thead th:nth-child(4){text-align:right;}
+  .prod-table tbody tr{border-bottom:1px dashed #ddd;}
+  .prod-table tbody tr:last-child{border-bottom:none;}
+  .prod-table tfoot td{
+    font-size:9.5px;
+    padding:3px 3px;
+    color:#666;
+  }
+  /* Descuento */
+  .dscto-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:9.5px;
+    color:#777;
+    padding:2px 3px;
+  }
+  /* Total */
+  .total-block{
+    margin:6px 0;
+    padding:5px 3px;
+    border-top:2px solid #111;
+    border-bottom:2px solid #111;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .total-label{font-size:13px;font-weight:700;letter-spacing:1px;}
+  .total-value{font-size:15px;font-weight:700;}
+  /* Legal */
+  .legal{font-size:8.5px;color:#555;text-align:center;margin:4px 0;line-height:1.4;}
+  /* Pago */
+  .pago-block{margin:5px 0;}
+  .pago-block p{font-size:9.5px;margin:1.5px 0;color:#333;}
+  /* Garantía */
+  .garantia-block{margin:5px 0;}
+  .garantia-title{font-size:10px;font-weight:700;display:flex;justify-content:space-between;margin-bottom:3px;}
+  .garantia-text{font-size:9px;color:#444;line-height:1.5;}
+  /* Caja / Local */
+  .caja-label{font-size:9px;color:#888;text-align:center;margin:4px 0;}
+  /* Footer */
+  .footer{text-align:center;margin-top:8px;padding-top:6px;border-top:1.5px dashed #999;}
+  .thanks{font-size:14px;font-weight:700;letter-spacing:0.5px;margin-bottom:3px;}
+  .biz-footer{font-size:9.5px;color:#555;}
+  @media print{
+    body{width:75mm;padding:2mm 3mm 6mm 3mm;}
+    .no-print{display:none;}
+  }
+</style>
+</head>
+<body>
 
-  doc.save(`FacturaZI_${numFactura(venta.facturaNum||1)}_${venta.cliente?.replace(/\s/g,'_')||'cliente'}.pdf`);
-  showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' generada','success');
+<!-- HEADER -->
+<div class="header">
+  ${store.configuracion?.logoUrl?`<div class="logo-wrap"><img src="${store.configuracion.logoUrl}" alt="Logo"></div>`:''}
+  <div class="biz-sub">CELULARES &amp; ACCESORIOS</div>
+  <div class="biz-name">${negocio}</div>
+  <div class="biz-detail">NIT: ${nit}</div>
+  <div class="biz-detail">${dir}</div>
+  <div class="biz-detail">${telN}</div>
+  <div class="biz-detail">${emailN}</div>
+</div>
+
+<hr class="sep-solid">
+
+<!-- FACTURA # -->
+<div class="factura-badge">FACTURA # ${numFactura(venta.facturaNum||1)}</div>
+
+<!-- FECHA / HORA -->
+<div class="date-row">
+  <span>FECHA: ${fechaStr}</span>
+  <span>HORA: ${horaStr}</span>
+</div>
+
+<hr class="sep">
+
+<!-- CLIENTE -->
+<div class="section">
+  <div class="section-label">Cliente</div>
+  <div class="client-name">${venta.cliente||'—'}</div>
+  ${venta.cedula?`<div class="client-detail">CC/NIT: ${mascaraCedula(venta.cedula)}</div>`:''}
+  ${venta.telefono?`<div class="client-detail">Tel: ${venta.telefono}</div>`:''}
+  <div class="client-detail">Ciudad: ${ciudad}</div>
+</div>
+
+<hr class="sep-solid">
+
+<!-- PRODUCTOS -->
+<table class="prod-table">
+  <thead>
+    <tr>
+      <th style="text-align:left;width:45%;">DESC</th>
+      <th style="text-align:center;width:10%;">CANT</th>
+      <th style="text-align:right;width:22%;">VR.</th>
+      <th style="text-align:right;width:23%;">TOTAL</th>
+    </tr>
+  </thead>
+  <tbody>${prodsRows}</tbody>
+</table>
+
+<hr class="sep">
+<div class="dscto-row"><span>DSCTO. - $0, 0</span><span>$0</span></div>
+<hr class="sep-solid">
+
+<!-- TOTAL -->
+<div class="total-block">
+  <span class="total-label">TOTAL</span>
+  <span class="total-value">${fp(venta.total)}</span>
+</div>
+
+<!-- LEGAL -->
+<div class="legal">ESTA FACTURA PRESTA MERITO EJECUTIVO COMO<br>LETRA DE CAMBIO ART.774 COD DE COMERCIO</div>
+
+<hr class="sep">
+
+<!-- TIPO DE PAGO -->
+<div class="pago-block">
+  ${pagoHtml}
+</div>
+${obsHtml}
+
+<hr class="sep">
+
+<!-- GARANTÍA -->
+<div class="garantia-block">
+  <div class="garantia-title">
+    <span>GARANTIA</span>
+    <span>${garantiaTiempo}</span>
+  </div>
+  <div style="font-size:9.5px;font-weight:700;margin-bottom:3px;">GARANTÍA Y SOPORTE</div>
+  <div class="garantia-text">${garantiaTexto}</div>
+</div>
+
+<hr class="sep">
+
+<!-- CAJA -->
+<div class="caja-label">${cajaLabel}</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="thanks">${mensajeFinal}</div>
+  <div class="biz-footer">${negocio} · PREMIUM SERVICES</div>
+</div>
+
+</body>
+</html>`;
+
+  // Open in new window and trigger print (using html2pdf-like approach via iframe)
+  const printWin=window.open('','_blank','width=400,height=700');
+  if(!printWin){ showToast('⚠️ Permite ventanas emergentes para imprimir','error'); return; }
+  printWin.document.write(ticketHTML);
+  printWin.document.close();
+  printWin.focus();
+  // Small delay for fonts, then offer print/save as PDF
+  setTimeout(()=>{
+    printWin.print();
+    showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' lista para imprimir','success');
+  }, 600);
+
+  // Also trigger jsPDF as backup download
+  _generarPDFjsPDF(venta, cfg, negocio, nit, dir, ciudad, telN, emailN, garantiaTiempo, garantiaTexto, mensajeFinal, fechaStr, horaStr, tpLabel);
 };
 
+// jsPDF backup (compact ticket, 75mm)
+function _generarPDFjsPDF(venta,cfg,negocio,nit,dir,ciudad,telN,emailN,garantiaTiempo,garantiaTexto,mensajeFinal,fechaStr,horaStr,tpLabel){
+  const {jsPDF}=window.jspdf;
+  const W=75, M=3.5;
+  const doc=new jsPDF({orientation:'p',unit:'mm',format:[W,400],compress:true});
+  let y=4;
+
+  const C=(txt,fy,sz,st='normal',col=[0,0,0])=>{
+    doc.setFontSize(sz);doc.setFont('courier',st);doc.setTextColor(...col);
+    doc.text(String(txt||''),W/2,fy,{align:'center'});
+  };
+  const L=(txt,fy,sz,st='normal')=>{
+    doc.setFontSize(sz);doc.setFont('courier',st);doc.setTextColor(0,0,0);
+    doc.text(String(txt||''),M,fy);
+  };
+  const R=(txt,fy,sz,st='normal')=>{
+    doc.setFontSize(sz);doc.setFont('courier',st);doc.setTextColor(0,0,0);
+    doc.text(String(txt||''),W-M,fy,{align:'right'});
+  };
+  const SEP=(fy,ch='─')=>{
+    doc.setFontSize(6.5);doc.setFont('courier','normal');doc.setTextColor(140,140,140);
+    const rep=ch.repeat(ch==='-'?34:34);
+    doc.text(rep,W/2,fy,{align:'center'});
+  };
+  const BOLD_LINE=(fy)=>{
+    doc.setDrawColor(30,30,30);doc.setLineWidth(0.35);
+    doc.line(M,fy,W-M,fy);
+  };
+  const DASH_LINE=(fy)=>{
+    doc.setDrawColor(160,160,160);doc.setLineWidth(0.15);
+    doc.setLineDash([1,1],0);
+    doc.line(M,fy,W-M,fy);
+    doc.setLineDash([],0);
+  };
+  const WRAP=(txt,fy,sz,maxW)=>{
+    doc.setFontSize(sz);doc.setFont('courier','normal');doc.setTextColor(60,60,60);
+    const lines=doc.splitTextToSize(String(txt||''),maxW);
+    lines.forEach(l=>{doc.text(l,M,fy);fy+=sz*0.38;});
+    return fy;
+  };
+
+  // Header
+  C('CELULARES & ACCESORIOS',y+3,7,'normal',[80,80,80]);y+=5;
+  C(negocio.toUpperCase(),y+4,12,'bold');y+=6;
+  C('NIT: '+nit,y+3,7,'normal',[80,80,80]);y+=4.5;
+  C(dir,y+3,7,'normal',[80,80,80]);y+=4;
+  C(telN,y+3,7,'normal',[80,80,80]);y+=4;
+  C(emailN,y+3,7,'normal',[80,80,80]);y+=5;
+
+  BOLD_LINE(y);y+=1;
+  C('FACTURA # '+numFactura(venta.facturaNum||1),y+4.5,11,'bold');y+=6;
+  BOLD_LINE(y);y+=3;
+
+  // Fecha/hora
+  doc.setFontSize(7.5);doc.setFont('courier','normal');doc.setTextColor(0,0,0);
+  doc.text('Fecha: '+fechaStr,M,y+3);doc.text('Hora: '+horaStr,W-M,y+3,{align:'right'});
+  y+=5;DASH_LINE(y);y+=3;
+
+  // Cliente
+  doc.setFontSize(8);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+  doc.text('CLIENTE',M,y+3);y+=4.5;
+  doc.setFontSize(8.5);doc.setFont('courier','bold');
+  doc.text((venta.cliente||'—').toUpperCase().slice(0,28),M,y+3);y+=5;
+  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(60,60,60);
+  if(venta.cedula){doc.text('CC: '+mascaraCedula(venta.cedula),M,y+3);y+=4;}
+  if(venta.telefono){doc.text('Tel: '+venta.telefono,M,y+3);y+=4;}
+  doc.text('Ciudad: '+ciudad,M,y+3);y+=5;
+  BOLD_LINE(y);y+=3;
+
+  // Products header
+  doc.setFontSize(7.5);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+  doc.text('DESC',M,y+3.5);
+  doc.text('CANT',M+30,y+3.5,{align:'center'});
+  doc.text('VR.',M+48,y+3.5,{align:'right'});
+  doc.text('TOTAL',W-M,y+3.5,{align:'right'});
+  y+=5;DASH_LINE(y);y+=2.5;
+
+  // Products rows
+  doc.setFont('courier','normal');doc.setTextColor(0,0,0);
+  (venta.productos||[]).forEach(p=>{
+    doc.setFontSize(7);
+    const nm=String(p.nombre||'');
+    const lines=doc.splitTextToSize(nm,26);
+    lines.forEach((l,i)=>{doc.text(l,M,y+3+(i*3));});
+    const rh=Math.max(5,lines.length*3+1);
+    doc.setFontSize(7.5);
+    doc.text(String(p.cantidad),M+30,y+3,{align:'center'});
+    doc.text(fp(p.precio),M+48,y+3,{align:'right'});
+    doc.text(fp(p.subtotal),W-M,y+3,{align:'right'});
+    y+=rh;
+  });
+
+  y+=1;
+  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(100,100,100);
+  doc.text('DSCTO. - $0, 0',M,y+3);doc.text('$0',W-M,y+3,{align:'right'});
+  y+=4.5;BOLD_LINE(y);y+=1;BOLD_LINE(y);y+=4;
+
+  // Total
+  doc.setFontSize(12);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+  doc.text('TOTAL',M,y+5);doc.text(fp(venta.total),W-M,y+5,{align:'right'});
+  y+=7;BOLD_LINE(y);y+=1;BOLD_LINE(y);y+=4;
+
+  // Legal
+  doc.setFontSize(6.5);doc.setFont('courier','normal');doc.setTextColor(80,80,80);
+  y=WRAP('ESTA FACTURA PRESTA MERITO EJECUTIVO COMO LETRA DE CAMBIO ART.774 COD DE COMERCIO',y,6.5,W-M*2);
+  y+=3;DASH_LINE(y);y+=3;
+
+  // Pago
+  doc.setFontSize(8);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+  doc.text(tpLabel||'PAGO',M,y+3);y+=5;
+  doc.setFont('courier','normal');doc.setFontSize(7);doc.setTextColor(50,50,50);
+  if(venta.tipoPago==='contado'&&venta.metodoPago){doc.text('Método: '+venta.metodoPago,M,y+3);y+=4;}
+  else if(venta.tipoPago==='credito'&&venta.datosCredito){
+    const dc=venta.datosCredito;
+    doc.text('Abono: '+fp(dc.abono),M,y+3);y+=4;
+    doc.text(dc.ncuotas+' cuotas de '+fp(dc.cuota),M,y+3);y+=4;
+    doc.text('1ra cuota: '+(dc.fechaPrimeraCuota||'—'),M,y+3);y+=4;
+    doc.text('Saldo: '+fp(Math.max(0,(venta.total||0)-dc.abono)),M,y+3);y+=4;
+  } else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){
+    const dt=venta.datosTradeIn;
+    doc.text('Cel recibido: '+dt.modelo,M,y+3);y+=4;
+    if(dt.imei){doc.text('IMEI: '+dt.imei,M,y+3);y+=4;}
+    doc.text('Valor: '+fp(dt.valor),M,y+3);y+=4;
+    doc.text('Diferencia: '+fp(dt.restante),M,y+3);y+=4;
+  }
+  if(venta.observaciones){y+=1;y=WRAP(venta.observaciones,y,7,W-M*2);y+=1;}
+  y+=2;DASH_LINE(y);y+=3;
+
+  // Garantía
+  doc.setFontSize(8);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+  doc.text('GARANTIA',M,y+3);doc.text(garantiaTiempo,W-M,y+3,{align:'right'});y+=5;
+  y=WRAP(garantiaTexto,y,7,W-M*2);
+  y+=4;DASH_LINE(y);y+=3;
+
+  // Caja / Footer
+  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(120,120,120);
+  const cajaL=venta.caja==='caja1'?'Local 1 — Caja 1':'Local 2 — Caja 2';
+  doc.text(cajaL,W/2,y+3,{align:'center'});y+=6;
+
+  doc.setFontSize(10);doc.setFont('courier','bold');doc.setTextColor(0,0,0);
+  doc.text(mensajeFinal,W/2,y+4,{align:'center'});y+=7;
+  doc.setFontSize(7.5);doc.setFont('courier','bold');
+  doc.text(negocio.toUpperCase(),W/2,y+3,{align:'center'});y+=4;
+  doc.setFontSize(7);doc.setFont('courier','normal');doc.setTextColor(100,100,100);
+  doc.text('PREMIUM SERVICES',W/2,y+3,{align:'center'});
+
+  doc.internal.pageSize.height=Math.max(y+12,100);
+  doc.save('FacturaZI_'+numFactura(venta.facturaNum||1)+'_'+(venta.cliente||'cliente').replace(/\s/g,'_')+'.pdf');
+}
 // ─── WHATSAPP ───
 window.enviarWhatsApp=function(venta){
   const v=venta||getVentaActual(); if(!v){showToast('⚠️ Completa la venta primero','error');return;}
@@ -1412,6 +1796,7 @@ window.renderHistorial=function(){
   const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'🔄 Trade-In'};
   const cajaBadge={caja1:'<span class="badge badge-blue">🔵 L1</span>',caja2:'<span class="badge badge-purple">🟣 L2</span>'};
   const filtered=allVentas.filter(v=>{
+    if(v.estado==='cancelada'||v.estado==='reembolsada') return false; // exclude cancelled
     if(tipo&&v.tipoPago!==tipo)return false;
     if(caja&&v.caja!==caja)return false;
     if(search&&!(v.cliente||'').toLowerCase().includes(search)&&!(v.telefono||'').includes(search))return false;
@@ -1420,17 +1805,18 @@ window.renderHistorial=function(){
   const container=document.getElementById('historial-list');
   if(!filtered.length){container.innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);">Sin ventas encontradas</div>';return;}
   container.innerHTML=filtered.map(v=>`
-    <div class="venta-item" onclick="openVentaModal('${v.id}')">
+    <div class="venta-item ${v.estado==='cancelada'?'venta-cancelada':''}" onclick="openVentaModal('${v.id}')" style="${v.estado==='cancelada'?'opacity:0.55;':''}">
       <div style="flex:1;min-width:0;">
         <div style="font-weight:600;font-size:14px;color:var(--text);margin-bottom:3px;">${v.cliente||'Sin nombre'}
           <span class="badge ${tBadge[v.tipoPago]||'badge-gray'}" style="margin-left:7px;">${tLabel[v.tipoPago]||'—'}</span>
           ${cajaBadge[v.caja]||''}
           <span class="badge badge-gray" style="margin-left:4px;">#${numFactura(v.facturaNum||1)}</span>
+          ${v.estado==='cancelada'?'<span class="badge badge-red" style="margin-left:4px;">CANCELADA</span>':''}
         </div>
         <div style="font-size:12px;color:var(--text3);">${(v.productos||[]).map(p=>p.nombre).join(' · ')||'—'}</div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-family:var(--font-display);font-size:17px;">${fp(v.total)}</div>
+        <div style="font-family:var(--font-display);font-size:17px;${v.estado==='cancelada'?'text-decoration:line-through;color:var(--text3);':''}">${fp(v.total)}</div>
         <div style="font-size:11px;color:var(--text3);">${formatDate(v.fecha)}</div>
       </div>
     </div>`).join('');
@@ -1580,12 +1966,20 @@ function renderClients(){
   document.getElementById('clients-body').innerHTML=list.length?list.map((c,i)=>{
     const isSol=c.estado==='solicitud',cuotas=c.cuotas||[],mora=cuotas.some(q=>!q.pagada&&new Date(q.fecha)<hoy),deuda=Math.max(0,(c.total||0)-(c.abono||0)-cuotas.filter(q=>q.pagada).reduce((s,q)=>s+(q.monto||0),0));
     const pl=c.formaPago==='contado'?'💵':c.formaPago==='credito'?'💳':'🏦';
-    let badge=isSol?'<span class="badge badge-orange">🆕 Solicitud</span>':mora?'<span class="badge badge-red">⚠️ Mora</span>':deuda===0&&cuotas.length>0?'<span class="badge badge-green">✅ Pagado</span>':deuda>0?`<span class="badge badge-blue">${fp(deuda)}</span>`:'<span class="badge badge-gray">—</span>';
+    // Compute mora count
+    const cuotasMora=cuotas.filter(q=>!q.pagada&&new Date(q.fecha)<hoy);
+    let badge;
+    if(isSol) badge='<span class="badge badge-orange">🆕 Solicitud</span>';
+    else if(mora) badge=`<span class="badge badge-red">⚠️ Mora (${cuotasMora.length})</span>`;
+    else if(deuda===0&&cuotas.length>0) badge='<span class="badge badge-green">✅ Pagado</span>';
+    else if(deuda>0&&cuotas.length>0) badge=`<span class="badge badge-blue">💳 Debe ${fp(deuda)}</span>`;
+    else if(deuda>0) badge=`<span class="badge badge-gold">Deuda ${fp(deuda)}</span>`;
+    else badge='<span class="badge badge-gray">—</span>';
     return`<tr><td><div style="font-weight:600;">${c.name||'—'}</div><div style="font-size:10px;color:var(--text3);">${c.email||''}</div></td><td style="font-size:12px;">${c.cedula||'—'}</td><td style="font-size:12px;">${c.phone||'—'}</td><td style="font-size:12px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.product||'—'}</td><td style="font-size:12px;">${pl} ${c.formaPago||'—'}</td><td>${badge}</td><td style="white-space:nowrap;">${isSol?`<button class="btn btn-green btn-sm" onclick="aprobarSolicitud('${c.cedula||c.email}')" style="margin-right:4px;">✓</button>`:`<button class="btn btn-outline btn-sm" onclick="openClientDetail('${c.cedula||i}')" style="margin-right:4px;">👁</button>`}<button class="btn btn-outline btn-sm" onclick="editClient('${c.cedula||c.email||i}')" style="margin-right:4px;">✏</button><button class="btn btn-danger btn-sm" onclick="deleteClient('${c.cedula||c.email||i}')">🗑</button></td></tr>`;
   }).join(''):`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3);">Sin clientes</td></tr>`;
 }
 window.filterClients=function(){renderClients();};
-window.openNewClient=function(){document.getElementById('client-modal-title').textContent='Nuevo cliente';document.getElementById('cm-id').value='';['cm-name','cm-cedula','cm-phone','cm-whatsapp','cm-email','cm-address','cm-product','cm-total','cm-cuota','cm-ncuotas','cm-abono','cm-notas','cm-pin'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('cm-fechainicio').value='';document.getElementById('cm-formapago').value='credito';document.getElementById('cm-estadopago').value='al_dia';document.getElementById('client-modal').classList.add('open');};
+window.openNewClient=function(){document.getElementById('client-modal-title').textContent='Nuevo cliente';document.getElementById('cm-id').value='';['cm-name','cm-cedula','cm-phone','cm-whatsapp','cm-email','cm-address','cm-product','cm-total','cm-cuota','cm-ncuotas','cm-abono','cm-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('cm-fechainicio').value='';document.getElementById('cm-formapago').value='credito';document.getElementById('cm-estadopago').value='al_dia';document.getElementById('client-modal').classList.add('open');};
 window.closeClientModal=()=>document.getElementById('client-modal').classList.remove('open');
 window.generatePin=()=>{document.getElementById('cm-pin').value=String(Math.floor(1000+Math.random()*9000));};
 window.saveClient=async function(){
@@ -1596,12 +1990,12 @@ window.saveClient=async function(){
   let cuotas=[];
   if(isEdit){const ex=crm.find(x=>String(x.cedula)===String(editId)||String(x.email)===String(editId));cuotas=ex?.cuotas?JSON.parse(JSON.stringify(ex.cuotas)):[];}
   else if(ncuotas>0&&fechaInicio){const start=new Date(fechaInicio);for(let i=0;i<ncuotas;i++){const d=new Date(start);d.setMonth(d.getMonth()+i);cuotas.push({monto:cuotaMonto,fecha:d.toISOString().split('T')[0],pagada:false});}}
-  const clientData={name,cedula,phone:document.getElementById('cm-phone').value.trim(),whatsapp:document.getElementById('cm-whatsapp').value.trim(),email:document.getElementById('cm-email').value.trim(),address:document.getElementById('cm-address').value.trim(),product:document.getElementById('cm-product').value.trim(),total:parseFloat(document.getElementById('cm-total').value)||0,cuota:cuotaMonto,abono:parseFloat(document.getElementById('cm-abono').value)||0,pin:document.getElementById('cm-pin').value.trim(),notas:document.getElementById('cm-notas').value.trim(),formaPago:document.getElementById('cm-formapago').value,estadoPago:document.getElementById('cm-estadopago').value,fechaRegistro:isEdit?(crm.find(x=>String(x.cedula)===String(editId))?.fechaRegistro||new Date().toLocaleDateString('es-CO')):new Date().toLocaleDateString('es-CO'),cuotas,estado:'activo'};
+  const clientData={name,cedula,phone:document.getElementById('cm-phone').value.trim(),whatsapp:document.getElementById('cm-whatsapp').value.trim(),email:document.getElementById('cm-email').value.trim(),address:document.getElementById('cm-address').value.trim(),product:document.getElementById('cm-product').value.trim(),total:parseFloat(document.getElementById('cm-total').value)||0,cuota:cuotaMonto,abono:parseFloat(document.getElementById('cm-abono').value)||0,notas:document.getElementById('cm-notas').value.trim(),formaPago:document.getElementById('cm-formapago').value,estadoPago:document.getElementById('cm-estadopago').value,fechaRegistro:isEdit?(crm.find(x=>String(x.cedula)===String(editId))?.fechaRegistro||new Date().toLocaleDateString('es-CO')):new Date().toLocaleDateString('es-CO'),cuotas,estado:'activo'};
   if(isEdit){const i=crm.findIndex(x=>String(x.cedula)===String(editId)||String(x.email)===String(editId));if(i>=0)crm[i]=clientData;else crm.push(clientData);}
   else{if(crm.find(x=>String(x.cedula)===String(cedula))){showToast('⚠️ Ya existe cliente con esa cédula','error');return;}crm.push(clientData);}
   store.clientesCRM=crm;await saveToFirebase({clientesCRM:crm});closeClientModal();renderClients();
 };
-window.editClient=function(id){const crm=store.clientesCRM||[];const c=crm.find(x=>String(x.cedula)===String(id)||String(x.email)===String(id));if(!c)return;closeClientDetail();document.getElementById('client-modal-title').textContent='Editar cliente';document.getElementById('cm-id').value=c.cedula||c.email||id;document.getElementById('cm-name').value=c.name||'';document.getElementById('cm-cedula').value=c.cedula||'';document.getElementById('cm-phone').value=c.phone||'';document.getElementById('cm-whatsapp').value=c.whatsapp||'';document.getElementById('cm-email').value=c.email||'';document.getElementById('cm-address').value=c.address||'';document.getElementById('cm-product').value=c.product||'';document.getElementById('cm-total').value=c.total||'';document.getElementById('cm-cuota').value=c.cuota||'';document.getElementById('cm-ncuotas').value=(c.cuotas||[]).length||'';document.getElementById('cm-abono').value=c.abono||'';document.getElementById('cm-fechainicio').value=(c.cuotas&&c.cuotas[0])?c.cuotas[0].fecha:'';document.getElementById('cm-pin').value=c.pin||'';document.getElementById('cm-notas').value=c.notas||'';document.getElementById('cm-formapago').value=c.formaPago||'credito';document.getElementById('cm-estadopago').value=c.estadoPago||'al_dia';document.getElementById('client-modal').classList.add('open');};
+window.editClient=function(id){const crm=store.clientesCRM||[];const c=crm.find(x=>String(x.cedula)===String(id)||String(x.email)===String(id));if(!c)return;closeClientDetail();document.getElementById('client-modal-title').textContent='Editar cliente';document.getElementById('cm-id').value=c.cedula||c.email||id;document.getElementById('cm-name').value=c.name||'';document.getElementById('cm-cedula').value=c.cedula||'';document.getElementById('cm-phone').value=c.phone||'';document.getElementById('cm-whatsapp').value=c.whatsapp||'';document.getElementById('cm-email').value=c.email||'';document.getElementById('cm-address').value=c.address||'';document.getElementById('cm-product').value=c.product||'';document.getElementById('cm-total').value=c.total||'';document.getElementById('cm-cuota').value=c.cuota||'';document.getElementById('cm-ncuotas').value=(c.cuotas||[]).length||'';document.getElementById('cm-abono').value=c.abono||'';document.getElementById('cm-fechainicio').value=(c.cuotas&&c.cuotas[0])?c.cuotas[0].fecha:'';document.getElementById('cm-notas').value=c.notas||'';document.getElementById('cm-formapago').value=c.formaPago||'credito';document.getElementById('cm-estadopago').value=c.estadoPago||'al_dia';document.getElementById('client-modal').classList.add('open');};
 window.deleteClient=async function(id){if(!confirm('¿Eliminar?'))return;store.clientesCRM=(store.clientesCRM||[]).filter(c=>String(c.cedula)!==String(id)&&String(c.email)!==String(id));await saveToFirebase({clientesCRM:store.clientesCRM});closeClientDetail();renderClients();};
 window.aprobarSolicitud=function(id){const crm=store.clientesCRM||[];const c=crm.find(x=>String(x.cedula)===String(id)||String(x.email)===String(id));if(!c)return;c.estado='activo';editClient(id);showToast('✅ Solicitud activada');};
 window.openClientDetail=function(id){
@@ -1618,7 +2012,17 @@ window.openClientDetail=function(id){
       <div class="card card-sm"><div class="card-title">Mora</div><div style="font-family:var(--font-display);font-size:16px;color:var(--red);">${mora.length}</div></div>
       <div class="card card-sm"><div class="card-title">Cuotas</div><div style="font-family:var(--font-display);font-size:16px;color:var(--blue);">${pagadas}/${cuotas.length}</div></div>
     </div>
-    ${cuotas.length?`<div style="font-family:var(--font-display);font-size:17px;margin-bottom:8px;">Plan de pagos</div>
+    ${cuotas.length?`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:var(--font-display);font-size:17px;">Plan de pagos</div>
+        <div style="font-size:12px;color:var(--text3);">${pagadas}/${cuotas.length} cuotas · ${fp(cuotas.filter(q=>q.pagada).reduce((s,q)=>s+(q.monto||0),0))} pagado</div>
+      </div>
+      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:10px;">
+        <div style="height:100%;background:${mora.length?'var(--red)':'var(--green)'};border-radius:3px;width:${cuotas.length?Math.round(pagadas/cuotas.length*100):0}%;transition:width 0.3s;"></div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-display);font-size:17px;margin-bottom:8px;">Detalle cuotas</div>
     ${cuotas.map((q,i)=>{const v=!q.pagada&&new Date(q.fecha)<hoy;return`<div class="cuota-row ${q.pagada?'pagada':v?'mora':''}">
       <div style="font-family:var(--font-display);font-size:16px;min-width:24px;color:var(--text3);">${i+1}</div>
       <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${fp(q.monto)}</div><div style="font-size:11px;color:var(--text3);">Vence: ${q.fecha||'—'}${q.pagada&&q.fechaPago?' · Pagada: '+q.fechaPago:''}</div></div>
@@ -1724,11 +2128,226 @@ function renderVideo(){const url=store.videoUrl||'';if(url){document.getElementB
 window.saveVideo=async function(){const url=document.getElementById('video-url-input').value.trim();store.videoUrl=url;await saveToFirebase({videoUrl:url});if(url){document.getElementById('video-preview-player').src=url;document.getElementById('video-preview-box').style.display='block';}else document.getElementById('video-preview-box').style.display='none';};
 window.clearVideo=async function(){store.videoUrl='';await saveToFirebase({videoUrl:''});document.getElementById('video-url-input').value='';document.getElementById('video-preview-box').style.display='none';};
 
+// ─── HISTORIAL TABS ───
+window.switchHistTab=function(tab,el){
+  document.getElementById('hist-tab-activas').style.display  = tab==='activas'  ?'block':'none';
+  document.getElementById('hist-tab-canceladas').style.display = tab==='canceladas'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if(tab==='canceladas') renderCanceladas();
+};
+
+function renderCanceladas(){
+  const canceladas=allVentas.filter(v=>v.estado==='cancelada'||v.estado==='reembolsada');
+  const total=canceladas.reduce((s,v)=>s+(v.total||0),0);
+  const el=document.getElementById('total-cancelado');
+  if(el) el.textContent=fp(total);
+  const tBadge={contado:'badge-green',credito:'badge-blue',tradein:'badge-orange'};
+  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'🔄 Trade-In'};
+  const cajaBadge={caja1:'<span class="badge badge-blue">🔵 L1</span>',caja2:'<span class="badge badge-purple">🟣 L2</span>'};
+  const stateBadge={cancelada:'<span class="badge badge-red">CANCELADA</span>',reembolsada:'<span class="badge badge-orange">REEMBOLSADA</span>'};
+  const container=document.getElementById('historial-canceladas-list');
+  if(!canceladas.length){
+    container.innerHTML='<div style="text-align:center;padding:48px;color:var(--text3);">No hay ventas canceladas</div>';
+    return;
+  }
+  container.innerHTML=canceladas.map(v=>`
+    <div class="venta-item" style="opacity:0.75;border-left:3px solid var(--red);" onclick="openVentaModal('${v.id}')">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:14px;color:var(--text);margin-bottom:3px;">${v.cliente||'Sin nombre'}
+          <span class="badge ${tBadge[v.tipoPago]||'badge-gray'}" style="margin-left:7px;">${tLabel[v.tipoPago]||'—'}</span>
+          ${cajaBadge[v.caja]||''}
+          <span class="badge badge-gray" style="margin-left:4px;">#${numFactura(v.facturaNum||1)}</span>
+          ${stateBadge[v.estado]||'<span class="badge badge-red">CANCELADA</span>'}
+        </div>
+        <div style="font-size:12px;color:var(--text3);">${(v.productos||[]).map(p=>p.nombre).join(' · ')||'—'}</div>
+        ${v.motivoCancelacion?`<div style="font-size:11px;color:var(--red);margin-top:2px;">Motivo: ${v.motivoCancelacion}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:var(--font-display);font-size:17px;text-decoration:line-through;color:var(--text3);">${fp(v.total)}</div>
+        <div style="font-size:11px;color:var(--text3);">${formatDate(v.fecha)}</div>
+      </div>
+    </div>`).join('');
+}
+
 // ─── CLOSE MODALS ───
 ['venta-modal','client-modal','edit-modal','empleado-modal','pago-emp-modal','proveedor-modal'].forEach(id=>{
   const el=document.getElementById(id);
   if(el) el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('open');});
 });
+
+// ─── CONFIGURACIÓN ───
+const PIN_DELETE = '0011';
+let currentVentaId = null;
+
+function loadConfigForm(){
+  const cfg=store.configuracion||{};
+  const fields={
+    'cfg-nombre':'nombre','cfg-nit':'nit','cfg-direccion':'direccion',
+    'cfg-ciudad':'ciudad','cfg-telefono':'telefono','cfg-email':'email',
+    'cfg-garantia-tiempo':'garantiaTiempo','cfg-garantia-texto':'garantiaTexto',
+    'cfg-mensaje-final':'mensajeFinal'
+  };
+  Object.entries(fields).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el&&cfg[key]!==undefined) el.value=cfg[key];
+  });
+  updateTicketPreview();
+}
+
+function updateTicketPreview(){
+  const cfg=store.configuracion||{};
+  const nombre=document.getElementById('cfg-nombre')?.value||cfg.nombre||'ZONA iPHONE';
+  const nit=document.getElementById('cfg-nit')?.value||cfg.nit||'—';
+  const dir=document.getElementById('cfg-direccion')?.value||cfg.direccion||'';
+  const tel=document.getElementById('cfg-telefono')?.value||cfg.telefono||'';
+  const garantia=document.getElementById('cfg-garantia-tiempo')?.value||cfg.garantiaTiempo||'6 MESES';
+  const msg=document.getElementById('cfg-mensaje-final')?.value||cfg.mensajeFinal||'¡Gracias!';
+  const sep='====================================';
+  const preview=`${sep}
+     CELULARES & ACCESORIOS
+      ${nombre.toUpperCase()}
+     NIT: ${nit}
+  ${dir}
+  ${tel}
+${sep}
+       FACTURA # 00001
+${sep}
+FECHA: 01/01/2025    HORA: 10:30:00
+${sep}
+ CLIENTE
+--------------------------------
+JUAN PEREZ
+Tel: 3001234567
+Ciudad: Barranquilla
+${sep}
+DESC        CANT    VR.     TOTAL
+--------------------------------
+iPhone 16 Pro  1  $5.499.000  $5.499.000
+${sep}
+DSCTO. - $0,0              $0
+${sep}
+TOTAL                $5.499.000
+${sep}
+ESTA FACTURA PRESTA MERITO...
+${sep}
+PAGO DE CONTADO
+Metodo: efectivo
+${sep}
+GARANTIA                ${garantia}
+${sep}
+${msg}
+       ZONA iPHONE
+      PREMIUM SERVICES
+${sep}`;
+  const el=document.getElementById('ticket-preview');
+  if(el) el.textContent=preview;
+}
+
+window.saveConfig=async function(){
+  const cfg={
+    nombre:document.getElementById('cfg-nombre')?.value.trim()||'ZONA iPHONE',
+    nit:document.getElementById('cfg-nit')?.value.trim()||'—',
+    direccion:document.getElementById('cfg-direccion')?.value.trim()||'',
+    ciudad:document.getElementById('cfg-ciudad')?.value.trim()||'Barranquilla',
+    telefono:document.getElementById('cfg-telefono')?.value.trim()||'',
+    email:document.getElementById('cfg-email')?.value.trim()||'',
+    garantiaTiempo:document.getElementById('cfg-garantia-tiempo')?.value.trim()||'6 MESES',
+    garantiaTexto:document.getElementById('cfg-garantia-texto')?.value.trim()||'',
+    mensajeFinal:document.getElementById('cfg-mensaje-final')?.value.trim()||'¡Gracias por su compra!'
+  };
+  store.configuracion=cfg;
+  await saveToFirebase({configuracion:cfg});
+  updateTicketPreview();
+};
+
+// Add listener for live preview update
+document.addEventListener('input',e=>{
+  const cfgIds=['cfg-nombre','cfg-nit','cfg-direccion','cfg-ciudad','cfg-telefono','cfg-email','cfg-garantia-tiempo','cfg-garantia-texto','cfg-mensaje-final'];
+  if(cfgIds.includes(e.target?.id)) updateTicketPreview();
+});
+
+// ─── PIN DELETE VENTA ───
+window.promptDeleteVenta=function(){
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').style.display='none';
+  document.getElementById('pin-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pin-input')?.focus(),100);
+};
+window.closePinModal=function(){
+  document.getElementById('pin-modal').classList.remove('open');
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').style.display='none';
+};
+window.clearPinError=function(){
+  document.getElementById('pin-error').style.display='none';
+};
+window.confirmDeleteVenta=async function(){
+  const pin=document.getElementById('pin-input').value;
+  if(pin!==PIN_DELETE){
+    document.getElementById('pin-error').style.display='block';
+    document.getElementById('pin-input').value='';
+    document.getElementById('pin-input').focus();
+    return;
+  }
+  if(!currentVentaId){ closePinModal(); return; }
+  const motivo=document.getElementById('pin-motivo')?.value.trim()||'';
+  try{
+    const vRef=doc(db,'ventas',currentVentaId);
+    await updateDoc(vRef,{
+      estado:'cancelada',
+      fechaCancelacion:Timestamp.now(),
+      motivoCancelacion:motivo||null
+    });
+    const v=allVentas.find(x=>x.id===currentVentaId);
+    if(v){
+      v.estado='cancelada';
+      v.fechaCancelacion=new Date();
+      v.motivoCancelacion=motivo||null;
+    }
+    closePinModal();
+    closeVentaModal();
+    renderHistorial();
+    renderDashboard(); // recalculates WITHOUT cancelled ventas
+    showToast('✅ Venta cancelada y descontada de ganancias','success');
+  } catch(err){
+    showToast('❌ Error: '+err.message,'error');
+  }
+};
+
+// ─── OVERRIDE openVentaModal to set currentVentaId ───
+const _origOpenVentaModal=window.openVentaModal;
+window.openVentaModal=function(id){
+  currentVentaId=id;
+  _origOpenVentaModal(id);
+  // Show/hide cancel button based on venta state
+  const v=allVentas.find(x=>x.id===id);
+  const deleteBtn=document.getElementById('venta-modal-delete');
+  if(deleteBtn){
+    if(v&&v.estado==='cancelada'){
+      deleteBtn.disabled=true;
+      deleteBtn.textContent='✓ Cancelada';
+      deleteBtn.style.opacity='0.5';
+    } else {
+      deleteBtn.disabled=false;
+      deleteBtn.textContent='🗑 Cancelar';
+      deleteBtn.style.opacity='1';
+    }
+  }
+};
+
+// ─── OVERRIDE showSection to load config form ───
+const _origShowSection=window.showSection;
+window.showSection=function(id,el){
+  _origShowSection(id,el);
+  if(id==='ajustes') loadConfigForm();
+};
+
+// ─── CLOSE PIN MODAL on overlay ───
+document.getElementById('pin-modal')?.addEventListener('click',e=>{
+  if(e.target===e.currentTarget) closePinModal();
+});
+
 </script>
 </body>
 </html>
