@@ -881,7 +881,7 @@ function enterAdmin(){
   initAdmin();
 }
 // ─── AUTH ───
-const ADMIN_PASS = 'TU_CONTRASEÑA_AQUÍ'; // <-- PON TU CLAVE REAL AQUÍ
+const ADMIN_PASS = 'TU_CONTRASEÑA_AQUÍ'; // <-- CAMBIA ESTO POR TU CLAVE
 const SESSION_KEY = 'zi_admin_logged';
 
 function enterAdmin(){
@@ -889,30 +889,29 @@ function enterAdmin(){
   const adminApp = document.getElementById('admin-app');
   
   if(loginScreen) loginScreen.classList.add('hidden');
-  if(adminApp) adminApp.style.display = 'flex'; // Cambiado a flex para que se vea el panel
+  if(adminApp) {
+    adminApp.style.display = 'flex';
+    adminApp.classList.add('visible');
+  }
   
-  // Solo inicializa si la función existe
   if(typeof initAdmin === 'function') initAdmin();
 }
 
 // Auto-login al cargar la página
 (function checkSession(){
   try {
-    if(sessionStorage.getItem(SESSION_KEY) === '1') {
-      enterAdmin();
-    }
+    if(sessionStorage.getItem(SESSION_KEY) === '1') enterAdmin();
   } catch(e) {}
 })();
 
 window.checkLogin = function(){
-  const passInput = document.getElementById('login-pass');
+  const loginInput = document.getElementById('login-pass'); // Se define para evitar el error de la consola
   const errorMsg = document.getElementById('login-error');
   
-  if(!passInput) return;
+  if(!loginInput) return;
 
-  const p = passInput.value;
+  const p = loginInput.value;
 
-  // Comparación con la variable definida arriba
   if(p === ADMIN_PASS){
     try { 
       sessionStorage.setItem(SESSION_KEY, '1'); 
@@ -920,8 +919,8 @@ window.checkLogin = function(){
     enterAdmin();
   } else {
     if(errorMsg) errorMsg.style.display = 'block';
-    passInput.value = '';
-    passInput.focus();
+    loginInput.value = '';
+    loginInput.focus();
   }
 };
 
@@ -929,13 +928,7 @@ window.logout = function(){
   try { 
     sessionStorage.removeItem(SESSION_KEY); 
   } catch(e) {}
-  location.reload(); // Recarga la página para limpiar todo y volver al login
-};
-  try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
-  document.getElementById('admin-app').classList.remove('visible');
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('login-pass').value='';
-  document.getElementById('login-error').style.display='none';
+  location.reload(); 
 };
 
 // ─── DEFAULT STORE ───
