@@ -880,24 +880,57 @@ function enterAdmin(){
   document.getElementById('admin-app').classList.add('visible');
   initAdmin();
 }
-// Auto-login if session exists
+// ─── AUTH ───
+const ADMIN_PASS = 'TU_CONTRASEÑA_AQUÍ'; // <-- PON TU CLAVE REAL AQUÍ
+const SESSION_KEY = 'zi_admin_logged';
+
+function enterAdmin(){
+  const loginScreen = document.getElementById('login-screen');
+  const adminApp = document.getElementById('admin-app');
+  
+  if(loginScreen) loginScreen.classList.add('hidden');
+  if(adminApp) adminApp.style.display = 'flex'; // Cambiado a flex para que se vea el panel
+  
+  // Solo inicializa si la función existe
+  if(typeof initAdmin === 'function') initAdmin();
+}
+
+// Auto-login al cargar la página
 (function checkSession(){
-  try{
-    if(sessionStorage.getItem(SESSION_KEY)==='1') enterAdmin();
-  }catch(e){}
+  try {
+    if(sessionStorage.getItem(SESSION_KEY) === '1') {
+      enterAdmin();
+    }
+  } catch(e) {}
 })();
 
-window.checkLogin=function(){
-  const p=document.getElementById('login-pass').value;
-  if(p===ADMIN_PASS){
-    try{ sessionStorage.setItem(SESSION_KEY,'1'); }catch(e){}
+window.checkLogin = function(){
+  const passInput = document.getElementById('login-pass');
+  const errorMsg = document.getElementById('login-error');
+  
+  if(!passInput) return;
+
+  const p = passInput.value;
+
+  // Comparación con la variable definida arriba
+  if(p === ADMIN_PASS){
+    try { 
+      sessionStorage.setItem(SESSION_KEY, '1'); 
+    } catch(e) {}
     enterAdmin();
   } else {
-    document.getElementById('login-error').style.display='block';
-    document.getElementById('login-pass').value='';
+    if(errorMsg) errorMsg.style.display = 'block';
+    passInput.value = '';
+    passInput.focus();
   }
 };
-window.logout=function(){
+
+window.logout = function(){
+  try { 
+    sessionStorage.removeItem(SESSION_KEY); 
+  } catch(e) {}
+  location.reload(); // Recarga la página para limpiar todo y volver al login
+};
   try{ sessionStorage.removeItem(SESSION_KEY); }catch(e){}
   document.getElementById('admin-app').classList.remove('visible');
   document.getElementById('login-screen').classList.remove('hidden');
