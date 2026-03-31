@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --gold:#C9A84C;--gold-light:#E8C97A;--gold-dark:#9A7A2E;
@@ -248,7 +249,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 <body>
 <div class="toast" id="toast"></div>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-badge">⚙ Panel Administrativo</div>
@@ -263,9 +263,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- APP -->
 <div id="admin-app">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon">📱</div>
@@ -295,7 +293,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
     <header class="topbar">
       <div class="topbar-title" id="topbar-title">Dashboard</div>
@@ -307,7 +304,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </header>
     <div class="content">
 
-<!-- ═══ DASHBOARD ═══ -->
 <div class="section active" id="sec-dashboard">
   <div class="section-header">
     <div class="section-title">Dashboard</div>
@@ -330,14 +326,12 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </select>
   </div>
 
-  <!-- GENERAL TABS -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchDashTab('general',this)">📊 General</button>
     <button class="tab-btn" onclick="switchDashTab('local1',this)">🔵 Local 1</button>
     <button class="tab-btn" onclick="switchDashTab('local2',this)">🟣 Local 2</button>
   </div>
 
-  <!-- GENERAL -->
   <div id="dash-general">
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label">Ingresos Hoy</div><div class="stat-value" id="sg-hoy">$0</div><div class="stat-change" id="sg-hoy-n">0 ventas</div></div>
@@ -366,7 +360,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </div>
 
-  <!-- LOCAL 1 -->
   <div id="dash-local1" style="display:none;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="width:14px;height:14px;border-radius:50%;background:var(--blue);display:inline-block;"></span><span style="font-weight:700;color:var(--blue);">LOCAL 1 — CAJA 1</span></div>
     <div class="stats-grid">
@@ -384,7 +377,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="card"><div class="card-title">Ventas recientes — Local 1</div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="recent-l1"></tbody></table></div></div>
   </div>
 
-  <!-- LOCAL 2 -->
   <div id="dash-local2" style="display:none;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="width:14px;height:14px;border-radius:50%;background:var(--purple);display:inline-block;"></span><span style="font-weight:700;color:var(--purple);">LOCAL 2 — CAJA 2</span></div>
     <div class="stats-grid">
@@ -403,12 +395,10 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ NUEVA VENTA ═══ -->
 <div class="section" id="sec-ventas">
   <div class="section-header"><div class="section-title">Nueva venta</div><div class="section-sub">Registra una venta y genera factura</div></div>
   <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:start;">
     <div>
-      <!-- CAJA -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">Seleccionar Local</div>
         <div class="caja-tabs">
@@ -416,7 +406,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
           <div class="caja-tab c2" onclick="setCaja('caja2',this)"><span class="ct-icon">🟣</span>Local 2 — Caja 2</div>
         </div>
       </div>
-      <!-- CLIENTE -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">Cliente</div>
         <div class="form-grid" style="margin-bottom:10px;">
@@ -429,7 +418,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
           <span class="field-hint" id="cedula-hint">Opcional para pago de contado</span>
         </div>
       </div>
-      <!-- PRODUCTOS -->
       <div class="card" style="margin-bottom:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div class="card-title" style="margin:0;">Productos</div>
@@ -438,7 +426,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         <div id="product-rows"></div>
         <button class="product-row-add" onclick="addProductRow()"><span>+</span> Agregar producto</button>
       </div>
-      <!-- TIPO PAGO -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">Tipo de pago</div>
         <div class="payment-tabs">
@@ -472,12 +459,10 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
           </div>
         </div>
       </div>
-      <!-- OBSERVACIONES -->
       <div class="card" style="margin-bottom:14px;">
         <div class="field"><label class="field-label">Observaciones / Garantía</label><textarea class="textarea" id="v-obs" placeholder="Garantía 6 meses, IMEI del equipo, etc."></textarea></div>
       </div>
     </div>
-    <!-- RESUMEN -->
     <div style="position:sticky;top:70px;">
       <div class="card">
         <div class="card-title">Resumen de venta</div>
@@ -496,14 +481,12 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ HISTORIAL ═══ -->
 <div class="section" id="sec-historial">
   <div class="section-header"><div class="section-title">Historial de ventas</div></div>
   <div class="tab-bar" style="margin-bottom:16px;">
     <button class="tab-btn active" onclick="switchHistTab('activas',this)">✅ Ventas activas</button>
     <button class="tab-btn" onclick="switchHistTab('canceladas',this)">🚫 Canceladas / Reembolsadas</button>
   </div>
-  <!-- ACTIVAS -->
   <div id="hist-tab-activas">
     <div class="filter-bar" style="margin-bottom:14px;">
       <label>Buscar:</label><input class="input" id="hist-search" placeholder="Nombre, teléfono…" style="width:200px;" oninput="renderHistorial()">
@@ -512,7 +495,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
     <div id="historial-list"><div style="text-align:center;padding:48px;color:var(--text3);">Cargando…</div></div>
   </div>
-  <!-- CANCELADAS -->
   <div id="hist-tab-canceladas" style="display:none;">
     <div style="background:var(--red-bg);border:1px solid rgba(192,57,43,0.15);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
       <span style="font-size:20px;">⚠️</span>
@@ -529,10 +511,8 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ PRODUCTOS ═══ -->
 <div class="section" id="sec-productos">
   <div class="section-header"><div class="section-title">Gestión de productos</div></div>
-  <!-- Edit modal -->
   <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);" id="edit-modal" class="modal-overlay">
     <div style="background:var(--surface);border-radius:var(--radius-lg);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
       <div class="modal-header"><div class="modal-title">Editar producto</div><button class="modal-close" onclick="closeEditModal()">✕</button></div>
@@ -607,7 +587,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ OTROS ═══ -->
 <div class="section" id="sec-otros">
   <div class="section-header"><div class="section-title">Otros productos</div></div>
   <div class="card" style="max-width:580px;margin-bottom:18px;">
@@ -636,7 +615,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Producto</th><th>Precio</th><th>Acciones</th></tr></thead><tbody id="otros-body"></tbody></table></div>
 </div>
 
-<!-- ═══ CLIENTES ═══ -->
 <div class="section" id="sec-clientes">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div><div class="section-title">Clientes CRM</div><div class="section-sub">Base de clientes</div></div>
@@ -684,7 +662,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ EMPLEADOS ═══ -->
 <div class="section" id="sec-empleados">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div><div class="section-title">Empleados</div><div class="section-sub">Gestión del personal</div></div>
@@ -704,7 +681,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeEmpleadoModal()">Cancelar</button><button class="btn btn-primary" onclick="saveEmpleado()">💾 Guardar</button></div>
     </div>
   </div>
-  <!-- Pago modal -->
   <div class="modal-overlay" id="pago-emp-modal">
     <div class="modal" style="max-width:420px;"><div class="modal-header"><div class="modal-title" id="pago-emp-titulo">Registrar pago</div><button class="modal-close" onclick="closePagoEmpModal()">✕</button></div>
     <div class="modal-body">
@@ -720,7 +696,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ PROVEEDORES ═══ -->
 <div class="section" id="sec-proveedores">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div><div class="section-title">Proveedores</div></div>
@@ -746,7 +721,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ GASTOS ═══ -->
 <div class="section" id="sec-gastos">
   <div class="section-header"><div class="section-title">Gastos</div></div>
   <div class="card" style="max-width:560px;margin-bottom:18px;">
@@ -758,29 +732,25 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Descripción</th><th>Local</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="gastos-body"></tbody></table></div>
 </div>
 
-<!-- ═══ EVENTOS ═══ -->
 <div class="section" id="sec-eventos">
   <div class="section-header"><div class="section-title">Eventos</div><div class="section-sub">Activa un evento para cambiar el tema del sitio</div></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:18px;" id="events-grid"></div>
   <button class="btn btn-danger" onclick="deactivateEvent()">✕ Desactivar evento</button>
 </div>
 
-<!-- ═══ CONFIGURACIÓN ═══ -->
 <div class="section" id="sec-ajustes">
   <div class="section-header"><div class="section-title">Configuración</div><div class="section-sub">Datos del negocio y textos de factura</div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
-    <!-- Datos del negocio -->
     <div class="card">
       <div class="card-title" style="margin-bottom:14px;">🏪 Datos del negocio</div>
       <div class="field" style="margin-bottom:10px;"><label class="field-label">Nombre del negocio</label><input class="input" id="cfg-nombre" placeholder="ZONA iPHONE"></div>
       <div class="field" style="margin-bottom:10px;"><label class="field-label">NIT</label><input class="input" id="cfg-nit" placeholder="900.123.456-1"></div>
-      <div class="field" style="margin-bottom:10px;"><label class="field-label">Dirección</label><input class="input" id="cfg-direccion" placeholder="Cra 4 # 5-21, Barranquilla"></div>
-      <div class="field" style="margin-bottom:10px;"><label class="field-label">Ciudad</label><input class="input" id="cfg-ciudad" placeholder="Barranquilla, Atlántico"></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Dirección</label><input class="input" id="cfg-direccion" placeholder="San Andresito El Pupi, Local 23"></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Ciudad</label><input class="input" id="cfg-ciudad" placeholder="Soledad, Atlántico"></div>
       <div class="field" style="margin-bottom:10px;"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="cfg-telefono" placeholder="+57 323 303 9179"></div>
       <div class="field" style="margin-bottom:14px;"><label class="field-label">Correo electrónico</label><input class="input" id="cfg-email" placeholder="zonaiphone@gmail.com" type="email"></div>
       <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Guardar datos</button>
     </div>
-    <!-- Textos de factura -->
     <div>
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title" style="margin-bottom:14px;">📄 Textos de factura</div>
@@ -810,7 +780,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- ═══ VIDEO ═══ -->
 <div class="section" id="sec-video">
   <div class="section-header"><div class="section-title">Video principal</div></div>
   <div class="card" style="max-width:580px;">
@@ -820,12 +789,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-    </div><!-- /content -->
-  </div><!-- /main -->
-</div><!-- /admin-app -->
-
-<!-- VENTA MODAL -->
-<div class="modal-overlay" id="venta-modal">
+    </div></div></div><div class="modal-overlay" id="venta-modal">
   <div class="modal" style="max-width:620px;">
     <div class="modal-header"><div class="modal-title">Detalle de venta</div><button class="modal-close" onclick="closeVentaModal()">✕</button></div>
     <div class="modal-body" id="venta-modal-body"></div>
@@ -839,7 +803,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
-<!-- PIN MODAL -->
 <div class="modal-overlay" id="pin-modal">
   <div class="modal" style="max-width:380px;">
     <div class="modal-header">
@@ -849,7 +812,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="modal-body">
       <div style="text-align:center;margin-bottom:18px;">
         <div style="font-size:32px;margin-bottom:8px;">⚠️</div>
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px);">¿Cancelar esta venta?</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;">¿Cancelar esta venta?</div>
         <div style="font-size:12px;color:var(--text3);">La venta se eliminará de los resultados activos y <strong>se descontará de las ganancias</strong>. Quedará registrada en la sección de canceladas.</div>
       </div>
       <div style="margin-bottom:8px;">
@@ -876,9 +839,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, Timestamp, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -968,8 +928,8 @@ const defaultStore={
   configuracion:{
     nombre:'ZONA iPHONE',
     nit:'NIT: —',
-    direccion:'Barranquilla, Colombia',
-    ciudad:'Barranquilla',
+    direccion:'Soledad, Colombia',
+    ciudad:'Soledad',
     telefono:'+57 323 303 9179',
     email:'zonaiphone@gmail.com',
     garantiaTiempo:'6 MESES',
@@ -1391,59 +1351,59 @@ function resetVentaForm(){
 }
 
 // ─── PDF (diseño tipo factura real) ───
-window.generarPDF=function(venta){
-  const cfg=store.configuracion||{};
-  const negocio=cfg.nombre||'ZONA iPHONE';
-  const nit=cfg.nit||'—';
-  const dir=cfg.direccion||'Barranquilla, Colombia';
-  const ciudad=cfg.ciudad||'Barranquilla';
-  const telN=cfg.telefono||'+57 323 303 9179';
-  const emailN=cfg.email||'zonaiphone@gmail.com';
-  const garantiaTiempo=cfg.garantiaTiempo||'6 MESES';
-  const garantiaTexto=cfg.garantiaTexto||'Nuestros equipos cuentan con una garantía otorgada por almacén. Los artículos deberán ser devueltos en su empaque original, sin rupturas, humedad ni daños, puesto que esto invalida la garantía.';
-  const mensajeFinal=cfg.mensajeFinal||'¡Gracias por su compra!';
+window.generarPDF = function(venta) {
+  const cfg = store.configuracion || {};
+  const negocio = cfg.nombre || 'ZONA iPHONE';
+  const nit = cfg.nit || '—';
+  const dir = cfg.direccion || 'Soledad, Colombia';
+  const ciudad = cfg.ciudad || 'Soledad';
+  const telN = cfg.telefono || '+57 323 303 9179';
+  const emailN = cfg.email || 'zonaiphone@gmail.com';
+  const garantiaTiempo = cfg.garantiaTiempo || '6 MESES';
+  const garantiaTexto = cfg.garantiaTexto || 'Nuestros equipos cuentan con una garantía otorgada por almacén. Los artículos deberán ser devueltos en su empaque original, sin rupturas, humedad ni daños, puesto que esto invalida la garantía.';
+  const mensajeFinal = cfg.mensajeFinal || '¡Gracias por su compra!';
 
-  const fd=venta.fecha?.toDate?venta.fecha.toDate():new Date();
-  const fechaStr=fd.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const horaStr=fd.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const cajaLabel=venta.caja==='caja1'?'Local 1 — Caja 1':'Local 2 — Caja 2';
-  const tpLabel={contado:'PAGO DE CONTADO',credito:'VENTA A CRÉDITO',tradein:'TRADE-IN / PAGO CON CELULAR'}[venta.tipoPago]||'';
-  const fileName='FacturaZI_'+numFactura(venta.facturaNum||1)+'_'+(venta.cliente||'cliente').replace(/\s/g,'_')+'.pdf';
+  const fd = venta.fecha?.toDate ? venta.fecha.toDate() : new Date();
+  const fechaStr = fd.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const horaStr = fd.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const cajaLabel = venta.caja === 'caja1' ? 'Local 1 — Caja 1' : 'Local 2 — Caja 2';
+  const tpLabel = { contado: 'PAGO DE CONTADO', credito: 'VENTA A CRÉDITO', tradein: 'TRADE-IN / PAGO CON CELULAR' }[venta.tipoPago] || '';
+  const fileName = 'FacturaZI_' + numFactura(venta.facturaNum || 1) + '_' + (venta.cliente || 'cliente').replace(/\s/g, '_') + '.pdf';
 
   // ── Build pago block ──
-  let pagoRows='';
-  if(venta.tipoPago==='contado'&&venta.metodoPago){
-    pagoRows=`<tr><td colspan="2">Método: <b>${venta.metodoPago}</b></td></tr>`;
-  } else if(venta.tipoPago==='credito'&&venta.datosCredito){
-    const dc=venta.datosCredito;
-    const saldo=Math.max(0,(venta.total||0)-dc.abono);
-    pagoRows=`
+  let pagoRows = '';
+  if (venta.tipoPago === 'contado' && venta.metodoPago) {
+    pagoRows = `<tr><td colspan="2">Método: <b>${venta.metodoPago}</b></td></tr>`;
+  } else if (venta.tipoPago === 'credito' && venta.datosCredito) {
+    const dc = venta.datosCredito;
+    const saldo = Math.max(0, (venta.total || 0) - dc.abono);
+    pagoRows = `
       <tr><td>Abono inicial:</td><td style="text-align:right"><b>${fp(dc.abono)}</b></td></tr>
       <tr><td>${dc.ncuotas} cuotas de:</td><td style="text-align:right"><b>${fp(dc.cuota)}</b></td></tr>
-      <tr><td>1ra cuota:</td><td style="text-align:right">${dc.fechaPrimeraCuota||'—'}</td></tr>
+      <tr><td>1ra cuota:</td><td style="text-align:right">${dc.fechaPrimeraCuota || '—'}</td></tr>
       <tr><td>Saldo:</td><td style="text-align:right"><b>${fp(saldo)}</b></td></tr>`;
-  } else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){
-    const dt=venta.datosTradeIn;
-    pagoRows=`
+  } else if (venta.tipoPago === 'tradein' && venta.datosTradeIn) {
+    const dt = venta.datosTradeIn;
+    pagoRows = `
       <tr><td>Celular recibido:</td><td style="text-align:right"><b>${dt.modelo}</b></td></tr>
-      ${dt.imei?`<tr><td>IMEI:</td><td style="text-align:right">${dt.imei}</td></tr>`:''}
+      ${dt.imei ? `<tr><td>IMEI:</td><td style="text-align:right">${dt.imei}</td></tr>` : ''}
       <tr><td>Valor recibido:</td><td style="text-align:right"><b>${fp(dt.valor)}</b></td></tr>
       <tr><td>Diferencia:</td><td style="text-align:right"><b>${fp(dt.restante)}</b></td></tr>`;
   }
 
   // ── Build products rows ──
-  const prodRows=(venta.productos||[]).map(p=>`
+  const prodRows = (venta.productos || []).map(p => `
     <tr class="prod-row">
-      <td class="prod-name">${p.nombre||''}</td>
+      <td class="prod-name">${p.nombre || ''}</td>
       <td class="prod-cant">${p.cantidad}</td>
       <td class="prod-vr">${fp(p.precio)}</td>
       <td class="prod-total">${fp(p.subtotal)}</td>
     </tr>`).join('');
 
-  const obsRow=venta.observaciones?`<tr><td colspan="2" style="font-style:italic;color:#555;padding-top:3px;">${venta.observaciones}</td></tr>`:'';
+  const obsRow = venta.observaciones ? `<tr><td colspan="2" style="font-style:italic;color:#555;padding-top:3px;">${venta.observaciones}</td></tr>` : '';
 
   // ── Full ticket HTML ──
-  const html=`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -1536,7 +1496,6 @@ window.generarPDF=function(venta){
 <body>
 <div class="ticket">
 
-  <!-- HEADER -->
   <div class="hd">
     <div class="hd-sub">Celulares &amp; Accesorios</div>
     <div class="hd-name">${negocio}</div>
@@ -1548,10 +1507,8 @@ window.generarPDF=function(venta){
 
   <hr class="sep-bold">
 
-  <!-- FACTURA # -->
-  <div class="fac-badge">FACTURA # ${numFactura(venta.facturaNum||1)}</div>
+  <div class="fac-badge">FACTURA # ${numFactura(venta.facturaNum || 1)}</div>
 
-  <!-- FECHA / HORA -->
   <div class="dt-row">
     <span>Fecha: ${fechaStr}</span>
     <span>Hora: ${horaStr}</span>
@@ -1559,16 +1516,14 @@ window.generarPDF=function(venta){
 
   <hr class="sep">
 
-  <!-- CLIENTE -->
   <div class="sec-lbl">Cliente</div>
-  <div class="cli-name">${venta.cliente||'—'}</div>
-  ${venta.cedula?`<div class="cli-detail">CC/NIT: ${mascaraCedula(venta.cedula)}</div>`:''}
-  ${venta.telefono?`<div class="cli-detail">Tel: ${venta.telefono}</div>`:''}
+  <div class="cli-name">${venta.cliente || '—'}</div>
+  ${venta.cedula ? `<div class="cli-detail">CC/NIT: ${mascaraCedula(venta.cedula)}</div>` : ''}
+  ${venta.telefono ? `<div class="cli-detail">Tel: ${venta.telefono}</div>` : ''}
   <div class="cli-detail">Ciudad: ${ciudad}</div>
 
   <hr class="sep-bold">
 
-  <!-- PRODUCTOS -->
   <table class="prod-table">
     <thead>
       <tr>
@@ -1585,18 +1540,15 @@ window.generarPDF=function(venta){
   <div class="dscto"><span>DSCTO. - $0, 0</span><span>$0</span></div>
   <hr class="sep-bold">
 
-  <!-- TOTAL -->
   <div class="total-blk">
     <span class="total-lbl">TOTAL</span>
     <span class="total-val">${fp(venta.total)}</span>
   </div>
 
-  <!-- LEGAL -->
   <div class="legal">ESTA FACTURA PRESTA MERITO EJECUTIVO COMO<br>LETRA DE CAMBIO ART.774 COD DE COMERCIO</div>
 
   <hr class="sep">
 
-  <!-- TIPO DE PAGO -->
   <div class="pago-lbl">${tpLabel}</div>
   <table class="pago-table">
     <tbody>${pagoRows}</tbody>
@@ -1605,7 +1557,6 @@ window.generarPDF=function(venta){
 
   <hr class="sep">
 
-  <!-- GARANTÍA -->
   <div class="gar-row">
     <span>GARANTIA</span>
     <span>${garantiaTiempo}</span>
@@ -1615,10 +1566,8 @@ window.generarPDF=function(venta){
 
   <hr class="sep">
 
-  <!-- CAJA -->
   <div class="caja-lbl">${cajaLabel}</div>
 
-  <!-- FOOTER -->
   <div class="footer">
     <div class="thanks">${mensajeFinal}</div>
     <div class="footer-sub">${negocio} · PREMIUM SERVICES</div>
@@ -1629,62 +1578,63 @@ window.generarPDF=function(venta){
 </html>`;
 
   // ── Render into hidden div, then use html2pdf ──
-  const container=document.createElement('div');
-  container.style.cssText='position:fixed;left:-9999px;top:0;width:75mm;background:#fff;';
-  container.innerHTML=html;
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:75mm;background:#fff;';
+  container.innerHTML = html;
   document.body.appendChild(container);
 
-  const ticketEl=container.querySelector('.ticket');
+  const ticketEl = container.querySelector('.ticket');
 
   // Detect Safari
-  const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-  const opt={
-    margin:[2,2,2,2],
-    filename:fileName,
-    image:{type:'jpeg',quality:0.98},
-    html2canvas:{
-      scale:3,
-      useCORS:true,
-      allowTaint:true,
-      backgroundColor:'#ffffff',
-      logging:false,
-      width:284,       // 75mm @ 96dpi ≈ 283.5px
-      windowWidth:284,
+  const opt = {
+    margin: [2, 2, 2, 2],
+    filename: fileName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: 284,       // 75mm @ 96dpi ≈ 283.5px
+      windowWidth: 284,
     },
-    jsPDF:{
-      unit:'mm',
-      format:[79,400],  // tall, will be cropped to content
-      orientation:'portrait',
-      compress:true,
+    jsPDF: {
+      unit: 'mm',
+      format: [79, 400],  // tall, will be cropped to content
+      orientation: 'portrait',
+      compress: true,
     },
-    pagebreak:{mode:'avoid-all'},
+    pagebreak: { mode: 'avoid-all' },
   };
 
-  showToast('⏳ Generando factura…');
+  showToast('⏳ Preparando factura, por favor espera...');
 
-  const worker=html2pdf().set(opt).from(ticketEl);
+  // EL TRUCO: Dar tiempo al DOM para renderizar antes de llamar a html2pdf
+  setTimeout(() => {
+    const worker = html2pdf().set(opt).from(ticketEl);
 
-  if(isSafari){
-    // Safari: open blob URL in new tab
-    worker.outputPdf('bloburl').then(url=>{
-      document.body.removeChild(container);
-      window.open(url,'_blank');
-      showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' abierta en nueva pestaña','success');
-    }).catch(err=>{
-      document.body.removeChild(container);
-      showToast('❌ Error: '+err.message,'error');
-    });
-  } else {
-    // Chrome / Firefox: download directly
-    worker.save().then(()=>{
-      document.body.removeChild(container);
-      showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' descargada','success');
-    }).catch(err=>{
-      document.body.removeChild(container);
-      showToast('❌ Error PDF: '+err.message,'error');
-    });
-  }
+    if (isSafari) {
+      worker.outputPdf('bloburl').then(url => {
+        document.body.removeChild(container);
+        window.open(url, '_blank');
+        showToast('📄 Factura #' + numFactura(venta.facturaNum || 1) + ' abierta en nueva pestaña', 'success');
+      }).catch(err => {
+        document.body.removeChild(container);
+        showToast('❌ Error: ' + err.message, 'error');
+      });
+    } else {
+      worker.save().then(() => {
+        document.body.removeChild(container);
+        showToast('📄 Factura #' + numFactura(venta.facturaNum || 1) + ' descargada', 'success');
+      }).catch(err => {
+        document.body.removeChild(container);
+        showToast('❌ Error PDF: ' + err.message, 'error');
+      });
+    }
+  }, 800); // 800ms de retraso es el punto dulce para que no falle.
 };
 // ─── WHATSAPP ───
 window.enviarWhatsApp=function(venta){
@@ -2102,169 +2052,4 @@ function loadConfigForm(){
   const fields={
     'cfg-nombre':'nombre','cfg-nit':'nit','cfg-direccion':'direccion',
     'cfg-ciudad':'ciudad','cfg-telefono':'telefono','cfg-email':'email',
-    'cfg-garantia-tiempo':'garantiaTiempo','cfg-garantia-texto':'garantiaTexto',
-    'cfg-mensaje-final':'mensajeFinal'
-  };
-  Object.entries(fields).forEach(([id,key])=>{
-    const el=document.getElementById(id);
-    if(el&&cfg[key]!==undefined) el.value=cfg[key];
-  });
-  updateTicketPreview();
-}
-
-function updateTicketPreview(){
-  const cfg=store.configuracion||{};
-  const nombre=document.getElementById('cfg-nombre')?.value||cfg.nombre||'ZONA iPHONE';
-  const nit=document.getElementById('cfg-nit')?.value||cfg.nit||'—';
-  const dir=document.getElementById('cfg-direccion')?.value||cfg.direccion||'';
-  const tel=document.getElementById('cfg-telefono')?.value||cfg.telefono||'';
-  const garantia=document.getElementById('cfg-garantia-tiempo')?.value||cfg.garantiaTiempo||'6 MESES';
-  const msg=document.getElementById('cfg-mensaje-final')?.value||cfg.mensajeFinal||'¡Gracias!';
-  const sep='====================================';
-  const preview=`${sep}
-     CELULARES & ACCESORIOS
-      ${nombre.toUpperCase()}
-     NIT: ${nit}
-  ${dir}
-  ${tel}
-${sep}
-       FACTURA # 00001
-${sep}
-FECHA: 01/01/2025    HORA: 10:30:00
-${sep}
- CLIENTE
---------------------------------
-JUAN PEREZ
-Tel: 3001234567
-Ciudad: Barranquilla
-${sep}
-DESC        CANT    VR.     TOTAL
---------------------------------
-iPhone 16 Pro  1  $5.499.000  $5.499.000
-${sep}
-DSCTO. - $0,0              $0
-${sep}
-TOTAL                $5.499.000
-${sep}
-ESTA FACTURA PRESTA MERITO...
-${sep}
-PAGO DE CONTADO
-Metodo: efectivo
-${sep}
-GARANTIA                ${garantia}
-${sep}
-${msg}
-       ZONA iPHONE
-      PREMIUM SERVICES
-${sep}`;
-  const el=document.getElementById('ticket-preview');
-  if(el) el.textContent=preview;
-}
-
-window.saveConfig=async function(){
-  const cfg={
-    nombre:document.getElementById('cfg-nombre')?.value.trim()||'ZONA iPHONE',
-    nit:document.getElementById('cfg-nit')?.value.trim()||'—',
-    direccion:document.getElementById('cfg-direccion')?.value.trim()||'',
-    ciudad:document.getElementById('cfg-ciudad')?.value.trim()||'Barranquilla',
-    telefono:document.getElementById('cfg-telefono')?.value.trim()||'',
-    email:document.getElementById('cfg-email')?.value.trim()||'',
-    garantiaTiempo:document.getElementById('cfg-garantia-tiempo')?.value.trim()||'6 MESES',
-    garantiaTexto:document.getElementById('cfg-garantia-texto')?.value.trim()||'',
-    mensajeFinal:document.getElementById('cfg-mensaje-final')?.value.trim()||'¡Gracias por su compra!'
-  };
-  store.configuracion=cfg;
-  await saveToFirebase({configuracion:cfg});
-  updateTicketPreview();
-};
-
-// Add listener for live preview update
-document.addEventListener('input',e=>{
-  const cfgIds=['cfg-nombre','cfg-nit','cfg-direccion','cfg-ciudad','cfg-telefono','cfg-email','cfg-garantia-tiempo','cfg-garantia-texto','cfg-mensaje-final'];
-  if(cfgIds.includes(e.target?.id)) updateTicketPreview();
-});
-
-// ─── PIN DELETE VENTA ───
-window.promptDeleteVenta=function(){
-  document.getElementById('pin-input').value='';
-  document.getElementById('pin-error').style.display='none';
-  document.getElementById('pin-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('pin-input')?.focus(),100);
-};
-window.closePinModal=function(){
-  document.getElementById('pin-modal').classList.remove('open');
-  document.getElementById('pin-input').value='';
-  document.getElementById('pin-error').style.display='none';
-};
-window.clearPinError=function(){
-  document.getElementById('pin-error').style.display='none';
-};
-window.confirmDeleteVenta=async function(){
-  const pin=document.getElementById('pin-input').value;
-  if(pin!==PIN_DELETE){
-    document.getElementById('pin-error').style.display='block';
-    document.getElementById('pin-input').value='';
-    document.getElementById('pin-input').focus();
-    return;
-  }
-  if(!currentVentaId){ closePinModal(); return; }
-  const motivo=document.getElementById('pin-motivo')?.value.trim()||'';
-  try{
-    const vRef=doc(db,'ventas',currentVentaId);
-    await updateDoc(vRef,{
-      estado:'cancelada',
-      fechaCancelacion:Timestamp.now(),
-      motivoCancelacion:motivo||null
-    });
-    const v=allVentas.find(x=>x.id===currentVentaId);
-    if(v){
-      v.estado='cancelada';
-      v.fechaCancelacion=new Date();
-      v.motivoCancelacion=motivo||null;
-    }
-    closePinModal();
-    closeVentaModal();
-    renderHistorial();
-    renderDashboard(); // recalculates WITHOUT cancelled ventas
-    showToast('✅ Venta cancelada y descontada de ganancias','success');
-  } catch(err){
-    showToast('❌ Error: '+err.message,'error');
-  }
-};
-
-// ─── OVERRIDE openVentaModal to set currentVentaId ───
-const _origOpenVentaModal=window.openVentaModal;
-window.openVentaModal=function(id){
-  currentVentaId=id;
-  _origOpenVentaModal(id);
-  // Show/hide cancel button based on venta state
-  const v=allVentas.find(x=>x.id===id);
-  const deleteBtn=document.getElementById('venta-modal-delete');
-  if(deleteBtn){
-    if(v&&v.estado==='cancelada'){
-      deleteBtn.disabled=true;
-      deleteBtn.textContent='✓ Cancelada';
-      deleteBtn.style.opacity='0.5';
-    } else {
-      deleteBtn.disabled=false;
-      deleteBtn.textContent='🗑 Cancelar';
-      deleteBtn.style.opacity='1';
-    }
-  }
-};
-
-// ─── OVERRIDE showSection to load config form ───
-const _origShowSection=window.showSection;
-window.showSection=function(id,el){
-  _origShowSection(id,el);
-  if(id==='ajustes') loadConfigForm();
-};
-
-// ─── CLOSE PIN MODAL on overlay ───
-document.getElementById('pin-modal')?.addEventListener('click',e=>{
-  if(e.target===e.currentTarget) closePinModal();
-});
-
-</script>
-</body>
-</html>
+    'cfg-
