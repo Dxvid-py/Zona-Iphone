@@ -224,8 +224,12 @@ nav { animation: heroFadeIn 0.5s ease both; }
 .product-card{ background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.08); transition:transform 0.25s,box-shadow 0.25s; cursor:pointer; position:relative; }
 .product-card:hover{ transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.15); }
 .product-badge{ position:absolute; top:12px; left:12px; background:var(--gold); color:var(--black); font-size:9px; font-weight:800; letter-spacing:1.5px; padding:3px 8px; border-radius:4px; text-transform:uppercase; z-index:1; }
-.product-img{ width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:72px; background:linear-gradient(135deg,#F8F8F8,#EFEFEF); padding:20px; }
-.product-img img{ max-width:100%; max-height:100%; object-fit:contain; }
+.product-img{ width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:72px; background:linear-gradient(135deg,#F8F8F8,#EFEFEF); padding:0; overflow:hidden; position:relative; }
+.product-img .emoji-fallback{ font-size:72px; }
+.product-img img{ width:100%; height:100%; object-fit:cover; transition:transform 0.4s cubic-bezier(0.22,1,0.36,1); display:block; }
+.product-card:hover .product-img img{ transform:scale(1.07); }
+.product-img-inner{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+.product-img-inner::after{ content:''; position:absolute; inset:0; background:linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.06) 100%); pointer-events:none; }
 .product-info{ padding:16px; border-top:1px solid #F0F0F0; }
 .product-name{ font-size:14px; font-weight:700; color:var(--black); margin-bottom:4px; line-height:1.3; }
 .product-storage{ font-size:11px; color:var(--gray-dark); margin-bottom:8px; }
@@ -623,7 +627,7 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
       <div class="modal-product-name" id="modal-product-name"></div>
       <div class="modal-product-price" id="modal-product-price"></div>
       <div class="form-group" id="color-group"><label class="form-label">Color</label><select class="form-select" id="order-color"></select></div>
-      <div class="form-group" id="storage-group"><label class="form-label">Almacenamiento</label><select class="form-select" id="order-storage"></select></div>
+      <div class="form-group" id="storage-group"><label class="form-label">Almacenamiento</label><select class="form-select" id="order-storage" onchange="updateModalPrice(this)"></select></div>
       <div class="form-group"><label class="form-label">Tu nombre</label><input class="form-input" id="order-name" placeholder="Ej: María García" type="text"></div>
       <div class="form-group">
         <label class="form-label">Método de pago</label>
@@ -699,7 +703,8 @@ const defaultStore = {
     {id:3,name:'Cable USB-C Genérico',emoji:'🔌',price:25000},
     {id:4,name:'Audífonos Bluetooth',emoji:'🎵',price:150000},
   ],
-  clients:[],orders:[],activeEvent:null,videoUrl:''
+  clients:[],orders:[],activeEvent:null,videoUrl:'',
+  eventPromoProductId:null,eventPromoPrice:null
 };
 
 let store = {...defaultStore};
@@ -809,7 +814,7 @@ function renderProducts(cat='todos') {
   document.getElementById('products-grid').innerHTML = items.map(p=>`
     <div class="product-card" onclick="openModal(${p.id})">
       ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
-      <div class="product-img">${p.img ? `<img src="${p.img}" style="max-width:100%;max-height:100%;object-fit:contain;">` : p.emoji}</div>
+      <div class="product-img">${p.img ? `<div class="product-img-inner"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>` : `<span class="emoji-fallback">${p.emoji}</span>`}</div>
       <div class="product-info">
         <div class="product-name">${p.name}</div>
         <div class="product-storage">${p.storage.length ? p.storage.join(' · ') : p.desc}</div>
@@ -844,9 +849,17 @@ window.openModal = function(id) {
   document.getElementById('modal-product-name').textContent = p.name;
   document.getElementById('modal-product-price').textContent = formatPrice(p.price);
   document.getElementById('order-color').innerHTML = p.colors.map(c=>`<option>${c}</option>`).join('') || '<option>Único</option>';
-  document.getElementById('order-storage').innerHTML = p.storage.map(s=>`<option>${s}</option>`).join('') || '<option>Único</option>';
+  // Build storage options — use storageVariants if available for dynamic pricing
+  if(p.storageVariants && p.storageVariants.length) {
+    document.getElementById('order-storage').innerHTML = p.storageVariants.map(v=>`<option value="${v.gb}|${v.precio}">${v.gb} — ${formatPrice(v.precio)}</option>`).join('');
+    // Set initial price to first variant
+    const first = p.storageVariants[0];
+    document.getElementById('modal-product-price').textContent = formatPrice(first.precio);
+  } else {
+    document.getElementById('order-storage').innerHTML = p.storage.map(s=>`<option value="${s}|${p.price}">${s}</option>`).join('') || '<option value="">Único</option>';
+  }
   document.getElementById('color-group').style.display = p.colors.length ? '' : 'none';
-  document.getElementById('storage-group').style.display = p.storage.length ? '' : 'none';
+  document.getElementById('storage-group').style.display = p.storage.length || (p.storageVariants && p.storageVariants.length) ? '' : 'none';
   document.getElementById('order-modal').classList.add('open');
 };
 window.openOtroModal = function(id) {
@@ -867,13 +880,15 @@ window.sendWhatsApp = async function() {
   const name = document.getElementById('order-name').value.trim();
   if (!name) { showToast('Por favor ingresa tu nombre'); return; }
   const color = document.getElementById('order-color').value || '';
-  const storage = document.getElementById('order-storage').value || '';
+  const storageRaw = document.getElementById('order-storage').value || '';
+  const storage = storageRaw.includes('|') ? storageRaw.split('|')[0] : storageRaw;
   const note = document.getElementById('order-note').value.trim();
   let msg = `🛍️ *PEDIDO - ZONA iPHONE*\n\n`;
   msg += `📱 *Producto:* ${currentProduct.name}\n`;
   if (color) msg += `🎨 *Color:* ${color}\n`;
   if (storage) msg += `💾 *Almacenamiento:* ${storage}\n`;
-  msg += `💰 *Precio:* ${formatPrice(currentProduct.price)}\n`;
+  const selectedPrice = currentProduct._selectedPrice || currentProduct.price;
+  msg += `💰 *Precio:* ${formatPrice(selectedPrice)}\n`;
   msg += `💳 *Forma de pago:* ${selectedPayment}\n`;
   msg += `👤 *Nombre:* ${name}\n`;
   if (note) msg += `📝 *Nota:* ${note}\n`;
@@ -926,6 +941,35 @@ function applyEvent(id) {
   document.body.classList.remove('event-active','event-christmas','event-halloween','event-love','event-carnival','event-mothers','event-independence','event-newyear');
   const banner = document.getElementById('event-banner');
   if (!id) { banner.classList.remove('active'); stopParticles(); return; }
+
+  // Handle custom event
+  if(id==='custom' && store.customEvent) {
+    const ce = store.customEvent;
+    // Check if event is still active (not past end date)
+    if(ce.end && new Date(ce.end) < new Date()) { banner.classList.remove('active'); stopParticles(); return; }
+    document.body.classList.add('event-active','event-'+(ce.theme||'newyear'));
+    banner.classList.add('active');
+    document.getElementById('event-badge').textContent = (ce.emoji||'🎉')+' '+ce.name;
+    document.getElementById('event-title').innerHTML = (ce.name||'EVENTO ESPECIAL').toUpperCase();
+    document.getElementById('event-subtitle').textContent = 'Evento especial en Zona iPhone';
+    // Show promo products
+    let eventProds = store.products.slice(0,3);
+    if(store.eventPromoProductId) {
+      const promo = store.products.find(p=>p.id===store.eventPromoProductId);
+      if(promo) eventProds = [promo, ...store.products.filter(p=>p.id!==promo.id).slice(0,2)];
+    }
+    document.getElementById('event-products').innerHTML = eventProds.map((p,i)=>`
+      <div class="event-product-card" onclick="openModal(${p.id})">
+        ${i===0&&store.eventPromoProductId===p.id ? '<div class="event-discount-badge">🔥 PROMO</div>' : '<div class="event-discount-badge">HOT</div>'}
+        <div class="event-product-img-wrap">${p.img ? `<img src="${p.img}" alt="${p.name}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;margin-bottom:6px;">` : `<div class="event-product-emoji">${p.emoji}</div>`}</div>
+        <div class="event-product-name">${p.name}</div>
+        <div class="event-product-price">${formatPrice(store.eventPromoProductId===p.id&&store.eventPromoPrice ? store.eventPromoPrice : p.price)}</div>
+      </div>`).join('');
+    startParticles('confetti');
+    if(ce.end) startTimer(new Date(ce.end));
+    return;
+  }
+
   const ev = events.find(e=>e.id===id); if(!ev) return;
   document.body.classList.add('event-active','event-'+ev.theme);
   banner.classList.add('active');
@@ -933,12 +977,18 @@ function applyEvent(id) {
   document.getElementById('event-badge').textContent = msgs.badge;
   document.getElementById('event-title').innerHTML = msgs.title;
   document.getElementById('event-subtitle').textContent = msgs.subtitle;
-  document.getElementById('event-products').innerHTML = store.products.slice(0,3).map(p=>`
+  // Show promo product if set, otherwise show first 3 products
+  let eventProds = store.products.slice(0,3);
+  if(store.eventPromoProductId) {
+    const promo = store.products.find(p=>p.id===store.eventPromoProductId);
+    if(promo) eventProds = [promo, ...store.products.filter(p=>p.id!==promo.id).slice(0,2)];
+  }
+  document.getElementById('event-products').innerHTML = eventProds.map((p,i)=>`
     <div class="event-product-card" onclick="openModal(${p.id})">
-      <div class="event-discount-badge">HOT</div>
-      <div class="event-product-emoji">${p.emoji}</div>
+      ${i===0&&store.eventPromoProductId===p.id ? '<div class="event-discount-badge">🔥 PROMO</div>' : '<div class="event-discount-badge">HOT</div>'}
+      <div class="event-product-img-wrap">${p.img ? `<img src="${p.img}" alt="${p.name}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;margin-bottom:6px;">` : `<div class="event-product-emoji">${p.emoji}</div>`}</div>
       <div class="event-product-name">${p.name}</div>
-      <div class="event-product-price">${formatPrice(p.price)}</div>
+      <div class="event-product-price">${formatPrice(store.eventPromoProductId===p.id&&store.eventPromoPrice ? store.eventPromoPrice : p.price)}</div>
     </div>`).join('');
   startParticles(ev.particles);
   startTimer(ev.endDate);
@@ -1003,6 +1053,17 @@ function startParticles(type) {
   window.addEventListener('resize', ()=>{ c.width=window.innerWidth; c.height=window.innerHeight; });
 }
 
+
+window.updateModalPrice = function(sel) {
+  const val = sel.value;
+  if(!val || !val.includes('|')) return;
+  const parts = val.split('|');
+  const precio = parseFloat(parts[1]);
+  if(!isNaN(precio)) {
+    document.getElementById('modal-product-price').textContent = formatPrice(precio);
+    if(currentProduct) currentProduct._selectedPrice = precio;
+  }
+};
 
 window.consultarWA = function(nombre, precio) {
   const msg = `Hola! Estoy interesado en el ${nombre} que cuesta ${('$'+Number(precio).toLocaleString('es-CO'))}. ¿Tienen disponibilidad?`;
