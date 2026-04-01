@@ -498,12 +498,10 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         </div>
         <div style="display:flex;flex-direction:column;gap:7px;">
           <button class="btn btn-gold btn-lg btn-block" onclick="finalizarVenta()" id="btn-finalizar">✅ Finalizar venta</button>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <button class="btn btn-primary btn-block" onclick="imprimirFactura()" id="btn-imprimir" disabled>🖨 Imprimir</button>
-            <button class="btn btn-green btn-block" onclick="compartirFactura()" id="btn-compartir" disabled>🔗 Compartir</button>
-          </div>
+          <button class="btn btn-primary btn-block" onclick="imprimirUltimaFactura()" id="btn-imprimir" disabled style="opacity:0.45;cursor:not-allowed;">🖨 Imprimir factura</button>
           <button class="btn btn-outline btn-sm btn-block" onclick="enviarWhatsApp()">💬 Enviar por WhatsApp</button>
         </div>
+        <div id="print-status-bar" style="display:none;margin-top:10px;padding:10px 12px;background:var(--green-bg);border:1px solid rgba(45,122,79,0.2);border-radius:var(--radius-sm);font-size:12px;color:var(--green);text-align:center;"></div>
       </div>
     </div>
   </div>
@@ -981,7 +979,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <div style="flex:1;"></div>
       <button class="btn btn-outline" onclick="closeVentaModal()">Cerrar</button>
       <button class="btn btn-green" id="venta-modal-wa">💬 WhatsApp</button>
-      <button class="btn btn-primary" id="venta-modal-pdf">📄 PDF</button>
+      <button class="btn btn-primary" id="venta-modal-pdf">🖨 Imprimir</button>
     </div>
   </div>
 </div>
@@ -1626,6 +1624,14 @@ window.finalizarVenta=async function(){
     updateFacturaBadge();
 
     lastVenta=venta;
+    lastVenta._cfgSnapshot=JSON.parse(JSON.stringify(store.configuracion||{}));
+
+    // Habilitar botón imprimir
+    const btnImp=document.getElementById('btn-imprimir');
+    if(btnImp){btnImp.disabled=false;btnImp.style.opacity='1';btnImp.style.cursor='pointer';}
+    // Mostrar barra de estado
+    const psb=document.getElementById('print-status-bar');
+    if(psb){psb.style.display='block';psb.innerHTML='✅ Venta #'+numFactura(factNum)+' guardada — <strong>presiona Imprimir factura</strong> para imprimir o búscala en Historial.';}
 
     // AUTO-REGISTER credit client → Clientes a Crédito
     if(currentPayment==='credito'&&venta.datosCredito){
@@ -1654,15 +1660,11 @@ window.finalizarVenta=async function(){
       saveToFirebase({clientesCRM:crm}).catch(()=>{});
     }
 
-    // Enable print/share buttons
-    ['btn-imprimir','btn-compartir'].forEach(id=>{
-      const btn=document.getElementById(id); if(btn){btn.disabled=false;}
-    });
-
     resetVentaForm();
     renderDashboard();
     renderProducts();
-    showToast('✅ Venta #'+numFactura(factNum)+' registrada — ya puedes imprimir','success');
+    renderHistorial();
+    showToast('✅ Venta #'+numFactura(factNum)+' guardada — presiona Imprimir factura','success');
   } catch(e){ showToast('❌ Error: '+e.message,'error'); }
 };
 
@@ -1672,84 +1674,39 @@ function resetVentaForm(){
   productRowCount=0;
   addProductRow();
   updateVentaSummary();
+  // NO reseteamos lastVenta — el botón imprimir sigue activo para la última venta
 }
 
-// ─── PDF TICKET — Técnica Wrapper Oculto + Intervalo de Progreso ───
-let lastVenta=null;
+// ─── SISTEMA DE FACTURACIÓN — Ventana emergente dedicada ───
+let lastVenta = null;
 
-// ── CSS para progress overlay (se inyecta una sola vez) ──
-(function(){
-  if(document.getElementById('pdf-progress-overlay')) return;
-  const s=document.createElement('style');
-  s.textContent=`
-    #pdf-progress-overlay{
-      display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);
-      z-index:99999;align-items:center;justify-content:center;
-      backdrop-filter:blur(6px);
-    }
-    #pdf-progress-overlay.active{display:flex;}
-    #pdf-progress-box{
-      background:#fff;border-radius:20px;padding:32px 40px;min-width:300px;text-align:center;
-      box-shadow:0 24px 80px rgba(0,0,0,0.3);
-    }
-    #pdf-progress-icon{font-size:36px;margin-bottom:10px;animation:pdfIconBounce 0.8s ease-in-out infinite alternate;}
-    @keyframes pdfIconBounce{from{transform:scale(1);}to{transform:scale(1.12);}}
-    #pdf-progress-title{font-family:'Instrument Serif',Georgia,serif;font-size:20px;color:#1A1814;margin-bottom:4px;font-weight:600;}
-    #pdf-progress-sub{font-size:12px;color:#8A8680;margin-bottom:18px;letter-spacing:0.3px;}
-    #pdf-progress-bar-wrap{background:#E4E2DE;border-radius:50px;height:9px;overflow:hidden;}
-    #pdf-progress-bar{
-      height:100%;width:0%;border-radius:50px;
-      background:linear-gradient(90deg,#9A7A2E,#C9A84C,#E8C97A,#C9A84C,#9A7A2E);
-      background-size:300% 100%;
-      transition:width 0.15s linear;
-      animation:pdfBarShine 1.5s linear infinite;
-    }
-    @keyframes pdfBarShine{0%{background-position:300% 0}100%{background-position:-300% 0}}
-    #pdf-progress-status{font-size:11px;color:#8A8680;margin-top:10px;min-height:16px;font-style:italic;}
-  `;
-  document.head.appendChild(s);
-  const overlay=document.createElement('div');
-  overlay.id='pdf-progress-overlay';
-  overlay.innerHTML=`
-    <div id="pdf-progress-box">
-      <div id="pdf-progress-icon">🧾</div>
-      <div id="pdf-progress-title">Generando factura…</div>
-      <div id="pdf-progress-sub">Por favor espera un momento</div>
-      <div id="pdf-progress-bar-wrap"><div id="pdf-progress-bar"></div></div>
-      <div id="pdf-progress-status">Preparando estructura…</div>
-    </div>`;
-  document.body.appendChild(overlay);
-})();
-
-// ── Construye el HTML de la factura como STRING (todos estilos en línea) ──
+// ── buildTicketHTML: construye HTML completo del ticket con estilos inline ──
 function buildTicketHTML(venta){
-  const cfg=store.configuracion||{};
-  const negocio=cfg.nombre||'ZONA iPHONE';
-  const nit=cfg.nit||'—';
-  const dir=cfg.direccion||'Barranquilla, Colombia';
-  const ciudad=cfg.ciudad||'Barranquilla';
-  const telN=cfg.telefono||'+57 323 303 9179';
-  const emailN=cfg.email||'zonaiphone@gmail.com';
-  const garantiaTiempo=cfg.garantiaTiempo||'6 MESES';
-  const garantiaTexto=cfg.garantiaTexto||'Nuestros equipos cuentan con una garantía otorgada por almacén. Los artículos deberán ser devueltos en su empaque original, sin rupturas, humedad ni daños.';
-  const mensajeFinal=cfg.mensajeFinal||'¡Gracias por su compra!';
-  // Textos legales personalizables
-  const textoLegal=cfg.textoLegal||'ESTA FACTURA PRESTA MERITO EJECUTIVO COMO LETRA DE CAMBIO ART.774 COD DE COMERCIO';
-  const subtitulo=cfg.subtitulo||'CELULARES & ACCESORIOS';
+  const cfg = (venta._cfgSnapshot) || store.configuracion || {};
+  const negocio   = cfg.nombre       || 'ZONA iPHONE';
+  const nit       = cfg.nit          || '—';
+  const dir       = cfg.direccion    || 'Barranquilla, Colombia';
+  const ciudad    = cfg.ciudad       || 'Barranquilla';
+  const telN      = cfg.telefono     || '+57 323 303 9179';
+  const emailN    = cfg.email        || 'zonaiphone@gmail.com';
+  const garantiaTiempo = cfg.garantiaTiempo || '6 MESES';
+  const garantiaTexto  = cfg.garantiaTexto  || 'Nuestros equipos cuentan con una garantía otorgada por almacén. Los artículos deberán ser devueltos en su empaque original, sin rupturas, humedad ni daños.';
+  const mensajeFinal   = cfg.mensajeFinal   || '¡Gracias por su compra!';
+  const textoLegal     = cfg.textoLegal     || 'ESTA FACTURA PRESTA MERITO EJECUTIVO COMO LETRA DE CAMBIO ART.774 COD DE COMERCIO';
+  const subtitulo      = cfg.subtitulo      || 'CELULARES & ACCESORIOS';
 
-  const fd=venta.fecha?.toDate?venta.fecha.toDate():new Date();
-  const fechaStr=fd.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const horaStr=fd.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const cajaLabel=venta.caja==='caja1'?'Local 1':'Local 2';
-  const tpLabel={contado:'PAGO DE CONTADO',credito:'VENTA A CREDITO',tradein:'TRADE-IN'}[venta.tipoPago]||'';
-  const cliNombre=(venta.cliente||'—').toUpperCase();
-  const cliCedula=venta.cedula?'CC/NIT: '+mascaraCedula(venta.cedula):'';
-  const cliTel=venta.telefono?'Tel: '+venta.telefono:'';
+  const fd = venta.fecha?.toDate ? venta.fecha.toDate() : new Date();
+  const fechaStr = fd.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const horaStr  = fd.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const cajaLabel = venta.caja === 'caja1' ? 'Local 1' : 'Local 2';
+  const tpLabel   = {contado:'PAGO DE CONTADO',credito:'VENTA A CREDITO',tradein:'TRADE-IN'}[venta.tipoPago] || '';
+  const cliNombre = (venta.cliente||'—').toUpperCase();
+  const cliCedula = venta.cedula ? 'CC/NIT: ' + mascaraCedula(venta.cedula) : '';
+  const cliTel    = venta.telefono ? 'Tel: ' + venta.telefono : '';
 
-  // Filas de productos
-  let prodRows='';
-  (venta.productos||[]).forEach(p=>{
-    prodRows+=`<tr>
+  let prodRows = '';
+  (venta.productos||[]).forEach(p => {
+    prodRows += `<tr>
       <td style="padding:3px 2px;font-size:9px;word-break:break-word;vertical-align:top;">${p.nombre||''}</td>
       <td style="padding:3px 2px;font-size:9px;text-align:center;">${p.cantidad}</td>
       <td style="padding:3px 2px;font-size:9px;text-align:right;white-space:nowrap;">${fp(p.precio)}</td>
@@ -1757,25 +1714,24 @@ function buildTicketHTML(venta){
     </tr>`;
   });
 
-  // Info de pago
-  let pagoHtml='';
-  if(venta.tipoPago==='contado'&&venta.metodoPago){
-    pagoHtml=`<p style="margin:2px 0;font-size:8.5px;">Metodo: <b>${venta.metodoPago}</b></p>`;
-  } else if(venta.tipoPago==='credito'&&venta.datosCredito){
-    const dc=venta.datosCredito;
-    pagoHtml=`<p style="margin:2px 0;font-size:8.5px;">Abono: <b>${fp(dc.abono)}</b></p>`+
-      `<p style="margin:2px 0;font-size:8.5px;">${dc.ncuotas} cuotas de <b>${fp(dc.cuota)}</b></p>`+
-      `<p style="margin:2px 0;font-size:8.5px;">1ra cuota: ${dc.fechaPrimeraCuota||'—'}</p>`+
-      `<p style="margin:2px 0;font-size:8.5px;">Saldo: <b>${fp(Math.max(0,(venta.total||0)-dc.abono))}</b></p>`;
-  } else if(venta.tipoPago==='tradein'&&venta.datosTradeIn){
-    const dt=venta.datosTradeIn;
-    pagoHtml=`<p style="margin:2px 0;font-size:8.5px;">Cel: <b>${dt.modelo}</b></p>`+
-      (dt.imei?`<p style="margin:2px 0;font-size:8.5px;">IMEI: ${dt.imei}</p>`:'')+
-      `<p style="margin:2px 0;font-size:8.5px;">Valor: <b>${fp(dt.valor)}</b></p>`+
-      `<p style="margin:2px 0;font-size:8.5px;">Diferencia: <b>${fp(dt.restante)}</b></p>`;
+  let pagoHtml = '';
+  if(venta.tipoPago==='contado' && venta.metodoPago){
+    pagoHtml = `<p style="margin:2px 0;font-size:8.5px;">Metodo: <b>${venta.metodoPago}</b></p>`;
+  } else if(venta.tipoPago==='credito' && venta.datosCredito){
+    const dc = venta.datosCredito;
+    pagoHtml = `<p style="margin:2px 0;font-size:8.5px;">Abono: <b>${fp(dc.abono)}</b></p>`
+      + `<p style="margin:2px 0;font-size:8.5px;">${dc.ncuotas} cuotas de <b>${fp(dc.cuota)}</b></p>`
+      + `<p style="margin:2px 0;font-size:8.5px;">1ra cuota: ${dc.fechaPrimeraCuota||'—'}</p>`
+      + `<p style="margin:2px 0;font-size:8.5px;">Saldo: <b>${fp(Math.max(0,(venta.total||0)-dc.abono))}</b></p>`;
+  } else if(venta.tipoPago==='tradein' && venta.datosTradeIn){
+    const dt = venta.datosTradeIn;
+    pagoHtml = `<p style="margin:2px 0;font-size:8.5px;">Cel: <b>${dt.modelo}</b></p>`
+      + (dt.imei ? `<p style="margin:2px 0;font-size:8.5px;">IMEI: ${dt.imei}</p>` : '')
+      + `<p style="margin:2px 0;font-size:8.5px;">Valor: <b>${fp(dt.valor)}</b></p>`
+      + `<p style="margin:2px 0;font-size:8.5px;">Diferencia: <b>${fp(dt.restante)}</b></p>`;
   }
 
-  const logoSVG=`<svg viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="48" style="display:block;margin:0 auto 4px auto;">
+  const logoSVG = `<svg viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="48" style="display:block;margin:0 auto 4px auto;">
     <path d="M30 0C14 0 2 12 2 28C2 46 30 80 30 80C30 80 58 46 58 28C58 12 46 0 30 0Z" fill="#111"/>
     <circle cx="30" cy="28" r="15" fill="#fff"/>
     <rect x="24.5" y="20" width="11" height="16" rx="2.2" fill="#111"/>
@@ -1783,8 +1739,8 @@ function buildTicketHTML(venta){
     <circle cx="30" cy="35" r="1" fill="#111"/>
   </svg>`;
 
-  const S=`<div style="border-top:1.5px solid #111;margin:6px 0;"></div>`;
-  const D=`<div style="border-top:1px dashed #bbb;margin:5px 0;"></div>`;
+  const S = `<div style="border-top:1.5px solid #111;margin:6px 0;"></div>`;
+  const D = `<div style="border-top:1px dashed #bbb;margin:5px 0;"></div>`;
 
   return `<div id="ticket-content" style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.65;color:#111;background:#fff;width:283px;padding:16px 12px 28px;box-sizing:border-box;">
     <div style="text-align:center;margin-bottom:6px;">
@@ -1802,8 +1758,8 @@ function buildTicketHTML(venta){
     ${D}
     <div style="font-size:8.5px;font-weight:bold;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">Cliente</div>
     <div style="font-size:11px;font-weight:bold;margin-bottom:2px;">${cliNombre}</div>
-    ${cliCedula?`<div style="font-size:8.5px;color:#444;margin-bottom:1px;">${cliCedula}</div>`:''}
-    ${cliTel?`<div style="font-size:8.5px;color:#444;margin-bottom:1px;">${cliTel}</div>`:''}
+    ${cliCedula ? `<div style="font-size:8.5px;color:#444;margin-bottom:1px;">${cliCedula}</div>` : ''}
+    ${cliTel ? `<div style="font-size:8.5px;color:#444;margin-bottom:1px;">${cliTel}</div>` : ''}
     <div style="font-size:8.5px;color:#444;">Ciudad: ${ciudad}</div>
     ${S}
     <table style="width:100%;border-collapse:collapse;margin:3px 0;">
@@ -1826,7 +1782,7 @@ function buildTicketHTML(venta){
     ${D}
     <div style="font-size:9px;font-weight:bold;margin-bottom:3px;">${tpLabel}</div>
     <div style="font-size:8.5px;line-height:1.7;color:#333;">${pagoHtml}</div>
-    ${venta.observaciones?`<div style="font-size:8px;font-style:italic;color:#555;margin-top:3px;">${venta.observaciones}</div>`:''}
+    ${venta.observaciones ? `<div style="font-size:8px;font-style:italic;color:#555;margin-top:3px;">${venta.observaciones}</div>` : ''}
     ${D}
     <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:bold;margin-bottom:3px;"><span>GARANTIA</span><span>${garantiaTiempo}</span></div>
     <div style="font-size:8px;font-weight:bold;margin-bottom:2px;">GARANTIA Y SOPORTE</div>
@@ -1840,124 +1796,137 @@ function buildTicketHTML(venta){
   </div>`;
 }
 
-// ── Core: inyecta HTML en wrapper, barra de progreso 1.2s, luego ejecuta html2pdf ──
-function runPDF(ventaHTML, fileName, mode){
-  const wrapper = document.getElementById('invoice-wrapper');
-  wrapper.innerHTML = ventaHTML; // inyectar en DOM visible-pero-fuera-de-pantalla
+// ── abrirVentanaImpresion: abre popup con ticket HTML y dispara window.print() ──
+// Esta técnica garantiza renderizado completo antes de imprimir.
+// El popup tiene @page {size:80mm auto} así que impresoras térmicas lo reciben perfecto.
+function abrirVentanaImpresion(venta){
+  const ticketHTML = buildTicketHTML(venta);
+  const fn = 'Factura_' + numFactura(venta.facturaNum||1);
 
-  const overlay = document.getElementById('pdf-progress-overlay');
-  const bar = document.getElementById('pdf-progress-bar');
-  const statusEl = document.getElementById('pdf-progress-status');
-
-  // Mostrar overlay y arrancar barra
-  overlay.classList.add('active');
-  bar.style.width = '0%';
-  if(statusEl) statusEl.textContent = 'Preparando estructura HTML…';
-
-  let progress = 0;
-  const messages = ['Preparando estructura HTML…','Aplicando estilos y fuentes…','Capturando imagen para PDF…','Finalizando documento…'];
-  const interval = setInterval(()=>{
-    progress += 10;
-    bar.style.width = progress + '%';
-    const msgIdx = Math.floor(progress / 30);
-    if(statusEl && messages[msgIdx]) statusEl.textContent = messages[msgIdx];
-    if(progress >= 100){
-      clearInterval(interval);
-      if(statusEl) statusEl.textContent = '¡Listo! Descargando…';
-      _executePDF(fileName, mode);
-    }
-  }, 120); // 120ms × 10 = 1.2 segundos — mismo timing que el ejemplo
-
-  function _executePDF(fileName, mode){
-    const element = document.getElementById('ticket-content');
-    const opt = {
-      margin: 0,
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 3, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', logging: false },
-      jsPDF: { unit: 'mm', format: [80, 220], orientation: 'portrait' },
-      pagebreak: { mode: 'avoid-all' },
-    };
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const worker = html2pdf().set(opt).from(element);
-
-    const finish = (url)=>{
-      bar.style.width = '100%';
-      setTimeout(()=>{
-        overlay.classList.remove('active');
-        bar.style.width = '0%';
-        wrapper.innerHTML = ''; // limpiar DOM
-      }, 600);
-      return url;
-    };
-
-    if(mode === 'share' || isSafari){
-      return worker.outputPdf('bloburl').then(url=>{ finish(url); return url; }).catch(e=>{ finish(null); throw e; });
-    } else {
-      return worker.save().then(()=>{ finish(null); return null; }).catch(e=>{ finish(null); throw e; });
-    }
+  // HTML completo de la ventana de impresión
+  const printDoc = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>${fn}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 0;
+    font-family: 'Courier New', Courier, monospace;
   }
+  /* Pantalla de carga mientras renderiza */
+  #loading-screen {
+    position: fixed; inset: 0; background: #fff; z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+  }
+  #loading-bar-wrap { width: 240px; height: 8px; background: #E4E2DE; border-radius: 50px; overflow: hidden; margin: 16px 0 8px; }
+  #loading-bar {
+    height: 100%; width: 0%; border-radius: 50px;
+    background: linear-gradient(90deg,#9A7A2E,#C9A84C,#E8C97A,#C9A84C,#9A7A2E);
+    background-size: 300% 100%;
+    animation: barShine 1.2s linear infinite;
+    transition: width 0.12s linear;
+  }
+  @keyframes barShine { 0%{background-position:300% 0} 100%{background-position:-300% 0} }
+  #loading-icon { font-size: 36px; margin-bottom: 8px; animation: bounce 0.7s ease-in-out infinite alternate; }
+  @keyframes bounce { from{transform:scale(1)} to{transform:scale(1.1)} }
+  #loading-msg { font-size: 12px; color: #8A8680; font-style: italic; }
+  /* Ticket oculto mientras carga */
+  #ticket-wrap { display: none; }
+  @media print {
+    #loading-screen { display: none !important; }
+    #ticket-wrap { display: block !important; }
+    body { padding: 0; margin: 0; background: #fff; }
+    @page { size: 80mm auto; margin: 0; }
+  }
+</style>
+</head>
+<body>
+  <div id="loading-screen">
+    <div id="loading-icon">🧾</div>
+    <div style="font-size:14px;font-weight:bold;color:#1A1814;margin-bottom:4px;">Preparando factura…</div>
+    <div style="font-size:11px;color:#8A8680;margin-bottom:0;">Por favor espera</div>
+    <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+    <div id="loading-msg">Cargando estructura…</div>
+  </div>
+  <div id="ticket-wrap">
+    ${ticketHTML}
+  </div>
+<script>
+  // Barra de progreso real — avanza mientras el navegador renderiza
+  const bar = document.getElementById('loading-bar');
+  const msg = document.getElementById('loading-msg');
+  const msgs = [
+    'Cargando estructura…',
+    'Renderizando tipografía…',
+    'Preparando impresión…',
+    '¡Listo! Abriendo diálogo…'
+  ];
+  let pct = 0;
+  const iv = setInterval(() => {
+    pct += 5;
+    bar.style.width = Math.min(pct, 95) + '%';
+    msg.textContent = msgs[Math.min(Math.floor(pct / 25), 3)];
+    if (pct >= 95) clearInterval(iv);
+  }, 80); // 80ms × 19 steps ≈ 1.5s antes de llegar al 95%
 
-  // Devolver promesa que se resuelve cuando termina el PDF
-  return new Promise((resolve, reject)=>{
-    // La promesa se resuelve dentro de _executePDF vía el flujo del interval
-    // Usamos un evento custom para comunicar el resultado
-    const origExecute = _executePDF;
-    // Sobreescribimos para capturar la promesa
-    // (redefinir dentro del closure no funciona fácil, mejor usar polling)
-    // Solución: esperar que overlay se cierre como señal
-    const checkDone = setInterval(()=>{
-      if(!overlay.classList.contains('active')){
-        clearInterval(checkDone);
-        resolve(null);
-      }
-    }, 200);
-    setTimeout(()=>{ clearInterval(checkDone); resolve(null); }, 15000); // timeout 15s
+  // Esperar que document esté completamente cargado (fuentes, imágenes SVG, etc.)
+  window.addEventListener('load', () => {
+    // Dar 400ms extra para que el navegador pinte el ticket
+    setTimeout(() => {
+      clearInterval(iv);
+      bar.style.width = '100%';
+      msg.textContent = '¡Listo! Abriendo diálogo…';
+      // Mostrar ticket y ocultar loader antes de imprimir
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('ticket-wrap').style.display = 'block';
+      // Pequeña pausa para que el browser pinte el ticket visible
+      setTimeout(() => {
+        window.print();
+        // Cerrar ventana después de que el usuario confirme/cancele
+        window.addEventListener('afterprint', () => window.close());
+        // Fallback: cerrar si no hay evento afterprint (algunos navegadores)
+        setTimeout(() => window.close(), 30000);
+      }, 250);
+    }, 400);
   });
+<\/script>
+</body>
+</html>`;
+
+  // Abrir popup (algunos bloqueadores lo permiten porque viene de un clic del usuario)
+  const popup = window.open('', '_blank', 'width=420,height=700,scrollbars=yes,resizable=yes');
+  if (!popup) {
+    showToast('⚠️ Activa las ventanas emergentes para imprimir','error');
+    return;
+  }
+  popup.document.open();
+  popup.document.write(printDoc);
+  popup.document.close();
 }
 
+// Mantener compatibilidad: generarPDF ahora usa la ventana de impresión
 window.generarPDF = function(venta){
-  const html = buildTicketHTML(venta);
-  const fn = 'Factura_'+numFactura(venta.facturaNum||1)+'_'+(venta.cliente||'cliente').replace(/\s/g,'_')+'.pdf';
-  showToast('⏳ Generando factura…');
-  // runPDF maneja todo: inyección + barra + html2pdf
-  runPDF(html, fn, 'save').then(()=>{
-    showToast('📄 Factura #'+numFactura(venta.facturaNum||1)+' descargada','success');
-  }).catch(err=>{ showToast('❌ Error PDF: '+(err?.message||err),'error'); console.error(err); });
+  abrirVentanaImpresion(venta);
 };
 
+// Botón imprimir en Nueva Venta
+window.imprimirUltimaFactura = function(){
+  if(!lastVenta){ showToast('⚠️ Primero finaliza una venta','error'); return; }
+  abrirVentanaImpresion(lastVenta);
+};
+
+// Compatibilidad con el botón antiguo imprimirFactura
 window.imprimirFactura = function(){
   if(!lastVenta){ showToast('⚠️ Primero finaliza una venta','error'); return; }
-  generarPDF(lastVenta);
-};
-
-window.compartirFactura = function(){
-  if(!lastVenta){ showToast('⚠️ Primero finaliza una venta','error'); return; }
-  const html = buildTicketHTML(lastVenta);
-  const fn = 'Factura_'+numFactura(lastVenta.facturaNum||1)+'.pdf';
-  showToast('⏳ Preparando link…');
-  // Para compartir usamos mode='share' para obtener bloburl
-  const wrapper = document.getElementById('invoice-wrapper');
-  wrapper.innerHTML = html;
-  const overlay = document.getElementById('pdf-progress-overlay');
-  const bar = document.getElementById('pdf-progress-bar');
-  const statusEl = document.getElementById('pdf-progress-status');
-  overlay.classList.add('active');
-  bar.style.width='0%';
-  let prog=0;
-  const iv=setInterval(()=>{
-    prog+=10; bar.style.width=prog+'%';
-    if(prog>=100){
-      clearInterval(iv);
-      const element=document.getElementById('ticket-content');
-      const opt={margin:0,filename:fn,image:{type:'jpeg',quality:0.98},html2canvas:{scale:3,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:[80,220],orientation:'portrait'},pagebreak:{mode:'avoid-all'}};
-      html2pdf().set(opt).from(element).outputPdf('bloburl').then(url=>{
-        bar.style.width='100%';
-        setTimeout(()=>{ overlay.classList.remove('active'); bar.style.width='0%'; wrapper.innerHTML=''; },600);
-        if(url){ window.open(url,'_blank'); showToast('🔗 Factura lista para compartir','success'); }
-      }).catch(e=>{ overlay.classList.remove('active'); showToast('❌ Error: '+e.message,'error'); });
-    }
-  },120);
+  abrirVentanaImpresion(lastVenta);
 };
 
 // ─── WHATSAPP ───
@@ -2842,8 +2811,7 @@ document.getElementById('pin-modal')?.addEventListener('click',e=>{
 
 </script>
 
-<!-- INVOICE WRAPPER OCULTO — html2pdf necesita que esté en el DOM, no display:none -->
-<div id="invoice-wrapper" style="position:absolute;left:-9999px;top:0;width:300px;background:#fff;pointer-events:none;z-index:-9999;"></div>
+
 
 </body>
 </html>
