@@ -545,9 +545,47 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
 <!-- ═══ PRODUCTOS ═══ -->
 <div class="section" id="sec-productos">
-  <div class="section-header"><div class="section-title">Gestión de productos</div></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div class="section-title">Inventario & Productos</div>
+      <div class="section-sub">Gestión de catálogo · ganancias y stock en tiempo real</div>
+    </div>
+  </div>
+  <!-- RESUMEN INVENTARIO -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;" id="inv-summary-cards">
+    <div class="stat-card green">
+      <div class="stat-label">Ganancia total</div>
+      <div class="stat-value" id="inv-ganancia-total">$0</div>
+      <div class="stat-change">Si se vende todo el inventario</div>
+      <div class="stat-icon">💰</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Costo inventario</div>
+      <div class="stat-value" id="inv-costo-total">$0</div>
+      <div class="stat-change">Capital invertido en stock</div>
+      <div class="stat-icon">📦</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Valor a precio venta</div>
+      <div class="stat-value" id="inv-valor-total">$0</div>
+      <div class="stat-change">Ingresos potenciales</div>
+      <div class="stat-icon">🏷️</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Margen promedio</div>
+      <div class="stat-value" id="inv-margen-prom">0%</div>
+      <div class="stat-change">Ganancia / Precio venta</div>
+      <div class="stat-icon">📊</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Unidades en stock</div>
+      <div class="stat-value" id="inv-unidades">0</div>
+      <div class="stat-change">Total productos disponibles</div>
+      <div class="stat-icon">🗃️</div>
+    </div>
+  </div>
   <!-- Edit modal -->
-  <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);" id="edit-modal" class="modal-overlay">
+  <div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);" id="edit-modal" class="modal-overlay">
     <div style="background:var(--surface);border-radius:var(--radius-lg);max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
       <div class="modal-header"><div class="modal-title">Editar producto</div><button class="modal-close" onclick="closeEditModal()">✕</button></div>
       <div class="modal-body">
@@ -556,10 +594,25 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
           <div class="field"><label class="field-label">Nombre</label><input class="input" id="edit-name"></div>
           <div class="field"><label class="field-label">Categoría</label><select class="select" id="edit-cat"><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="airpods">AirPods</option><option value="accesorio">Accesorio</option></select></div>
         </div>
-        <div class="form-grid-3" style="margin-bottom:10px;">
-          <div class="field"><label class="field-label">Precio venta</label><input class="input" id="edit-price" type="number"></div>
-          <div class="field"><label class="field-label">Costo compra</label><input class="input" id="edit-cost" type="number" placeholder="0"></div>
-          <div class="field"><label class="field-label">Stock</label><input class="input" id="edit-stock" type="number" placeholder="0"></div>
+        <div class="form-grid-3" style="margin-bottom:6px;">
+          <div class="field">
+            <label class="field-label">Precio venta</label>
+            <input class="input" id="edit-price" type="number" oninput="updateEditProfit()">
+          </div>
+          <div class="field">
+            <label class="field-label">Costo compra</label>
+            <input class="input" id="edit-cost" type="number" placeholder="0" oninput="updateEditProfit()">
+          </div>
+          <div class="field">
+            <label class="field-label">Stock</label>
+            <input class="input" id="edit-stock" type="number" placeholder="0" oninput="updateEditProfit()">
+          </div>
+        </div>
+        <!-- Preview ganancia en tiempo real -->
+        <div id="edit-profit-preview" style="display:flex;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--green-bg);border:1px solid rgba(45,122,79,0.2);border-radius:var(--radius-sm);margin-bottom:10px;">
+          <div style="font-size:12px;color:var(--text2);">Ganancia unit: <strong id="ep-unit" style="color:var(--green);">$0</strong></div>
+          <div style="font-size:12px;color:var(--text2);">Margen: <strong id="ep-margen" style="color:var(--green);">0%</strong></div>
+          <div style="font-size:12px;color:var(--text2);">Ganancia total stock: <strong id="ep-total" style="color:var(--green);">$0</strong></div>
         </div>
         <div class="form-grid" style="margin-bottom:10px;">
           <div class="field"><label class="field-label">Emoji</label><input class="input" id="edit-emoji"></div>
@@ -627,7 +680,19 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </details>
   <div class="table-wrap card" style="padding:0;">
-    <table><thead><tr><th>Producto</th><th>Precio</th><th>Costo</th><th>Ganancia</th><th>Stock</th><th>Acciones</th></tr></thead><tbody id="products-body"></tbody></table>
+    <table>
+  <thead><tr>
+    <th>Producto</th>
+    <th>Precio venta</th>
+    <th>Costo</th>
+    <th>Ganancia unit.</th>
+    <th>Margen</th>
+    <th>Stock</th>
+    <th>Valor stock</th>
+    <th>Acciones</th>
+  </tr></thead>
+  <tbody id="products-body"></tbody>
+</table>
   </div>
 </div>
 
@@ -2011,22 +2076,80 @@ window.closeVentaModal=()=>document.getElementById('venta-modal').classList.remo
 
 // ─── PRODUCTS ───
 function renderProducts(){
-  document.getElementById('products-body').innerHTML=store.products.map(p=>{
-    const ganancia=(p.price||0)-(p.cost||0);
-    const stock=p.stock??'—';
-    const stockClass=stock==='—'?'':stock===0?'stock-out':stock<3?'stock-low':'stock-ok';
-    return`<tr>
-      <td><div style="display:flex;align-items:center;gap:9px;">
-        ${p.img?`<img src="${p.img}" style="width:30px;height:30px;object-fit:contain;border-radius:5px;">`:p.emoji}
-        <div><div style="font-weight:600;font-size:13px;">${p.name}</div><div style="font-size:10px;color:var(--text3);text-transform:capitalize;">${p.cat}</div></div>
-      </div></td>
-      <td style="font-weight:600;color:var(--gold-dark);">${fp(p.price)}</td>
-      <td style="color:var(--text3);">${fp(p.cost||0)}</td>
-      <td style="color:var(--green);font-weight:600;">${fp(ganancia)}</td>
-      <td><span class="${stockClass}">${stock}</span></td>
-      <td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="openEditModal(${p.id})" style="margin-right:5px;">✏</button><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">🗑</button></td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);">Sin productos</td></tr>';
+  const prods = store.products || [];
+
+  // ── Calcular totales para las tarjetas de resumen ──
+  let totalCosto=0, totalValor=0, totalGanancia=0, totalUnidades=0;
+  prods.forEach(p=>{
+    const stk = Number(p.stock)||0;
+    const precio = Number(p.price)||0;
+    const costo  = Number(p.cost)||0;
+    totalUnidades += stk;
+    totalCosto    += costo * stk;
+    totalValor    += precio * stk;
+    totalGanancia += (precio - costo) * stk;
+  });
+  const margenProm = totalValor>0 ? Math.round((totalGanancia/totalValor)*100) : 0;
+
+  // Actualizar tarjetas
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('inv-ganancia-total', fp(totalGanancia));
+  setEl('inv-costo-total',    fp(totalCosto));
+  setEl('inv-valor-total',    fp(totalValor));
+  setEl('inv-margen-prom',    margenProm+'%');
+  setEl('inv-unidades',       totalUnidades);
+
+  // ── Renderizar tabla ──
+  document.getElementById('products-body').innerHTML = prods.map(p=>{
+    const precio   = Number(p.price)||0;
+    const costo    = Number(p.cost)||0;
+    const ganUnit  = precio - costo;
+    const margen   = precio>0 ? Math.round((ganUnit/precio)*100) : 0;
+    const stock    = p.stock!=null ? Number(p.stock) : null;
+    const stockTxt = stock!=null ? stock : '—';
+    const stockClass = stock==null?'':stock===0?'stock-out':stock<3?'stock-low':'stock-ok';
+    const valorStock = stock!=null ? fp(precio*stock) : '—';
+
+    // Barra visual del margen (verde si >20%, amarillo si >0%, rojo si <=0%)
+    const barColor = margen>20?'var(--green)':margen>0?'var(--orange)':'var(--red)';
+    const barW     = Math.min(Math.max(margen,0),100);
+    const margenBar= '<div style="display:flex;align-items:center;gap:5px;min-width:70px;">'
+      +'<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;">'
+      +'<div style="height:100%;width:'+barW+'%;background:'+barColor+';border-radius:3px;"></div>'
+      +'</div>'
+      +'<span style="font-size:11px;font-weight:700;color:'+barColor+';">'+margen+'%</span>'
+      +'</div>';
+
+    // Imagen o emoji
+    const imgCell = p.img
+      ? '<img src="'+p.img+'" style="width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">'
+      : '<span style="font-size:22px;">'+p.emoji+'</span>';
+
+    // Badge de stock bajo
+    const stockBadge = stock===0
+      ? '<span class="badge badge-red" style="font-size:9px;margin-left:4px;">Sin stock</span>'
+      : stock!=null&&stock<3
+        ? '<span class="badge badge-orange" style="font-size:9px;margin-left:4px;">Stock bajo</span>'
+        : '';
+
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:9px;">'
+      +imgCell
+      +'<div><div style="font-weight:600;font-size:13px;">'+p.name+stockBadge+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);text-transform:capitalize;">'+p.cat+'</div></div>'
+      +'</div></td>'
+      +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(precio)+'</td>'
+      +'<td style="color:var(--text3);">'+fp(costo)+'</td>'
+      +'<td style="color:var(--green);font-weight:700;">'+fp(ganUnit)+'</td>'
+      +'<td>'+margenBar+'</td>'
+      +'<td><span class="'+stockClass+'" style="font-weight:700;">'+stockTxt+'</span></td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+valorStock+'</td>'
+      +'<td style="white-space:nowrap;">'
+      +'<button class="btn btn-outline btn-sm" onclick="openEditModal('+p.id+')" style="margin-right:5px;" title="Editar">✏ Editar</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="deleteProduct('+p.id+')" title="Eliminar">🗑</button>'
+      +'</td>'
+      +'</tr>';
+  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3);">Sin productos — agrega uno arriba</td></tr>';
 }
 
 window.addProduct=async function(){
@@ -2060,8 +2183,25 @@ window.openEditModal=function(id){
   editVariantsData=JSON.parse(JSON.stringify(p.storageVariants||[]));
   renderVariantRows(editVariantsData,'edit-variants-wrap','edit');
   document.getElementById('edit-modal').classList.add('open');
+  updateEditProfit();
 };
 window.closeEditModal=()=>document.getElementById('edit-modal').classList.remove('open');
+
+window.updateEditProfit=function(){
+  const precio = Number(document.getElementById('edit-price')?.value)||0;
+  const costo  = Number(document.getElementById('edit-cost')?.value)||0;
+  const stock  = Number(document.getElementById('edit-stock')?.value)||0;
+  const ganUnit  = precio - costo;
+  const margen   = precio>0 ? Math.round((ganUnit/precio)*100) : 0;
+  const ganTotal = ganUnit * stock;
+  const color    = ganUnit>0?'var(--green)':ganUnit<0?'var(--red)':'var(--text3)';
+  const setEl=(id,v,col)=>{const el=document.getElementById(id);if(el){el.textContent=v;el.style.color=col||color;}};
+  setEl('ep-unit',   fp(ganUnit));
+  setEl('ep-margen', margen+'%');
+  setEl('ep-total',  fp(ganTotal));
+  const preview=document.getElementById('edit-profit-preview');
+  if(preview) preview.style.background=ganUnit>0?'var(--green-bg)':ganUnit<0?'var(--red-bg)':'var(--bg2)';
+};
 window.saveEdit=async function(){
   const id=Number(document.getElementById('edit-id').value);
   const p=store.products.find(x=>x.id===id);if(!p)return;
