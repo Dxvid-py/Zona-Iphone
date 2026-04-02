@@ -284,6 +284,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <button class="nav-item" onclick="showSection('empleados',this)"><span class="nav-icon">👤</span>Empleados</button>
       <button class="nav-item" onclick="showSection('proveedores',this)"><span class="nav-icon">🏭</span>Proveedores</button>
       <button class="nav-item" onclick="showSection('gastos',this)"><span class="nav-icon">💸</span>Gastos</button>
+      <button class="nav-item" onclick="showSection('costo-detalle',this)"><span class="nav-icon">💎</span>Detalles de costo</button>
       <div class="sidebar-section-label">Config</div>
       <button class="nav-item" onclick="showSection('ajustes',this)"><span class="nav-icon">⚙️</span>Configuración</button>
       <button class="nav-item" onclick="showSection('eventos',this)"><span class="nav-icon">🎉</span>Eventos</button>
@@ -545,11 +546,21 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
 <!-- ═══ PRODUCTOS ═══ -->
 <div class="section" id="sec-productos">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <div>
       <div class="section-title">Inventario & Productos</div>
       <div class="section-sub">Gestión de catálogo · ganancias y stock en tiempo real</div>
     </div>
+  </div>
+  <!-- Tabs inventario -->
+  <div class="tab-bar" style="margin-bottom:20px;">
+    <button class="tab-btn active" onclick="switchInvTab('grande',this)">💰 Inversión grande</button>
+    <button class="tab-btn" onclick="switchInvTab('accesorios',this)">🛍 Accesorios</button>
+    <button class="tab-btn" onclick="switchInvTab('todos',this)">📋 Todos</button>
+  </div>
+  <!-- Subtítulo dinámico -->
+  <div id="inv-tab-label" style="font-size:12px;color:var(--text3);margin-bottom:12px;padding:8px 14px;background:var(--bg2);border-radius:var(--radius-sm);border-left:3px solid var(--gold);">
+    💰 <strong>Inversión grande:</strong> iPhone, iPad, AirPods, MacBook y artículos de alto valor
   </div>
   <!-- RESUMEN INVENTARIO -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;" id="inv-summary-cards">
@@ -592,7 +603,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         <input type="hidden" id="edit-id">
         <div class="form-grid" style="margin-bottom:10px;">
           <div class="field"><label class="field-label">Nombre</label><input class="input" id="edit-name"></div>
-          <div class="field"><label class="field-label">Categoría</label><select class="select" id="edit-cat"><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="airpods">AirPods</option><option value="accesorio">Accesorio</option></select></div>
+          <div class="field"><label class="field-label">Categoría</label><select class="select" id="edit-cat"><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="airpods">AirPods</option><option value="macbook">MacBook</option><option value="accesorio">Accesorio</option></select></div>
         </div>
         <div class="form-grid-3" style="margin-bottom:6px;">
           <div class="field">
@@ -646,7 +657,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="details-body">
       <div class="form-grid" style="margin-bottom:10px;">
         <div class="field"><label class="field-label">Nombre</label><input class="input" id="p-name" placeholder="iPhone 16 Pro"></div>
-        <div class="field"><label class="field-label">Categoría</label><select class="select" id="p-cat"><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="airpods">AirPods</option><option value="accesorio">Accesorio</option></select></div>
+        <div class="field"><label class="field-label">Categoría</label><select class="select" id="p-cat"><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="airpods">AirPods</option><option value="macbook">MacBook</option><option value="accesorio">Accesorio</option></select></div>
       </div>
       <div class="form-grid-3" style="margin-bottom:10px;">
         <div class="field"><label class="field-label">Precio venta</label><input class="input" id="p-price" type="number" placeholder="4500000"></div>
@@ -698,13 +709,27 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
 <!-- ═══ OTROS ═══ -->
 <div class="section" id="sec-otros">
-  <div class="section-header"><div class="section-title">Otros productos</div></div>
-  <div class="card" style="max-width:580px;margin-bottom:18px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div><div class="section-title">Otros productos</div><div class="section-sub">Gestión de catálogo · ganancias y stock en tiempo real</div></div>
+  </div>
+  <!-- Resumen inventario otros -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-label">Ganancia total</div><div class="stat-value" id="otros-gan-total">$0</div><div class="stat-change">Si se vende todo</div></div>
+    <div class="stat-card blue"><div class="stat-icon">📦</div><div class="stat-label">Costo inventario</div><div class="stat-value" id="otros-costo-total">$0</div><div class="stat-change">Capital invertido</div></div>
+    <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-label">Valor a precio venta</div><div class="stat-value" id="otros-valor-total">$0</div><div class="stat-change">Ingresos potenciales</div></div>
+    <div class="stat-card orange"><div class="stat-icon">🗃️</div><div class="stat-label">Unidades</div><div class="stat-value" id="otros-unidades">0</div><div class="stat-change">Total en stock</div></div>
+  </div>
+  <div class="card" style="max-width:620px;margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:14px;">➕ Agregar producto accesorio</div>
     <div class="form-grid" style="margin-bottom:10px;">
-      <div class="field"><label class="field-label">Nombre</label><input class="input" id="o-name" placeholder="Samsung Galaxy S24"></div>
+      <div class="field"><label class="field-label">Nombre</label><input class="input" id="o-name" placeholder="Forro silicona iPhone"></div>
       <div class="field"><label class="field-label">Emoji (si no hay imagen)</label><input class="input" id="o-emoji" placeholder="📲"></div>
     </div>
-    <div class="field" style="margin-bottom:10px;"><label class="field-label">Precio (COP)</label><input class="input" id="o-price" type="number" placeholder="2500000"></div>
+    <div class="form-grid-3" style="margin-bottom:10px;">
+      <div class="field"><label class="field-label">Precio venta (COP)</label><input class="input" id="o-price" type="number" placeholder="45000"></div>
+      <div class="field"><label class="field-label">Costo compra (COP)</label><input class="input" id="o-cost" type="number" placeholder="20000"></div>
+      <div class="field"><label class="field-label">Stock inicial</label><input class="input" id="o-stock" type="number" placeholder="10"></div>
+    </div>
     <div class="field" style="margin-bottom:12px;">
       <label class="field-label">📸 Imagen del producto (opcional)</label>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;background:var(--accent-bg);border:1.5px dashed rgba(201,168,76,0.4);border-radius:var(--radius-sm);margin-top:4px;">
@@ -722,7 +747,21 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
     <button class="btn btn-primary" onclick="addOtro()">+ Agregar</button>
   </div>
-  <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Producto</th><th>Precio</th><th>Acciones</th></tr></thead><tbody id="otros-body"></tbody></table></div>
+  <div class="table-wrap card" style="padding:0;">
+  <table>
+    <thead><tr>
+      <th>Producto</th>
+      <th>Precio venta</th>
+      <th>Costo</th>
+      <th>Ganancia unit.</th>
+      <th>Margen</th>
+      <th>Stock</th>
+      <th>Valor stock</th>
+      <th>Acciones</th>
+    </tr></thead>
+    <tbody id="otros-body"></tbody>
+  </table>
+</div>
 </div>
 
 <!-- ═══ CLIENTES ═══ -->
@@ -869,7 +908,34 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
 <!-- ═══ GASTOS ═══ -->
 <div class="section" id="sec-gastos">
-  <div class="section-header"><div class="section-title">Gastos</div></div>
+  <div class="section-header"><div class="section-title">Gastos</div><div class="section-sub">Registro y análisis de egresos por período</div></div>
+  <!-- Resumen gastos por período -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card red"><div class="stat-icon">📅</div><div class="stat-label">Gastos hoy</div><div class="stat-value" id="g-hoy">$0</div><div class="stat-change" id="g-hoy-n">0 registros</div></div>
+    <div class="stat-card red"><div class="stat-icon">📆</div><div class="stat-label">Gastos este mes</div><div class="stat-value" id="g-mes">$0</div><div class="stat-change" id="g-mes-n">0 registros</div></div>
+    <div class="stat-card red"><div class="stat-icon">🗓️</div><div class="stat-label">Gastos este año</div><div class="stat-value" id="g-anio">$0</div><div class="stat-change" id="g-anio-n">0 registros</div></div>
+    <div class="stat-card orange"><div class="stat-icon">🔵</div><div class="stat-label">Local 1</div><div class="stat-value" id="g-l1">$0</div><div class="stat-change">Gastos caja 1</div></div>
+    <div class="stat-card purple"><div class="stat-icon">🟣</div><div class="stat-label">Local 2</div><div class="stat-value" id="g-l2">$0</div><div class="stat-change">Gastos caja 2</div></div>
+    <div class="stat-card"><div class="stat-icon">🏢</div><div class="stat-label">General</div><div class="stat-value" id="g-gen">$0</div><div class="stat-change">Gastos generales</div></div>
+  </div>
+  <!-- Filtro de período -->
+  <div class="filter-bar" style="margin-bottom:18px;">
+    <label>Período:</label>
+    <input type="date" class="input" id="g-filter-from" style="width:140px;" onchange="renderGastos()">
+    <span style="color:var(--text3);font-size:12px;">→</span>
+    <input type="date" class="input" id="g-filter-to" style="width:140px;" onchange="renderGastos()">
+    <button class="btn btn-outline btn-sm" onclick="gFilterHoy()">Hoy</button>
+    <button class="btn btn-outline btn-sm" onclick="gFilterMes()">Este mes</button>
+    <button class="btn btn-outline btn-sm" onclick="gFilterAnio()">Este año</button>
+    <button class="btn btn-outline btn-sm" onclick="gFilterAll()">Todo</button>
+    <label>Caja:</label>
+    <select class="select" id="g-filter-caja" style="width:130px;" onchange="renderGastos()">
+      <option value="">Todas</option>
+      <option value="caja1">🔵 Local 1</option>
+      <option value="caja2">🟣 Local 2</option>
+      <option value="general">🏢 General</option>
+    </select>
+  </div>
   <div class="card" style="max-width:560px;margin-bottom:18px;">
     <div class="card-title">Registrar gasto</div>
     <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Descripción *</label><input class="input" id="g-desc" placeholder="Arriendo local, servicios…"></div><div class="field"><label class="field-label">Monto (COP)</label><input class="input" id="g-monto" type="number" placeholder="0"></div></div>
@@ -877,6 +943,67 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <button class="btn btn-primary" onclick="addGasto()">+ Registrar gasto</button>
   </div>
   <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Descripción</th><th>Local</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="gastos-body"></tbody></table></div>
+</div>
+
+
+<!-- ═══ DETALLES DE COSTO ═══ -->
+<div class="section" id="sec-costo-detalle">
+  <div class="section-header">
+    <div class="section-title">Detalles de Costo</div>
+    <div class="section-sub">Análisis de inversión por categoría de producto</div>
+  </div>
+
+  <!-- Tabs por categoría -->
+  <div class="tab-bar" style="margin-bottom:20px;">
+    <button class="tab-btn active" onclick="switchCostoTab('iphone',this)">📱 iPhone</button>
+    <button class="tab-btn" onclick="switchCostoTab('ipad',this)">💻 iPad</button>
+    <button class="tab-btn" onclick="switchCostoTab('airpods',this)">🎧 AirPods</button>
+    <button class="tab-btn" onclick="switchCostoTab('macbook',this)">💻 MacBook</button>
+  </div>
+
+  <!-- Cards resumen de la categoría -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;" id="costo-summary-cards">
+    <div class="stat-card blue"><div class="stat-icon">📦</div><div class="stat-label">Capital invertido</div><div class="stat-value" id="cd-costo">$0</div><div class="stat-change" id="cd-costo-n">0 unidades</div></div>
+    <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-label">Valor en venta</div><div class="stat-value" id="cd-valor">$0</div><div class="stat-change">Precio de venta × stock</div></div>
+    <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-label">Ganancia potencial</div><div class="stat-value" id="cd-ganancia">$0</div><div class="stat-change">Si se vende todo</div></div>
+    <div class="stat-card orange"><div class="stat-icon">📊</div><div class="stat-label">Margen promedio</div><div class="stat-value" id="cd-margen">0%</div><div class="stat-change">Ganancia / Precio venta</div></div>
+    <div class="stat-card purple"><div class="stat-icon">🗃️</div><div class="stat-label">Unidades en stock</div><div class="stat-value" id="cd-stock">0</div><div class="stat-change">Total disponibles</div></div>
+  </div>
+
+  <!-- Tabla detalle por producto -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:14px;">📋 Detalle por producto — <span id="cd-cat-label">iPhone</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Variante / GB</th>
+            <th>Precio venta</th>
+            <th>Costo compra</th>
+            <th>Ganancia unit.</th>
+            <th>Margen</th>
+            <th>Stock</th>
+            <th>Invertido (stock)</th>
+            <th>Ganancia (stock)</th>
+          </tr>
+        </thead>
+        <tbody id="costo-detalle-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Gráfica de distribución de costos -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;">💸 Costo vs Ganancia por producto</div>
+      <div class="chart-wrap"><canvas id="chart-costo-detalle"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px;">📊 Margen por variante</div>
+      <div class="chart-wrap"><canvas id="chart-margen-detalle"></canvas></div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ EVENTOS ═══ -->
@@ -2075,12 +2202,34 @@ window.openVentaModal=function(id){
 window.closeVentaModal=()=>document.getElementById('venta-modal').classList.remove('open');
 
 // ─── PRODUCTS ───
-function renderProducts(){
-  const prods = store.products || [];
+// ── Inventario tab state ──
+let currentInvTab = 'grande';
+const INV_GRANDE_CATS = ['iphone','ipad','airpods','macbook'];
 
-  // ── Calcular totales para las tarjetas de resumen ──
+window.switchInvTab = function(tab, el){
+  currentInvTab = tab;
+  document.querySelectorAll('#sec-productos .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const label = document.getElementById('inv-tab-label');
+  if(label){
+    if(tab==='grande') label.innerHTML='💰 <strong>Inversión grande:</strong> iPhone, iPad, AirPods, MacBook y artículos de alto valor';
+    else if(tab==='accesorios') label.innerHTML='🛍 <strong>Accesorios:</strong> Forros, diademas, cargadores y artículos de bajo precio';
+    else label.innerHTML='📋 <strong>Todos los productos</strong> del inventario principal';
+  }
+  renderProducts();
+};
+
+function renderProducts(){
+  const allProds = store.products || [];
+  // Filter by current tab
+  let prods;
+  if(currentInvTab==='grande')      prods = allProds.filter(p=>INV_GRANDE_CATS.includes(p.cat));
+  else if(currentInvTab==='accesorios') prods = allProds.filter(p=>!INV_GRANDE_CATS.includes(p.cat));
+  else prods = allProds;
+
+  // ── Calcular totales para las tarjetas de resumen (siempre sobre todo el inventario) ──
   let totalCosto=0, totalValor=0, totalGanancia=0, totalUnidades=0;
-  prods.forEach(p=>{
+  allProds.forEach(p=>{
     const stk = Number(p.stock)||0;
     const precio = Number(p.price)||0;
     const costo  = Number(p.cost)||0;
@@ -2099,7 +2248,7 @@ function renderProducts(){
   setEl('inv-margen-prom',    margenProm+'%');
   setEl('inv-unidades',       totalUnidades);
 
-  // ── Renderizar tabla ──
+  // ── Renderizar tabla (solo los filtrados) ──
   document.getElementById('products-body').innerHTML = prods.map(p=>{
     const precio   = Number(p.price)||0;
     const costo    = Number(p.cost)||0;
@@ -2231,24 +2380,79 @@ window.clearNewProdImg=function(){document.getElementById('p-img').value='';docu
 
 // ─── OTROS ───
 function renderOtros(){
-  document.getElementById('otros-body').innerHTML=store.otros.map(o=>`
-    <tr><td style="display:flex;align-items:center;gap:9px;">${o.img?`<img src="${o.img}" style="width:30px;height:30px;object-fit:cover;border-radius:5px;">`:`<span style="font-size:20px;">${o.emoji}</span>`} ${o.name}</td>
-    <td style="color:var(--gold-dark);font-weight:600;">${fp(o.price)}</td>
-    <td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="editOtro(${o.id})" style="margin-right:5px;">✏</button><button class="btn btn-danger btn-sm" onclick="deleteOtro(${o.id})">🗑</button></td></tr>
-  `).join('')||'<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3);">Sin productos</td></tr>';
+  const otros=store.otros||[];
+  // ── Resumen inventario ──
+  let ganTotal=0,costoTotal=0,valorTotal=0,unidades=0;
+  otros.forEach(o=>{
+    const precio=Number(o.price||0),costo=Number(o.cost||0),stock=Number(o.stock||0);
+    ganTotal+=(precio-costo)*stock;
+    costoTotal+=costo*stock;
+    valorTotal+=precio*stock;
+    unidades+=stock;
+  });
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('otros-gan-total',fp(ganTotal));
+  setEl('otros-costo-total',fp(costoTotal));
+  setEl('otros-valor-total',fp(valorTotal));
+  setEl('otros-unidades',unidades);
+
+  // ── Tabla ──
+  document.getElementById('otros-body').innerHTML=otros.map(o=>{
+    const precio=Number(o.price||0),costo=Number(o.cost||0),stock=Number(o.stock!=null?o.stock:0);
+    const ganUnit=precio-costo;
+    const margen=precio>0?Math.round((ganUnit/precio)*100):0;
+    const barColor=margen>20?'var(--green)':margen>0?'var(--orange)':'var(--red)';
+    const barW=Math.min(Math.max(margen,0),100);
+    const margenBar='<div style="display:flex;align-items:center;gap:5px;min-width:70px;">'
+      +'<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;">'
+      +'<div style="height:100%;width:'+barW+'%;background:'+barColor+';border-radius:3px;"></div>'
+      +'</div>'
+      +'<span style="font-size:11px;font-weight:700;color:'+barColor+';">'+margen+'%</span>'
+      +'</div>';
+    const stockClass=stock===0?'stock-out':stock<3?'stock-low':'stock-ok';
+    const stockBadge=stock===0?'<span class="badge badge-red" style="font-size:9px;margin-left:4px;">Sin stock</span>':stock<3?'<span class="badge badge-orange" style="font-size:9px;margin-left:4px;">Stock bajo</span>':'';
+    const imgCell=o.img?`<img src="${o.img}" style="width:32px;height:32px;object-fit:cover;border-radius:6px;flex-shrink:0;">`:`<span style="font-size:22px;">${o.emoji||'📦'}</span>`;
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:9px;">'+imgCell+'<div style="font-weight:600;font-size:13px;">'+o.name+stockBadge+'</div></div></td>'
+      +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(precio)+'</td>'
+      +'<td style="color:var(--text3);">'+fp(costo)+'</td>'
+      +'<td style="color:var(--green);font-weight:700;">'+fp(ganUnit)+'</td>'
+      +'<td>'+margenBar+'</td>'
+      +'<td><span class="'+stockClass+'" style="font-weight:700;">'+stock+'</span></td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+fp(precio*stock)+'</td>'
+      +'<td style="white-space:nowrap;">'
+      +'<button class="btn btn-outline btn-sm" onclick="editOtro('+o.id+')" style="margin-right:5px;" title="Editar">✏ Editar</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="deleteOtro('+o.id+')" title="Eliminar">🗑</button>'
+      +'</td></tr>';
+  }).join('')||'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3);">Sin productos — agrega uno arriba</td></tr>';
 }
 window.addOtro=async function(){
   const name=document.getElementById('o-name').value.trim(),price=document.getElementById('o-price').value;
   if(!name||!price){showToast('Nombre y precio requeridos','error');return;}
-  const newId=Math.max(0,...store.otros.map(o=>o.id))+1;
+  const newId=Math.max(0,...(store.otros.map(o=>o.id)||[0]))+1;
   const img=document.getElementById('o-img-b64')?.value||'';
-  store.otros.push({id:newId,name,emoji:document.getElementById('o-emoji').value||'📲',price:Number(price),img});
+  const cost=Number(document.getElementById('o-cost')?.value||0);
+  const stock=Number(document.getElementById('o-stock')?.value||0);
+  store.otros.push({id:newId,name,emoji:document.getElementById('o-emoji').value||'📲',price:Number(price),cost,stock,img});
   await saveToFirebase({otros:store.otros});renderOtros();
-  ['o-name','o-emoji','o-price'].forEach(i=>document.getElementById(i).value='');clearOtroImg();
+  ['o-name','o-emoji','o-price','o-cost','o-stock'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});clearOtroImg();
 };
 window.previewOtroImg=function(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const b64=e.target.result;document.getElementById('o-img-b64').value=b64;document.getElementById('o-img-preview-img').src=b64;document.getElementById('o-img-preview').style.display='flex';document.getElementById('o-img-none').style.display='none';};r.readAsDataURL(f);};
 window.clearOtroImg=function(){document.getElementById('o-img-b64').value='';document.getElementById('o-img-file').value='';document.getElementById('o-img-preview').style.display='none';document.getElementById('o-img-preview-img').src='';document.getElementById('o-img-none').style.display='';};
-window.editOtro=async function(id){const o=store.otros.find(x=>x.id===id);const name=prompt('Nombre:',o.name);if(name===null)return;const price=prompt('Precio:',o.price);if(price===null||isNaN(price))return;o.name=name.trim()||o.name;o.price=Number(price);await saveToFirebase({otros:store.otros});renderOtros();};
+window.editOtro=async function(id){
+  const o=store.otros.find(x=>x.id===id); if(!o) return;
+  const name=prompt('Nombre:',o.name); if(name===null) return;
+  const price=prompt('Precio venta (COP):',o.price); if(price===null||isNaN(price)) return;
+  const cost=prompt('Costo compra (COP):',o.cost||0); if(cost===null) return;
+  const stock=prompt('Stock:',o.stock!=null?o.stock:0); if(stock===null) return;
+  o.name=name.trim()||o.name;
+  o.price=Number(price);
+  o.cost=Number(cost)||0;
+  o.stock=Number(stock)||0;
+  await saveToFirebase({otros:store.otros});
+  renderOtros();
+  showToast('✅ Producto actualizado','success');
+};
 window.deleteOtro=async function(id){store.otros=store.otros.filter(o=>o.id!==id);await saveToFirebase({otros:store.otros});renderOtros();};
 
 // ─── CLIENTS (same as before) ───
@@ -2505,8 +2709,57 @@ window.deleteProveedor=async function(id){if(!confirm('¿Eliminar?'))return;try{
 function renderGastos(){
   const body=document.getElementById('gastos-body');
   const cajaBadge={caja1:'<span class="badge badge-blue">🔵 L1</span>',caja2:'<span class="badge badge-purple">🟣 L2</span>',general:'<span class="badge badge-gray">🏢 Gral.</span>'};
-  body.innerHTML=allGastos.length?allGastos.map(g=>`<tr><td style="font-weight:500;">${g.descripcion||g.desc||'—'}</td><td>${cajaBadge[g.caja]||'—'}</td><td style="color:var(--red);font-weight:700;">${fp(g.monto||0)}</td><td>${g.fecha||'—'}</td><td><button class="btn btn-danger btn-sm" onclick="deleteGasto('${g.id}')">🗑</button></td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3);">Sin gastos registrados</td></tr>`;
+
+  // ── Calcular resúmenes ──
+  const hoy=todayDate();
+  const now=new Date();
+  const mesStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const anioStart=new Date(now.getFullYear(),0,1);
+
+  const sum=(arr,fn)=>arr.reduce((s,g)=>{const v=fn(g);return isNaN(v)?s:s+v;},0);
+  const monto=g=>Number(g.monto||0);
+
+  const ghoy=allGastos.filter(g=>g.fecha===hoy);
+  const gmes=allGastos.filter(g=>g.fecha&&new Date(g.fecha)>=mesStart);
+  const ganio=allGastos.filter(g=>g.fecha&&new Date(g.fecha)>=anioStart);
+  const gl1=allGastos.filter(g=>g.caja==='caja1');
+  const gl2=allGastos.filter(g=>g.caja==='caja2');
+  const ggen=allGastos.filter(g=>g.caja==='general');
+
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('g-hoy',fp(sum(ghoy,monto))); setEl('g-hoy-n',ghoy.length+' registro'+(ghoy.length!==1?'s':''));
+  setEl('g-mes',fp(sum(gmes,monto))); setEl('g-mes-n',gmes.length+' registros');
+  setEl('g-anio',fp(sum(ganio,monto))); setEl('g-anio-n',ganio.length+' registros');
+  setEl('g-l1',fp(sum(gl1,monto)));
+  setEl('g-l2',fp(sum(gl2,monto)));
+  setEl('g-gen',fp(sum(ggen,monto)));
+
+  // ── Filtro activo ──
+  const fromVal=document.getElementById('g-filter-from')?.value||'';
+  const toVal=document.getElementById('g-filter-to')?.value||'';
+  const cajaFil=document.getElementById('g-filter-caja')?.value||'';
+  const fromDate=fromVal?new Date(fromVal+'T00:00:00'):null;
+  const toDate=toVal?new Date(toVal+'T23:59:59'):null;
+
+  const filtered=allGastos.filter(g=>{
+    if(cajaFil&&g.caja!==cajaFil) return false;
+    if(fromDate||toDate){
+      const gd=g.fecha?new Date(g.fecha):null; if(!gd) return false;
+      if(fromDate&&gd<fromDate) return false;
+      if(toDate&&gd>toDate) return false;
+    }
+    return true;
+  });
+
+  const totalFil=sum(filtered,monto);
+  const summaryBar=filtered.length?`<tr style="background:var(--accent-bg);"><td colspan="4" style="font-weight:700;font-size:13px;color:var(--gold-dark);padding:10px 13px;">📊 ${filtered.length} gasto${filtered.length!==1?'s':''} filtrado${filtered.length!==1?'s':''}</td><td style="font-weight:700;color:var(--red);font-size:13px;padding:10px 13px;">${fp(totalFil)}</td></tr>`:'';
+
+  body.innerHTML=summaryBar+(filtered.length?filtered.map(g=>`<tr><td style="font-weight:500;">${g.descripcion||g.desc||'—'}</td><td>${cajaBadge[g.caja]||'—'}</td><td style="color:var(--red);font-weight:700;">${fp(g.monto||0)}</td><td>${g.fecha||'—'}</td><td><button class="btn btn-danger btn-sm" onclick="deleteGasto('${g.id}')">🗑</button></td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3);">Sin gastos en el período seleccionado</td></tr>`);
 }
+window.gFilterHoy=function(){const t=todayDate();document.getElementById('g-filter-from').value=t;document.getElementById('g-filter-to').value=t;renderGastos();};
+window.gFilterMes=function(){const now=new Date();document.getElementById('g-filter-from').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;document.getElementById('g-filter-to').value=todayDate();renderGastos();};
+window.gFilterAnio=function(){const now=new Date();document.getElementById('g-filter-from').value=`${now.getFullYear()}-01-01`;document.getElementById('g-filter-to').value=todayDate();renderGastos();};
+window.gFilterAll=function(){document.getElementById('g-filter-from').value='';document.getElementById('g-filter-to').value='';renderGastos();};
 window.addGasto=async function(){
   const desc=document.getElementById('g-desc').value.trim(),monto=document.getElementById('g-monto').value;
   if(!desc||!monto){showToast('Descripción y monto requeridos','error');return;}
@@ -2948,6 +3201,146 @@ window.showSection=function(id,el){
 document.getElementById('pin-modal')?.addEventListener('click',e=>{
   if(e.target===e.currentTarget) closePinModal();
 });
+
+// ══════════════════════════════════════════════════════════════
+// DETALLES DE COSTO
+// ══════════════════════════════════════════════════════════════
+let currentCostoTab = 'iphone';
+let chartCostoDetalle = null;
+let chartMargenDetalle = null;
+
+window.switchCostoTab = function(cat, el){
+  currentCostoTab = cat;
+  document.querySelectorAll('#sec-costo-detalle .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const labels = {iphone:'iPhone',ipad:'iPad',airpods:'AirPods',macbook:'MacBook'};
+  const lbl = document.getElementById('cd-cat-label');
+  if(lbl) lbl.textContent = labels[cat]||cat;
+  renderCostoDetalle();
+};
+
+function renderCostoDetalle(){
+  const cat = currentCostoTab;
+  // Gather products of this category — include storageVariants if available
+  const prods = (store.products||[]).filter(p=>p.cat===cat);
+
+  let rows = [];
+  prods.forEach(p=>{
+    if(p.storageVariants && p.storageVariants.length>0){
+      p.storageVariants.forEach(v=>{
+        rows.push({
+          name: p.name,
+          variante: v.gb||'—',
+          precio: Number(v.precio||p.price||0),
+          costo: Number(v.costo||p.cost||0),
+          stock: Number(v.stock||0),
+          emoji: p.img?null:p.emoji
+        });
+      });
+    } else {
+      rows.push({
+        name: p.name,
+        variante: '—',
+        precio: Number(p.price||0),
+        costo: Number(p.cost||0),
+        stock: Number(p.stock||0),
+        emoji: p.img?null:p.emoji
+      });
+    }
+  });
+
+  // ── Summary cards ──
+  let totalCosto=0,totalValor=0,totalGan=0,totalStock=0;
+  let sumPrecio=0,count=0;
+  rows.forEach(r=>{
+    totalCosto  += r.costo * r.stock;
+    totalValor  += r.precio * r.stock;
+    totalGan    += (r.precio - r.costo) * r.stock;
+    totalStock  += r.stock;
+    sumPrecio   += r.precio; count++;
+  });
+  const margenProm = totalValor>0?Math.round((totalGan/totalValor)*100):0;
+
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('cd-costo',   fp(totalCosto));
+  setEl('cd-costo-n', totalStock+' unidades');
+  setEl('cd-valor',   fp(totalValor));
+  setEl('cd-ganancia',fp(totalGan));
+  setEl('cd-margen',  margenProm+'%');
+  setEl('cd-stock',   totalStock);
+
+  // ── Table ──
+  const tbody = document.getElementById('costo-detalle-body');
+  if(tbody){
+    if(!rows.length){
+      tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3);">No hay productos de esta categoría</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(r=>{
+        const ganUnit = r.precio - r.costo;
+        const margen  = r.precio>0?Math.round((ganUnit/r.precio)*100):0;
+        const barColor= margen>20?'var(--green)':margen>0?'var(--orange)':'var(--red)';
+        const barW    = Math.min(Math.max(margen,0),100);
+        const mBar    = '<div style="display:flex;align-items:center;gap:5px;min-width:70px;">'
+          +'<div style="flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;">'
+          +'<div style="height:100%;width:'+barW+'%;background:'+barColor+';border-radius:3px;"></div></div>'
+          +'<span style="font-size:11px;font-weight:700;color:'+barColor+';">'+margen+'%</span></div>';
+        const sClass = r.stock===0?'stock-out':r.stock<3?'stock-low':'stock-ok';
+        return '<tr>'
+          +'<td style="font-weight:600;">'+r.name+'</td>'
+          +'<td><span class="badge badge-gray">'+r.variante+'</span></td>'
+          +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(r.precio)+'</td>'
+          +'<td style="color:var(--text3);">'+fp(r.costo)+'</td>'
+          +'<td style="color:var(--green);font-weight:700;">'+fp(ganUnit)+'</td>'
+          +'<td>'+mBar+'</td>'
+          +'<td><span class="'+sClass+'" style="font-weight:700;">'+r.stock+'</span></td>'
+          +'<td style="color:var(--blue);font-weight:600;">'+fp(r.costo*r.stock)+'</td>'
+          +'<td style="color:var(--green);font-weight:700;">'+fp(ganUnit*r.stock)+'</td>'
+          +'</tr>';
+      }).join('');
+    }
+  }
+
+  // ── Charts ──
+  const names  = rows.map(r=>r.name+(r.variante!=='—'?' '+r.variante:''));
+  const costos = rows.map(r=>r.costo);
+  const gans   = rows.map(r=>Math.max(0,r.precio-r.costo));
+  const margens= rows.map(r=>r.precio>0?Math.round(((r.precio-r.costo)/r.precio)*100):0);
+
+  const ctx1 = document.getElementById('chart-costo-detalle');
+  const ctx2 = document.getElementById('chart-margen-detalle');
+  if(ctx1){
+    if(chartCostoDetalle) chartCostoDetalle.destroy();
+    chartCostoDetalle = new Chart(ctx1,{
+      type:'bar',
+      data:{
+        labels:names,
+        datasets:[
+          {label:'Costo compra',data:costos,backgroundColor:'rgba(37,99,235,0.7)',borderRadius:4},
+          {label:'Ganancia unit.',data:gans,backgroundColor:'rgba(45,122,79,0.7)',borderRadius:4}
+        ]
+      },
+      options:{responsive:true,plugins:{legend:{position:'top'}},scales:{x:{ticks:{maxRotation:45,font:{size:9}}},y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-CO')}}}}
+    });
+  }
+  if(ctx2){
+    if(chartMargenDetalle) chartMargenDetalle.destroy();
+    chartMargenDetalle = new Chart(ctx2,{
+      type:'bar',
+      data:{
+        labels:names,
+        datasets:[{label:'Margen %',data:margens,backgroundColor:margens.map(m=>m>20?'rgba(45,122,79,0.75)':m>0?'rgba(217,119,6,0.75)':'rgba(192,57,43,0.75)'),borderRadius:4}]
+      },
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:9}}},y:{ticks:{callback:v=>v+'%'}}}}
+    });
+  }
+}
+
+// Auto-render when section is shown
+const _origShowSectionCosto = window.showSection;
+window.showSection = function(id, el){
+  _origShowSectionCosto(id, el);
+  if(id==='costo-detalle') renderCostoDetalle();
+};
 
 </script>
 

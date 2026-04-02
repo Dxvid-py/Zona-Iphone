@@ -491,6 +491,7 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
     <button class="cat-tab" onclick="filterCategory('iphone',this)">iPhone</button>
     <button class="cat-tab" onclick="filterCategory('ipad',this)">iPad</button>
     <button class="cat-tab" onclick="filterCategory('airpods',this)">AirPods</button>
+    <button class="cat-tab" onclick="filterCategory('macbook',this)">MacBook</button>
     <button class="cat-tab" onclick="filterCategory('accesorio',this)" id="accesorios">Accesorios</button>
   </div>
   <div class="products-grid" id="products-grid"></div>
@@ -602,6 +603,7 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
         <li><a href="#productos">iPhone</a></li>
         <li><a href="#productos">iPad</a></li>
         <li><a href="#productos">AirPods</a></li>
+        <li><a href="#productos">MacBook</a></li>
         <li><a href="#otros">Otros</a></li>
         <li><a href="#servicio-tecnico">Servicio Técnico</a></li>
       </ul>
@@ -694,6 +696,7 @@ const defaultStore = {
     {id:4,name:'iPad Air M2',cat:'ipad',price:3299000,emoji:'💻',img:'',storage:['128GB','256GB','512GB'],colors:['Azul','Morado','Rosa','Gris Espacial'],badge:'',desc:'Chip M2, pantalla Liquid Retina 11"'},
     {id:5,name:'AirPods Pro 2',cat:'airpods',price:1299000,emoji:'🎧',img:'',storage:[],colors:['Blanco'],badge:'',desc:'Cancelación activa de ruido, USB-C'},
     {id:6,name:'AirPods 4',cat:'airpods',price:849000,emoji:'🎧',img:'',storage:[],colors:['Blanco'],badge:'NUEVO',desc:'Nuevo diseño, hasta 30h de batería'},
+    {id:10,name:'MacBook Air M3',cat:'macbook',price:6499000,emoji:'💻',img:'',storage:['256GB','512GB'],storageVariants:[{gb:'256GB',precio:6499000},{gb:'512GB',precio:7299000}],colors:['Plata','Medianoche','Luz Estelar'],badge:'NUEVO',desc:'Chip M3, pantalla Liquid Retina 13.6", hasta 18h batería'},
     {id:7,name:'Funda MagSafe',cat:'accesorio',price:149000,emoji:'🛡️',img:'',storage:[],colors:['Transparente','Negra','Azul','Rosa'],badge:'',desc:'Compatible iPhone 14, 15 y 16'},
     {id:8,name:'Cargador USB-C 20W',cat:'accesorio',price:89000,emoji:'⚡',img:'',storage:[],colors:['Blanco'],badge:'',desc:'Carga rápida para iPhone y iPad'},
   ],
@@ -820,9 +823,10 @@ function renderProducts(cat='todos') {
         <div class="product-storage">${p.storage.length ? p.storage.join(' · ') : p.desc}</div>
         ${p.colors.length ? `<div class="product-colors">${p.colors.map(c=>`<div class="color-dot" style="background:${colorToHex(c)}" title="${c}"></div>`).join('')}</div>` : ''}
         <div class="product-price-row">
-          <div class="product-price">${formatPrice(p.price)}</div>
+          <div class="product-price">${p.storageVariants&&p.storageVariants.length?formatPrice(p.storageVariants[0].precio):formatPrice(p.price)}</div>
           <div class="product-cta-hint" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);opacity:0.7;">Toca para pedir →</div>
         </div>
+        ${p.storageVariants&&p.storageVariants.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">${p.storageVariants.map(v=>`<span style="font-size:9px;font-weight:700;padding:2px 7px;border:1px solid rgba(201,168,76,0.4);border-radius:20px;color:#888;letter-spacing:0.5px;">${v.gb}</span>`).join('')}</div>`:''}
       </div>
     </div>`).join('');
 }
