@@ -563,6 +563,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     💰 <strong>Inversión grande:</strong> iPhone, iPad, AirPods, MacBook y artículos de alto valor
   </div>
   <!-- RESUMEN INVENTARIO -->
+  <div style="font-size:11px;color:var(--text3);margin-bottom:8px;padding:5px 10px;background:var(--accent-bg);border-radius:var(--radius-sm);border-left:3px solid var(--gold);display:inline-block;" id="inv-stats-label">📊 Estadísticas: <strong>Inversión grande</strong></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;" id="inv-summary-cards">
     <div class="stat-card green">
       <div class="stat-label">Ganancia total</div>
@@ -647,7 +648,16 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
           </div>
           <input type="hidden" id="edit-img" value="">
         </div>
-        <div class="field" style="margin-bottom:14px;"><label class="field-label">Descripción</label><textarea class="textarea" id="edit-desc"></textarea></div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">Descripción</label><textarea class="textarea" id="edit-desc"></textarea></div>
+        <!-- Info de compra / proveedor -->
+        <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:14px;">
+          <div class="card-title" style="margin-bottom:10px;">🧾 Info de compra (proveedor)</div>
+          <div class="form-grid" style="margin-bottom:8px;">
+            <div class="field"><label class="field-label">Nombre del proveedor</label><input class="input" id="edit-prov-nombre" placeholder="Ej: Carlos Distrib."></div>
+            <div class="field"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="edit-prov-tel" placeholder="Ej: 3001234567" type="tel"></div>
+          </div>
+          <div class="field" style="margin-bottom:0;"><label class="field-label">Información adicional</label><textarea class="textarea" id="edit-prov-info" placeholder="Compra en efectivo, traído de Bogotá…" rows="2"></textarea></div>
+        </div>
         <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-block" onclick="saveEdit()">💾 Guardar</button><button class="btn btn-outline" onclick="closeEditModal()">Cancelar</button></div>
       </div>
     </div>
@@ -687,6 +697,15 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         <input type="hidden" id="p-img" value="">
       </div>
       <div class="field" style="margin-bottom:14px;"><label class="field-label">Descripción</label><textarea class="textarea" id="p-desc"></textarea></div>
+      <!-- Info de compra / proveedor -->
+      <div style="border-top:1px solid var(--border);margin-bottom:12px;padding-top:14px;">
+        <div class="card-title" style="margin-bottom:10px;">🧾 Info de compra (proveedor)</div>
+        <div class="form-grid" style="margin-bottom:8px;">
+          <div class="field"><label class="field-label">Nombre del proveedor</label><input class="input" id="p-prov-nombre" placeholder="Ej: Carlos Distrib."></div>
+          <div class="field"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="p-prov-tel" placeholder="Ej: 3001234567" type="tel"></div>
+        </div>
+        <div class="field" style="margin-bottom:0;"><label class="field-label">Información adicional</label><textarea class="textarea" id="p-prov-info" placeholder="Compra en efectivo, traído de Bogotá…" rows="2"></textarea></div>
+      </div>
       <button class="btn btn-primary" onclick="addProduct()">+ Agregar</button>
     </div>
   </details>
@@ -986,22 +1005,11 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
             <th>Stock</th>
             <th>Invertido (stock)</th>
             <th>Ganancia (stock)</th>
+            <th>Proveedor</th>
           </tr>
         </thead>
         <tbody id="costo-detalle-body"></tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- Gráfica de distribución de costos -->
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title" style="margin-bottom:14px;">💸 Costo vs Ganancia por producto</div>
-      <div class="chart-wrap"><canvas id="chart-costo-detalle"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="margin-bottom:14px;">📊 Margen por variante</div>
-      <div class="chart-wrap"><canvas id="chart-margen-detalle"></canvas></div>
     </div>
   </div>
 </div>
@@ -1152,8 +1160,18 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   <div class="section-header"><div class="section-title">Video principal</div></div>
   <div class="card" style="max-width:580px;">
     <div class="field" style="margin-bottom:10px;"><label class="field-label">URL del video (MP4 directo)</label><input class="input" id="video-url-input" placeholder="https://res.cloudinary.com/…/video.mp4"><span class="field-hint">Sube el video en cloudinary.com y pega la URL .mp4</span></div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;"><button class="btn btn-primary" onclick="saveVideo()">💾 Guardar</button><button class="btn btn-danger" onclick="clearVideo()">✕ Quitar</button></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="saveVideo()">💾 Guardar URL</button>
+      <label class="upload-btn" style="cursor:pointer;">
+        🖼️ Desde galería
+        <input type="file" id="video-gallery-input" accept="video/*" style="display:none;" onchange="handleVideoGaleria(this)">
+      </label>
+      <button class="btn btn-danger" onclick="clearVideo()">✕ Quitar</button>
+    </div>
     <div id="video-preview-box" style="display:none;border-radius:var(--radius-sm);overflow:hidden;"><video id="video-preview-player" controls muted style="width:100%;max-height:180px;object-fit:cover;"></video></div>
+    <div style="margin-top:10px;padding:10px;background:var(--blue-bg);border-radius:var(--radius-sm);font-size:12px;color:var(--blue);">
+      💡 Puedes pegar una URL de Cloudinary <em>o</em> subir directamente desde tu galería. Si subes un video desde galería, se guardará en base64.
+    </div>
   </div>
 </div>
 
@@ -2216,6 +2234,12 @@ window.switchInvTab = function(tab, el){
     else if(tab==='accesorios') label.innerHTML='🛍 <strong>Accesorios:</strong> Forros, diademas, cargadores y artículos de bajo precio';
     else label.innerHTML='📋 <strong>Todos los productos</strong> del inventario principal';
   }
+  const statsLabel = document.getElementById('inv-stats-label');
+  if(statsLabel){
+    if(tab==='grande') statsLabel.innerHTML='📊 Estadísticas: <strong>Inversión grande</strong>';
+    else if(tab==='accesorios') statsLabel.innerHTML='📊 Estadísticas: <strong>Accesorios</strong>';
+    else statsLabel.innerHTML='📊 Estadísticas: <strong>Todo el inventario</strong>';
+  }
   renderProducts();
 };
 
@@ -2227,9 +2251,9 @@ function renderProducts(){
   else if(currentInvTab==='accesorios') prods = allProds.filter(p=>!INV_GRANDE_CATS.includes(p.cat));
   else prods = allProds;
 
-  // ── Calcular totales para las tarjetas de resumen (siempre sobre todo el inventario) ──
+  // ── Calcular totales para las tarjetas de resumen (filtrados por tab activo) ──
   let totalCosto=0, totalValor=0, totalGanancia=0, totalUnidades=0;
-  allProds.forEach(p=>{
+  prods.forEach(p=>{
     const stk = Number(p.stock)||0;
     const precio = Number(p.price)||0;
     const costo  = Number(p.cost)||0;
@@ -2306,9 +2330,9 @@ window.addProduct=async function(){
   const price=document.getElementById('p-price').value;
   if(!name||!price){showToast('Nombre y precio requeridos','error');return;}
   const newId=Math.max(0,...store.products.map(p=>p.id))+1;
-  store.products.push({id:newId,name,cat:document.getElementById('p-cat').value,price:Number(price),cost:Number(document.getElementById('p-cost').value||0),stock:Number(document.getElementById('p-stock').value||0),emoji:document.getElementById('p-emoji').value||'📱',img:document.getElementById('p-img').value||'',storage:document.getElementById('p-storage').value.split(',').map(s=>s.trim()).filter(Boolean),colors:document.getElementById('p-colors').value.split(',').map(s=>s.trim()).filter(Boolean),badge:document.getElementById('p-badge').value.trim(),desc:document.getElementById('p-desc').value.trim()});
+  store.products.push({id:newId,name,cat:document.getElementById('p-cat').value,price:Number(price),cost:Number(document.getElementById('p-cost').value||0),stock:Number(document.getElementById('p-stock').value||0),emoji:document.getElementById('p-emoji').value||'📱',img:document.getElementById('p-img').value||'',storage:document.getElementById('p-storage').value.split(',').map(s=>s.trim()).filter(Boolean),colors:document.getElementById('p-colors').value.split(',').map(s=>s.trim()).filter(Boolean),badge:document.getElementById('p-badge').value.trim(),desc:document.getElementById('p-desc').value.trim(),provNombre:document.getElementById('p-prov-nombre').value.trim(),provTel:document.getElementById('p-prov-tel').value.trim(),provInfo:document.getElementById('p-prov-info').value.trim()});
   await saveToFirebase({products:store.products});renderProducts();
-  ['p-name','p-price','p-cost','p-stock','p-emoji','p-img','p-storage','p-colors','p-badge','p-desc'].forEach(i=>document.getElementById(i).value='');
+  ['p-name','p-price','p-cost','p-stock','p-emoji','p-img','p-storage','p-colors','p-badge','p-desc','p-prov-nombre','p-prov-tel','p-prov-info'].forEach(i=>document.getElementById(i).value='');
   clearNewProdImg();
 };
 window.deleteProduct=async function(id){if(!confirm('¿Eliminar?'))return;store.products=store.products.filter(p=>p.id!==id);await saveToFirebase({products:store.products});renderProducts();};
@@ -2326,6 +2350,9 @@ window.openEditModal=function(id){
   document.getElementById('edit-badge').value=p.badge||'';
   document.getElementById('edit-img').value=p.img||'';
   document.getElementById('edit-desc').value=p.desc||'';
+  document.getElementById('edit-prov-nombre').value=p.provNombre||'';
+  document.getElementById('edit-prov-tel').value=p.provTel||'';
+  document.getElementById('edit-prov-info').value=p.provInfo||'';
   if(p.img){document.getElementById('edit-img-preview-img').src=p.img;document.getElementById('edit-img-preview').style.display='flex';}
   else document.getElementById('edit-img-preview').style.display='none';
   // Load existing variants
@@ -2365,6 +2392,9 @@ window.saveEdit=async function(){
   p.badge=document.getElementById('edit-badge').value.trim();
   p.img=document.getElementById('edit-img').value;
   p.desc=document.getElementById('edit-desc').value.trim();
+  p.provNombre=document.getElementById('edit-prov-nombre').value.trim();
+  p.provTel=document.getElementById('edit-prov-tel').value.trim();
+  p.provInfo=document.getElementById('edit-prov-info').value.trim();
   // Save variants
   if(editVariantsData.length>0){
     p.storageVariants=editVariantsData.filter(v=>v.gb).map(v=>({gb:v.gb,precio:v.precio||p.price,costo:v.costo||p.cost,stock:v.stock||0}));
@@ -3234,7 +3264,10 @@ function renderCostoDetalle(){
           precio: Number(v.precio||p.price||0),
           costo: Number(v.costo||p.cost||0),
           stock: Number(v.stock||0),
-          emoji: p.img?null:p.emoji
+          emoji: p.img?null:p.emoji,
+          provNombre: p.provNombre||'',
+          provTel: p.provTel||'',
+          provInfo: p.provInfo||''
         });
       });
     } else {
@@ -3244,7 +3277,10 @@ function renderCostoDetalle(){
         precio: Number(p.price||0),
         costo: Number(p.cost||0),
         stock: Number(p.stock||0),
-        emoji: p.img?null:p.emoji
+        emoji: p.img?null:p.emoji,
+        provNombre: p.provNombre||'',
+        provTel: p.provTel||'',
+        provInfo: p.provInfo||''
       });
     }
   });
@@ -3273,7 +3309,7 @@ function renderCostoDetalle(){
   const tbody = document.getElementById('costo-detalle-body');
   if(tbody){
     if(!rows.length){
-      tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text3);">No hay productos de esta categoría</td></tr>';
+      tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text3);">No hay productos de esta categoría</td></tr>';
     } else {
       tbody.innerHTML = rows.map(r=>{
         const ganUnit = r.precio - r.costo;
@@ -3285,6 +3321,11 @@ function renderCostoDetalle(){
           +'<div style="height:100%;width:'+barW+'%;background:'+barColor+';border-radius:3px;"></div></div>'
           +'<span style="font-size:11px;font-weight:700;color:'+barColor+';">'+margen+'%</span></div>';
         const sClass = r.stock===0?'stock-out':r.stock<3?'stock-low':'stock-ok';
+        const provCell = r.provNombre
+          ? '<div style="font-size:12px;font-weight:600;color:var(--text);">'+r.provNombre+'</div>'
+            +(r.provTel?'<a href="https://wa.me/57'+r.provTel.replace(/\D/g,'')+'" target="_blank" style="font-size:11px;color:var(--blue);">📱 '+r.provTel+'</a>':'')
+            +(r.provInfo?'<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+r.provInfo+'</div>':'')
+          : '<span style="color:var(--text3);font-size:11px;">—</span>';
         return '<tr>'
           +'<td style="font-weight:600;">'+r.name+'</td>'
           +'<td><span class="badge badge-gray">'+r.variante+'</span></td>'
@@ -3295,44 +3336,13 @@ function renderCostoDetalle(){
           +'<td><span class="'+sClass+'" style="font-weight:700;">'+r.stock+'</span></td>'
           +'<td style="color:var(--blue);font-weight:600;">'+fp(r.costo*r.stock)+'</td>'
           +'<td style="color:var(--green);font-weight:700;">'+fp(ganUnit*r.stock)+'</td>'
+          +'<td>'+provCell+'</td>'
           +'</tr>';
       }).join('');
     }
   }
 
-  // ── Charts ──
-  const names  = rows.map(r=>r.name+(r.variante!=='—'?' '+r.variante:''));
-  const costos = rows.map(r=>r.costo);
-  const gans   = rows.map(r=>Math.max(0,r.precio-r.costo));
-  const margens= rows.map(r=>r.precio>0?Math.round(((r.precio-r.costo)/r.precio)*100):0);
-
-  const ctx1 = document.getElementById('chart-costo-detalle');
-  const ctx2 = document.getElementById('chart-margen-detalle');
-  if(ctx1){
-    if(chartCostoDetalle) chartCostoDetalle.destroy();
-    chartCostoDetalle = new Chart(ctx1,{
-      type:'bar',
-      data:{
-        labels:names,
-        datasets:[
-          {label:'Costo compra',data:costos,backgroundColor:'rgba(37,99,235,0.7)',borderRadius:4},
-          {label:'Ganancia unit.',data:gans,backgroundColor:'rgba(45,122,79,0.7)',borderRadius:4}
-        ]
-      },
-      options:{responsive:true,plugins:{legend:{position:'top'}},scales:{x:{ticks:{maxRotation:45,font:{size:9}}},y:{ticks:{callback:v=>'$'+Number(v).toLocaleString('es-CO')}}}}
-    });
-  }
-  if(ctx2){
-    if(chartMargenDetalle) chartMargenDetalle.destroy();
-    chartMargenDetalle = new Chart(ctx2,{
-      type:'bar',
-      data:{
-        labels:names,
-        datasets:[{label:'Margen %',data:margens,backgroundColor:margens.map(m=>m>20?'rgba(45,122,79,0.75)':m>0?'rgba(217,119,6,0.75)':'rgba(192,57,43,0.75)'),borderRadius:4}]
-      },
-      options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:9}}},y:{ticks:{callback:v=>v+'%'}}}}
-    });
-  }
+  // ── Load provider info for this category ──
 }
 
 // Auto-render when section is shown
@@ -3340,6 +3350,22 @@ const _origShowSectionCosto = window.showSection;
 window.showSection = function(id, el){
   _origShowSectionCosto(id, el);
   if(id==='costo-detalle') renderCostoDetalle();
+};
+
+// ─── VIDEO DESDE GALERÍA ───
+window.handleVideoGaleria=function(input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=async e=>{
+    const dataUrl=e.target.result;
+    store.videoUrl=dataUrl;
+    await saveToFirebase({videoUrl:dataUrl});
+    document.getElementById('video-url-input').value='[Archivo subido desde galería]';
+    document.getElementById('video-preview-player').src=dataUrl;
+    document.getElementById('video-preview-box').style.display='block';
+    showToast('✅ Video cargado desde galería','success');
+  };
+  r.readAsDataURL(f);
 };
 
 </script>
