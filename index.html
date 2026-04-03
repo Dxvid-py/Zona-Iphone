@@ -214,6 +214,11 @@ nav { animation: heroFadeIn 0.5s ease both; }
 .section-title{ font-family:var(--font-display); font-size:clamp(32px,7vw,56px); letter-spacing:3px; line-height:1; }
 .section-dark .section-title{ color:var(--white); }
 
+/* SORT BUTTONS */
+.sort-btn { padding:5px 14px; border-radius:20px; border:1px solid #E0E0E0; background:#fff; font-size:11px; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:all 0.18s; font-family:'Montserrat',sans-serif; color:#666; }
+.sort-btn:hover { border-color:var(--gold); color:var(--gold-dark); }
+.sort-btn.active { background:var(--gold); border-color:var(--gold); color:#000; }
+
 /* CATEGORY TABS */
 .category-tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:40px; }
 .cat-tab{ padding:8px 20px; border-radius:24px; border:1px solid #E0E0E0; background:var(--white); font-size:12px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
@@ -486,6 +491,19 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
     <div class="section-eyebrow">Catálogo</div>
     <div class="section-title">NUESTROS PRODUCTOS</div>
   </div>
+
+  <!-- BARRA DE BÚSQUEDA -->
+  <div style="max-width:520px;margin:0 auto 24px;position:relative;">
+    <input type="text" id="search-input" placeholder="🔍  Buscar iPhone, iPad, AirPods…"
+      oninput="handleSearch()"
+      style="width:100%;padding:14px 48px 14px 18px;border-radius:50px;border:2px solid #E0E0E0;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;background:#fff;color:#1A1A1A;outline:none;transition:border-color 0.2s,box-shadow 0.2s;letter-spacing:0.3px;"
+      onfocus="this.style.borderColor='#C9A84C';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'"
+      onblur="this.style.borderColor='#E0E0E0';this.style.boxShadow='none'">
+    <button onclick="clearSearch()" id="search-clear"
+      style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px;">✕</button>
+  </div>
+
+  <!-- FILTROS DE CATEGORÍA -->
   <div class="category-tabs">
     <button class="cat-tab active" onclick="filterCategory('todos',this)">Todos</button>
     <button class="cat-tab" onclick="filterCategory('iphone',this)">iPhone</button>
@@ -494,7 +512,28 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
     <button class="cat-tab" onclick="filterCategory('macbook',this)">MacBook</button>
     <button class="cat-tab" onclick="filterCategory('accesorio',this)" id="accesorios">Accesorios</button>
   </div>
+
+  <!-- FILTROS ADICIONALES -->
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;align-items:center;">
+    <span style="font-size:10px;font-weight:700;letter-spacing:1px;color:#888;text-transform:uppercase;">Ordenar:</span>
+    <button class="sort-btn active" onclick="setSort('default',this)">Por defecto</button>
+    <button class="sort-btn" onclick="setSort('price-asc',this)">💰 Menor precio</button>
+    <button class="sort-btn" onclick="setSort('price-desc',this)">💎 Mayor precio</button>
+    <button class="sort-btn" onclick="setSort('name',this)">🔤 A–Z</button>
+  </div>
+
+  <!-- CONTADOR DE RESULTADOS -->
+  <div id="search-results-info" style="text-align:center;font-size:12px;color:#888;margin-bottom:16px;display:none;"></div>
+
   <div class="products-grid" id="products-grid"></div>
+
+  <!-- MENSAJE SIN RESULTADOS -->
+  <div id="no-results" style="display:none;text-align:center;padding:48px 20px;">
+    <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:#1A1A1A;margin-bottom:8px;">SIN RESULTADOS</div>
+    <div style="font-size:13px;color:#888;margin-bottom:20px;">No encontramos productos que coincidan con tu búsqueda.</div>
+    <button onclick="clearSearch()" style="background:linear-gradient(135deg,#E8C97A,#C9A84C,#9A7A2E);color:#000;border:none;padding:12px 28px;border-radius:6px;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">Ver todos</button>
+  </div>
 </div>
 
 <!-- SERVICES -->
@@ -811,29 +850,109 @@ function colorToHex(name) {
   return map[name.toLowerCase()] || '#888';
 }
 
-function renderProducts(cat='todos') {
-  currentCat = cat;
-  const items = cat === 'todos' ? store.products : store.products.filter(p=>p.cat===cat);
-  document.getElementById('products-grid').innerHTML = items.map(p=>`
-    <div class="product-card" onclick="openModal(${p.id})">
-      ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
-      <div class="product-img">${p.img ? `<div class="product-img-inner"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>` : `<span class="emoji-fallback">${p.emoji}</span>`}</div>
-      <div class="product-info">
-        <div class="product-name">${p.name}</div>
-        <div class="product-storage">${p.storage.length ? p.storage.join(' · ') : p.desc}</div>
-        ${p.colors.length ? `<div class="product-colors">${p.colors.map(c=>`<div class="color-dot" style="background:${colorToHex(c)}" title="${c}"></div>`).join('')}</div>` : ''}
-        <div class="product-price-row">
-          <div class="product-price">${p.storageVariants&&p.storageVariants.length?formatPrice(p.storageVariants[0].precio):formatPrice(p.price)}</div>
-          <div class="product-cta-hint" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);opacity:0.7;">Toca para pedir →</div>
+let currentSort = 'default';
+let currentSearch = '';
+
+function renderProducts(cat) {
+  if (cat !== undefined) currentCat = cat;
+
+  let items = currentCat === 'todos'
+    ? store.products
+    : store.products.filter(p => p.cat === currentCat);
+
+  // ── Filtro de búsqueda ──
+  const q = currentSearch.trim().toLowerCase();
+  if (q) {
+    items = items.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.desc||'').toLowerCase().includes(q) ||
+      (p.cat||'').toLowerCase().includes(q) ||
+      (p.storage||[]).some(s => s.toLowerCase().includes(q)) ||
+      (p.colors||[]).some(c => c.toLowerCase().includes(q))
+    );
+  }
+
+  // ── Ordenamiento ──
+  if (currentSort === 'price-asc') {
+    items = [...items].sort((a,b) => {
+      const pa = a.storageVariants?.length ? a.storageVariants[0].precio : a.price;
+      const pb = b.storageVariants?.length ? b.storageVariants[0].precio : b.price;
+      return pa - pb;
+    });
+  } else if (currentSort === 'price-desc') {
+    items = [...items].sort((a,b) => {
+      const pa = a.storageVariants?.length ? a.storageVariants[0].precio : a.price;
+      const pb = b.storageVariants?.length ? b.storageVariants[0].precio : b.price;
+      return pb - pa;
+    });
+  } else if (currentSort === 'name') {
+    items = [...items].sort((a,b) => a.name.localeCompare(b.name));
+  }
+
+  // ── Info de resultados ──
+  const infoEl = document.getElementById('search-results-info');
+  const noRes  = document.getElementById('no-results');
+  const grid   = document.getElementById('products-grid');
+
+  if (q) {
+    infoEl.style.display = 'block';
+    infoEl.textContent = items.length
+      ? `${items.length} resultado${items.length !== 1 ? 's' : ''} para "${q}"`
+      : '';
+  } else {
+    infoEl.style.display = 'none';
+  }
+
+  if (!items.length) {
+    grid.innerHTML = '';
+    noRes.style.display = 'block';
+  } else {
+    noRes.style.display = 'none';
+    grid.innerHTML = items.map(p => `
+      <div class="product-card" onclick="openModal(${p.id})">
+        ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
+        <div class="product-img">${p.img ? `<div class="product-img-inner"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>` : `<span class="emoji-fallback">${p.emoji}</span>`}</div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-storage">${p.storage.length ? p.storage.join(' · ') : p.desc}</div>
+          ${p.colors.length ? `<div class="product-colors">${p.colors.map(c=>`<div class="color-dot" style="background:${colorToHex(c)}" title="${c}"></div>`).join('')}</div>` : ''}
+          <div class="product-price-row">
+            <div class="product-price">${p.storageVariants&&p.storageVariants.length?formatPrice(p.storageVariants[0].precio):formatPrice(p.price)}</div>
+            <div class="product-cta-hint" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);opacity:0.7;">Toca →</div>
+          </div>
+          ${p.storageVariants&&p.storageVariants.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">${p.storageVariants.map(v=>`<span style="font-size:9px;font-weight:700;padding:2px 7px;border:1px solid rgba(201,168,76,0.4);border-radius:20px;color:#888;letter-spacing:0.5px;">${v.gb}</span>`).join('')}</div>`:''}
         </div>
-        ${p.storageVariants&&p.storageVariants.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">${p.storageVariants.map(v=>`<span style="font-size:9px;font-weight:700;padding:2px 7px;border:1px solid rgba(201,168,76,0.4);border-radius:20px;color:#888;letter-spacing:0.5px;">${v.gb}</span>`).join('')}</div>`:''}
-      </div>
-    </div>`).join('');
+      </div>`).join('');
+  }
 }
+
 window.filterCategory = function(cat, el) {
-  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   renderProducts(cat);
+};
+
+window.handleSearch = function() {
+  const input = document.getElementById('search-input');
+  currentSearch = input.value;
+  const clearBtn = document.getElementById('search-clear');
+  clearBtn.style.display = currentSearch ? 'block' : 'none';
+  renderProducts();
+};
+
+window.clearSearch = function() {
+  const input = document.getElementById('search-input');
+  input.value = '';
+  currentSearch = '';
+  document.getElementById('search-clear').style.display = 'none';
+  renderProducts();
+};
+
+window.setSort = function(sort, el) {
+  currentSort = sort;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderProducts();
 };
 
 function renderOtros() {
