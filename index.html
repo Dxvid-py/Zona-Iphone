@@ -221,8 +221,23 @@ nav { animation: heroFadeIn 0.5s ease both; }
 
 /* CATEGORY TABS */
 .category-tabs{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:40px; }
-.cat-tab{ padding:8px 20px; border-radius:24px; border:1px solid #E0E0E0; background:var(--white); font-size:12px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; }
-.cat-tab.active,.cat-tab:hover{ background:var(--black); color:var(--gold); border-color:var(--black); }
+.cat-tab{ padding:8px 20px; border-radius:24px; border:1.5px solid #E8E8E8; background:var(--white); font-size:11px; font-weight:700; letter-spacing:0.5px; cursor:pointer; transition:all 0.2s; text-transform:uppercase; color:#666; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+.cat-tab.active,.cat-tab:hover{ background:var(--black); color:var(--gold); border-color:var(--black); box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+
+/* Condition & sort pill buttons */
+.cond-btn,.sort-btn{ padding:7px 14px; border-radius:7px; border:none; background:transparent; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.18s; color:#666; font-family:var(--font-body); white-space:nowrap; letter-spacing:0.2px; }
+.cond-btn.active,.sort-btn.active{ background:var(--white); color:var(--black); box-shadow:0 1px 6px rgba(0,0,0,0.12); }
+.cond-btn:hover:not(.active),.sort-btn:hover:not(.active){ color:var(--black); background:rgba(255,255,255,0.6); }
+
+/* Product condition badge */
+.prod-badge-wrap{ position:absolute; top:10px; left:10px; display:flex; flex-direction:column; gap:3px; z-index:2; }
+.prod-label{ display:inline-block; font-size:9px; font-weight:800; letter-spacing:1px; padding:3px 8px; border-radius:4px; text-transform:uppercase; line-height:1.2; }
+.prod-label-nuevo{ background:#111; color:#C9A84C; }
+.prod-label-usado{ background:#5A4E3A; color:#E8C97A; }
+.prod-label-promocion{ background:#C9A84C; color:#111; }
+.prod-label-descuento{ background:#C41E3A; color:#fff; }
+.prod-label-personalizado{ background:#7C3AED; color:#fff; }
+.prod-label-oferta{ background:#C41E3A; color:#fff; }
 
 /* PRODUCTS GRID */
 .products-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; max-width:1200px; margin:0 auto; }
@@ -493,19 +508,20 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
   </div>
 
   <!-- BARRA DE BÚSQUEDA -->
-  <div style="max-width:520px;margin:0 auto 24px;position:relative;">
-    <input type="text" id="search-input" placeholder="🔍  Buscar iPhone, iPad, AirPods…"
+  <div style="max-width:540px;margin:0 auto 28px;position:relative;">
+    <svg style="position:absolute;left:18px;top:50%;transform:translateY(-50%);opacity:0.35;pointer-events:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="text" id="search-input" placeholder="Buscar producto, modelo, almacenamiento…"
       oninput="handleSearch()"
-      style="width:100%;padding:14px 48px 14px 18px;border-radius:50px;border:2px solid #E0E0E0;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;background:#fff;color:#1A1A1A;outline:none;transition:border-color 0.2s,box-shadow 0.2s;letter-spacing:0.3px;"
-      onfocus="this.style.borderColor='#C9A84C';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'"
-      onblur="this.style.borderColor='#E0E0E0';this.style.boxShadow='none'">
+      style="width:100%;padding:14px 48px 14px 48px;border-radius:14px;border:1.5px solid #E8E8E8;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;background:#fff;color:#1A1A1A;outline:none;transition:all 0.2s;letter-spacing:0.2px;box-shadow:0 2px 12px rgba(0,0,0,0.06);"
+      onfocus="this.style.borderColor='#C9A84C';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.12),0 2px 12px rgba(0,0,0,0.06)'"
+      onblur="this.style.borderColor='#E8E8E8';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.06)'">
     <button onclick="clearSearch()" id="search-clear"
-      style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:16px;cursor:pointer;color:#888;padding:4px;">✕</button>
+      style="display:none;position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:14px;cursor:pointer;color:#aaa;padding:4px;line-height:1;">✕</button>
   </div>
 
   <!-- FILTROS DE CATEGORÍA -->
   <div class="category-tabs">
-    <button class="cat-tab active" onclick="filterCategory('todos',this)">Todos</button>
+    <button class="cat-tab active" onclick="filterCategory('todos',this)">Todo</button>
     <button class="cat-tab" onclick="filterCategory('iphone',this)">iPhone</button>
     <button class="cat-tab" onclick="filterCategory('ipad',this)">iPad</button>
     <button class="cat-tab" onclick="filterCategory('airpods',this)">AirPods</button>
@@ -513,13 +529,22 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
     <button class="cat-tab" onclick="filterCategory('accesorio',this)" id="accesorios">Accesorios</button>
   </div>
 
-  <!-- FILTROS ADICIONALES -->
-  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;align-items:center;">
-    <span style="font-size:10px;font-weight:700;letter-spacing:1px;color:#888;text-transform:uppercase;">Ordenar:</span>
-    <button class="sort-btn active" onclick="setSort('default',this)">Por defecto</button>
-    <button class="sort-btn" onclick="setSort('price-asc',this)">💰 Menor precio</button>
-    <button class="sort-btn" onclick="setSort('price-desc',this)">💎 Mayor precio</button>
-    <button class="sort-btn" onclick="setSort('name',this)">🔤 A–Z</button>
+  <!-- FILTROS ADICIONALES: condición + orden -->
+  <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;align-items:center;">
+    <div style="display:flex;gap:4px;padding:4px;background:#F0F0F0;border-radius:10px;">
+      <button class="cond-btn active" onclick="setCondFilter('todos',this)" data-cond="todos">Todos</button>
+      <button class="cond-btn" onclick="setCondFilter('nuevo',this)" data-cond="nuevo">Nuevo</button>
+      <button class="cond-btn" onclick="setCondFilter('usado',this)" data-cond="usado">Usado</button>
+      <button class="cond-btn" onclick="setCondFilter('promocion',this)" data-cond="promocion">Promo</button>
+      <button class="cond-btn" onclick="setCondFilter('descuento',this)" data-cond="descuento">Oferta</button>
+    </div>
+    <div style="width:1px;height:24px;background:#D8D8D8;margin:0 4px;"></div>
+    <div style="display:flex;gap:4px;padding:4px;background:#F0F0F0;border-radius:10px;">
+      <button class="sort-btn active" onclick="setSort('default',this)">Relevancia</button>
+      <button class="sort-btn" onclick="setSort('price-asc',this)">Menor precio</button>
+      <button class="sort-btn" onclick="setSort('price-desc',this)">Mayor precio</button>
+      <button class="sort-btn" onclick="setSort('name',this)">A – Z</button>
+    </div>
   </div>
 
   <!-- CONTADOR DE RESULTADOS -->
@@ -663,22 +688,38 @@ footer{ background:var(--black); padding:64px 20px 32px; border-top:1px solid rg
 <!-- ORDER MODAL -->
 <div class="modal-overlay" id="order-modal">
   <div class="modal">
-    <div class="modal-header"><h3>PEDIR AHORA</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-header"><h3>SOLICITAR</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
-      <div class="modal-product-name" id="modal-product-name"></div>
-      <div class="modal-product-price" id="modal-product-price"></div>
-      <div class="form-group" id="color-group"><label class="form-label">Color</label><select class="form-select" id="order-color"></select></div>
+      <!-- Product preview inside modal -->
+      <div style="display:flex;gap:14px;align-items:center;padding:14px;background:#F7F7F7;border-radius:14px;margin-bottom:18px;">
+        <div id="modal-img-wrap" style="width:76px;height:76px;border-radius:12px;overflow:hidden;background:#eee;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:38px;"></div>
+        <div style="flex:1;min-width:0;">
+          <div id="modal-product-cond" style="font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:3px;"></div>
+          <div class="modal-product-name" id="modal-product-name" style="margin-bottom:2px;line-height:1.2;"></div>
+          <div class="modal-product-price" id="modal-product-price" style="margin-bottom:0;"></div>
+        </div>
+      </div>
+      <!-- Description & details -->
+      <div id="modal-product-desc" style="font-size:12px;color:#666;padding:0 2px;margin-bottom:16px;line-height:1.7;"></div>
+      <div class="form-group" id="color-group">
+        <label class="form-label">Color</label>
+        <select class="form-select" id="order-color" onchange="updateModalColorDot(this)"></select>
+        <div id="modal-color-preview" style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+          <div id="modal-color-dot" style="width:16px;height:16px;border-radius:50%;border:2px solid #ddd;transition:background 0.2s;"></div>
+          <span id="modal-color-name" style="font-size:11px;color:#666;font-weight:600;"></span>
+        </div>
+      </div>
       <div class="form-group" id="storage-group"><label class="form-label">Almacenamiento</label><select class="form-select" id="order-storage" onchange="updateModalPrice(this)"></select></div>
       <div class="form-group"><label class="form-label">Tu nombre</label><input class="form-input" id="order-name" placeholder="Ej: María García" type="text"></div>
       <div class="form-group">
-        <label class="form-label">Método de pago</label>
+        <label class="form-label">Forma de pago</label>
         <div class="payment-options">
-          <div class="payment-opt selected" onclick="selectPayment(this,'Contado')">💵 Contado</div>
-          <div class="payment-opt" onclick="selectPayment(this,'Crédito')">💳 Crédito</div>
-          <div class="payment-opt" onclick="selectPayment(this,'Cel como parte de pago')">🔄 Mi cel</div>
+          <div class="payment-opt selected" onclick="selectPayment(this,'Contado')">Contado</div>
+          <div class="payment-opt" onclick="selectPayment(this,'Crédito')">Crédito</div>
+          <div class="payment-opt" onclick="selectPayment(this,'Cel como parte de pago')">Mi celular</div>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Mensaje adicional (opcional)</label><textarea class="form-textarea" id="order-note" placeholder="¿Tienes alguna pregunta?"></textarea></div>
+      <div class="form-group"><label class="form-label">Nota (opcional)</label><textarea class="form-textarea" id="order-note" placeholder="Preguntas, preferencia de color, detalles del equipo…"></textarea></div>
       <button class="btn-whatsapp" onclick="sendWhatsApp()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Enviar pedido por WhatsApp
@@ -846,12 +887,35 @@ window.toggleSound = function() {
 // ===== PRODUCTS =====
 function formatPrice(n) { return '$' + Number(n).toLocaleString('es-CO'); }
 function colorToHex(name) {
-  const map = {'negro':'#1A1A1A','negro espacial':'#1A1A1A','blanco':'#F5F5F5','titanio natural':'#B5A99A','titanio blanco':'#F0EDE8','titanio desierto':'#D4B896','rojo':'#C41E3A','azul':'#1D62A8','azul medianoche':'#2C2C44','estelar':'#E8E0D0','verde':'#4CAF50','amarillo':'#FFD700','rosa':'#FF9BB3','gris espacial':'#3D4045','morado':'#9C27B0','transparente':'rgba(200,200,200,0.3)','negra':'#1A1A1A'};
-  return map[name.toLowerCase()] || '#888';
+  const map = {
+    'negro':'#1A1A1A','negro espacial':'#1a1a2e','blanco':'#F5F5F5',
+    'titanio natural':'#B5A99A','titanio blanco':'#F0EDE8','titanio desierto':'#D4B896','titanio negro':'#2C2C2E',
+    'rojo':'#C41E3A','rojo amanecer':'#e63946','rojo (product)red':'#e63946',
+    'azul':'#1D62A8','azul medianoche':'#2C2C44','azul ultramar':'#0f3460','azul noche':'#16213e',
+    'estelar':'#E8E0D0','estelar claro':'#f0e9d2',
+    'verde':'#4CAF50','verde alpino':'#5a7d7c','verde menta':'#98c4a5',
+    'amarillo':'#FFD700','amarillo canario':'#ffd60a',
+    'rosa':'#FF9BB3','rosa claro':'#ffb3c1','lila':'#c77dff',
+    'gris espacial':'#3D4045','gris':'#9E9E9E','gris perla':'#b0b3b8',
+    'morado':'#9C27B0','violeta':'#7B2FBE',
+    'transparente':'rgba(200,200,200,0.3)','clear':'rgba(200,200,200,0.3)',
+    'negra':'#1A1A1A','negro mate':'#121212',
+    'dorado':'#C9A84C','gold':'#C9A84C','champagne':'#e8c97a',
+    'plata':'#C0C0C0','silver':'#C0C0C0',
+    'luz estelar':'#f2e8d5','medianoche':'#1c1c2e',
+    'naranja':'#FF6B35','coral':'#FF6B6B',
+    'cafe':'#795548','marron':'#795548','marrón':'#795548',
+    'cyan':'#00BCD4','celeste':'#87CEEB',
+    'blanco estrella':'#F8F8FF','white':'#F5F5F5',
+    'space black':'#1A1A1A','deep purple':'#4B0082',
+    'verde bosque':'#2E7D32','azul cielo':'#1976D2',
+  };
+  return map[name.toLowerCase().trim()] || '#888';
 }
 
 let currentSort = 'default';
 let currentSearch = '';
+let currentCond = 'todos';
 
 function renderProducts(cat) {
   if (cat !== undefined) currentCat = cat;
@@ -870,6 +934,18 @@ function renderProducts(cat) {
       (p.storage||[]).some(s => s.toLowerCase().includes(q)) ||
       (p.colors||[]).some(c => c.toLowerCase().includes(q))
     );
+  }
+
+  // ── Filtro de condición ──
+  if (currentCond && currentCond !== 'todos') {
+    items = items.filter(p => {
+      const cond = (p.condicion||p.badge||'').toLowerCase();
+      if (currentCond === 'nuevo') return ['nuevo','new',''].includes(cond) || !cond;
+      if (currentCond === 'usado') return cond === 'usado' || cond === 'used';
+      if (currentCond === 'promocion') return ['promocion','promo','promoción'].includes(cond);
+      if (currentCond === 'descuento') return ['descuento','oferta'].includes(cond);
+      return true;
+    });
   }
 
   // ── Ordenamiento ──
@@ -908,21 +984,47 @@ function renderProducts(cat) {
     noRes.style.display = 'block';
   } else {
     noRes.style.display = 'none';
-    grid.innerHTML = items.map(p => `
-      <div class="product-card" onclick="openModal(${p.id})">
-        ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
+    // Map condition/badge to label style
+    const labelStyle = {
+      'nuevo':'prod-label-nuevo','new':'prod-label-nuevo',
+      'usado':'prod-label-usado','used':'prod-label-usado',
+      'promocion':'prod-label-promocion','promo':'prod-label-promocion','promoción':'prod-label-promocion',
+      'descuento':'prod-label-descuento','oferta':'prod-label-descuento',
+      'personalizado':'prod-label-personalizado',
+    };
+    const labelText = {
+      'nuevo':'Nuevo','new':'Nuevo','usado':'Usado','used':'Usado',
+      'promocion':'Promo','promo':'Promo','promoción':'Promo',
+      'descuento':'Oferta','oferta':'Oferta','personalizado':'Custom',
+    };
+    grid.innerHTML = items.map(p => {
+      const cond = (p.condicion||p.badge||'').toLowerCase();
+      const badgeClass = labelStyle[cond] || (p.badge ? 'prod-label-nuevo' : '');
+      const badgeTxt   = labelText[cond] || p.badge || '';
+      const displayPrice = p.storageVariants&&p.storageVariants.length ? formatPrice(p.storageVariants[0].precio) : formatPrice(p.price);
+
+      // Color dots with border for light colors
+      const colorDots = (p.colors||[]).map(c => {
+        const hex = colorToHex(c);
+        const isLight = ['#F5F5F5','#F0EDE8','#E8E0D0','#f0e9d2','#f2e8d5','rgba(200,200,200,0.3)'].includes(hex);
+        return `<div class="color-dot" style="background:${hex};${isLight?'border-color:#ccc;':''}" title="${c}"></div>`;
+      }).join('');
+
+      return `<div class="product-card" onclick="openModal(${p.id})">
+        ${badgeTxt ? `<div class="prod-badge-wrap"><span class="prod-label ${badgeClass}">${badgeTxt}</span></div>` : ''}
         <div class="product-img">${p.img ? `<div class="product-img-inner"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>` : `<span class="emoji-fallback">${p.emoji}</span>`}</div>
         <div class="product-info">
           <div class="product-name">${p.name}</div>
-          <div class="product-storage">${p.storage.length ? p.storage.join(' · ') : p.desc}</div>
-          ${p.colors.length ? `<div class="product-colors">${p.colors.map(c=>`<div class="color-dot" style="background:${colorToHex(c)}" title="${c}"></div>`).join('')}</div>` : ''}
+          <div class="product-storage" style="font-size:11px;color:#888;margin-bottom:6px;">${p.storage&&p.storage.length ? p.storage.join(' · ') : (p.desc||'')}</div>
+          ${colorDots ? `<div class="product-colors">${colorDots}</div>` : ''}
           <div class="product-price-row">
-            <div class="product-price">${p.storageVariants&&p.storageVariants.length?formatPrice(p.storageVariants[0].precio):formatPrice(p.price)}</div>
-            <div class="product-cta-hint" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);opacity:0.7;">Toca →</div>
+            <div class="product-price">${displayPrice}</div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);opacity:0.8;">Ver →</div>
           </div>
-          ${p.storageVariants&&p.storageVariants.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">${p.storageVariants.map(v=>`<span style="font-size:9px;font-weight:700;padding:2px 7px;border:1px solid rgba(201,168,76,0.4);border-radius:20px;color:#888;letter-spacing:0.5px;">${v.gb}</span>`).join('')}</div>`:''}
+          ${p.storageVariants&&p.storageVariants.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:7px;">${p.storageVariants.map(v=>`<span style="font-size:9px;font-weight:700;padding:2px 8px;border:1.5px solid rgba(201,168,76,0.35);border-radius:20px;color:#999;letter-spacing:0.3px;">${v.gb}</span>`).join('')}</div>`:''}
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 }
 
@@ -955,6 +1057,13 @@ window.setSort = function(sort, el) {
   renderProducts();
 };
 
+window.setCondFilter = function(cond, el) {
+  currentCond = cond;
+  document.querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderProducts();
+};
+
 function renderOtros() {
   document.getElementById('otros-grid').innerHTML = store.otros.map(o=>`
     <div class="otros-card" onclick="openOtroModal(${o.id})">
@@ -969,21 +1078,75 @@ let currentProduct = null, selectedPayment = 'Contado';
 window.openModal = function(id) {
   const p = store.products.find(x=>x.id===id); if(!p) return;
   currentProduct = p;
+
+  // ── Product image / emoji preview ──
+  const imgWrap = document.getElementById('modal-img-wrap');
+  if(imgWrap) {
+    if(p.img) {
+      imgWrap.innerHTML = '<img src="'+p.img+'" alt="'+p.name+'" style="width:100%;height:100%;object-fit:cover;">';
+    } else {
+      imgWrap.textContent = p.emoji || '📱';
+    }
+  }
+
+  // ── Condition badge ──
+  const condEl = document.getElementById('modal-product-cond');
+  if(condEl) {
+    const cond = (p.condicion || p.badge || '').toLowerCase();
+    const condMap = {nuevo:'Nuevo',usado:'Usado',promocion:'Promo',descuento:'Oferta',oferta:'Oferta',personalizado:'Personalizado'};
+    condEl.textContent = condMap[cond] || (p.badge ? p.badge : '');
+    condEl.style.color = cond==='usado'?'#8B6914':cond==='promocion'?'#C9A84C':cond==='descuento'||cond==='oferta'?'#C41E3A':'#aaa';
+  }
+
+  // ── Description/details ──
+  const descEl = document.getElementById('modal-product-desc');
+  if(descEl) {
+    let parts = [];
+    if(p.desc) parts.push(p.desc);
+    if(p.notasCompra) parts.push('<span style="color:#C9A84C;font-weight:600;">Nota:</span> '+p.notasCompra);
+    descEl.innerHTML = parts.join('<br>');
+    descEl.style.display = parts.length ? '' : 'none';
+  }
+
+  // ── Name & price ──
   document.getElementById('modal-product-name').textContent = p.name;
   document.getElementById('modal-product-price').textContent = formatPrice(p.price);
-  document.getElementById('order-color').innerHTML = p.colors.map(c=>`<option>${c}</option>`).join('') || '<option>Único</option>';
-  // Build storage options — use storageVariants if available for dynamic pricing
+
+  // ── Colors ──
+  const colorSel = document.getElementById('order-color');
+  colorSel.innerHTML = (p.colors||[]).map(c=>`<option value="${c}">${c}</option>`).join('') || '<option value="">Único</option>';
+  document.getElementById('color-group').style.display = (p.colors&&p.colors.length) ? '' : 'none';
+  // Show dot for first color
+  updateModalColorDot(colorSel);
+
+  // ── Storage with dynamic price ──
   if(p.storageVariants && p.storageVariants.length) {
     document.getElementById('order-storage').innerHTML = p.storageVariants.map(v=>`<option value="${v.gb}|${v.precio}">${v.gb} — ${formatPrice(v.precio)}</option>`).join('');
-    // Set initial price to first variant
-    const first = p.storageVariants[0];
-    document.getElementById('modal-product-price').textContent = formatPrice(first.precio);
+    document.getElementById('modal-product-price').textContent = formatPrice(p.storageVariants[0].precio);
   } else {
-    document.getElementById('order-storage').innerHTML = p.storage.map(s=>`<option value="${s}|${p.price}">${s}</option>`).join('') || '<option value="">Único</option>';
+    document.getElementById('order-storage').innerHTML = (p.storage||[]).map(s=>`<option value="${s}|${p.price}">${s}</option>`).join('') || '<option value="">Único</option>';
   }
-  document.getElementById('color-group').style.display = p.colors.length ? '' : 'none';
-  document.getElementById('storage-group').style.display = p.storage.length || (p.storageVariants && p.storageVariants.length) ? '' : 'none';
+  document.getElementById('storage-group').style.display = ((p.storage&&p.storage.length) || (p.storageVariants&&p.storageVariants.length)) ? '' : 'none';
+
+  // Reset form fields
+  document.getElementById('order-name').value = '';
+  document.getElementById('order-note').value = '';
+  document.querySelectorAll('.payment-opt').forEach((x,i)=>{ x.classList.toggle('selected', i===0); });
+  selectedPayment = 'Contado';
+
   document.getElementById('order-modal').classList.add('open');
+};
+
+window.updateModalColorDot = function(sel) {
+  const val = sel ? sel.value : document.getElementById('order-color').value;
+  const dot  = document.getElementById('modal-color-dot');
+  const name = document.getElementById('modal-color-name');
+  if(!dot) return;
+  const hex = colorToHex(val);
+  const isLight = ['#F5F5F5','#F0EDE8','#E8E0D0','rgba(200,200,200,0.3)','#f2e8d5','#f0e9d2'].includes(hex);
+  dot.style.background = hex;
+  dot.style.borderColor = isLight ? '#ccc' : hex;
+  if(name) name.textContent = val || '';
 };
 window.openOtroModal = function(id) {
   const o = store.otros.find(x=>x.id===id); if(!o) return;
@@ -1183,7 +1346,14 @@ window.updateModalPrice = function(sel) {
   const parts = val.split('|');
   const precio = parseFloat(parts[1]);
   if(!isNaN(precio)) {
-    document.getElementById('modal-product-price').textContent = formatPrice(precio);
+    const priceEl = document.getElementById('modal-product-price');
+    if(priceEl) {
+      // Animate price change
+      priceEl.style.transform = 'scale(1.08)';
+      priceEl.style.transition = 'transform 0.18s ease';
+      priceEl.textContent = formatPrice(precio);
+      setTimeout(()=>{ priceEl.style.transform = 'scale(1)'; }, 180);
+    }
     if(currentProduct) currentProduct._selectedPrice = precio;
   }
 };
