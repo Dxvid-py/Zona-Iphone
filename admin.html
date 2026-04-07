@@ -276,7 +276,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</button>
       <button class="nav-item" onclick="showSection('ventas',this)"><span class="nav-icon">🛍</span>Nueva Venta</button>
       <button class="nav-item" onclick="showSection('historial',this)"><span class="nav-icon">📋</span>Historial</button>
-      <button class="nav-item" onclick="showSection('vendidos',this)"><span class="nav-icon">✅</span>Dispositivos vendidos</button>
       <div class="sidebar-section-label">Catálogo</div>
       <button class="nav-item" onclick="showSection('productos',this)"><span class="nav-icon">📱</span>Productos</button>
       <button class="nav-item" onclick="showSection('otros',this)"><span class="nav-icon">🛒</span>Otros</button>
@@ -348,7 +347,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <div class="stat-card orange"><div class="stat-icon">🏆</div><div class="stat-label">Este Año</div><div class="stat-value" id="sg-anio">$0</div><div class="stat-change" id="sg-anio-n">0 ventas</div></div>
       <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos (mes)</div><div class="stat-value" id="sg-gastos">$0</div><div class="stat-change">total registrado</div></div>
       <div class="stat-card orange"><div class="stat-icon">👤</div><div class="stat-label">Salarios (mes)</div><div class="stat-value" id="sg-salarios">$0</div><div class="stat-change">empleados activos</div></div>
-      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="sg-neta">$0</div><div class="stat-change">ingresos − gastos − salarios</div></div>
+      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="sg-neta">$0</div><div class="stat-change">(venta − costo) − gastos − salarios</div></div>
     </div>
     <div class="grid-3" style="margin-bottom:18px;">
       <div class="card"><div class="card-title">💵 Contado</div><div style="font-family:var(--font-display);font-size:20px;color:var(--green);" id="sg-contado">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-contado-n">0 ventas</div></div>
@@ -629,17 +628,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         </div>
         <div class="form-grid" style="margin-bottom:10px;">
           <div class="field"><label class="field-label">Emoji</label><input class="input" id="edit-emoji"></div>
-          <div class="field">
-            <label class="field-label">Etiqueta / Condición</label>
-            <select class="select" id="edit-condicion">
-              <option value="">— Sin etiqueta —</option>
-              <option value="nuevo">✅ Nuevo</option>
-              <option value="usado">♻️ Usado</option>
-              <option value="promocion">🔥 Promoción</option>
-              <option value="descuento">💥 Descuento / Oferta</option>
-              <option value="personalizado">⭐ Personalizado</option>
-            </select>
-          </div>
+          <div class="field"><label class="field-label">Badge</label><input class="input" id="edit-badge" placeholder="NUEVO"></div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label class="field-label">Capacidades GB (por coma, sin precios)</label><input class="input" id="edit-storage" placeholder="128GB, 256GB, 512GB"></div>
         <div style="margin-bottom:12px;">
@@ -687,17 +676,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       </div>
       <div class="form-grid" style="margin-bottom:10px;">
         <div class="field"><label class="field-label">Emoji</label><input class="input" id="p-emoji" placeholder="📱"></div>
-        <div class="field">
-          <label class="field-label">Etiqueta / Condición</label>
-          <select class="select" id="p-badge">
-            <option value="">— Sin etiqueta —</option>
-            <option value="nuevo">✅ Nuevo</option>
-            <option value="usado">♻️ Usado</option>
-            <option value="promocion">🔥 Promoción</option>
-            <option value="descuento">💥 Descuento / Oferta</option>
-            <option value="personalizado">⭐ Personalizado</option>
-          </select>
-        </div>
+        <div class="field"><label class="field-label">Badge</label><input class="input" id="p-badge" placeholder="NUEVO"></div>
       </div>
       <div class="field" style="margin-bottom:10px;"><label class="field-label">Capacidades (solo texto)</label><input class="input" id="p-storage" placeholder="128GB, 256GB"></div>
       <div style="margin-bottom:10px;">
@@ -744,31 +723,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </tr></thead>
   <tbody id="products-body"></tbody>
 </table>
-  </div>
-</div>
-
-<!-- ═══ DISPOSITIVOS VENDIDOS ═══ -->
-<div class="section" id="sec-vendidos">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-    <div>
-      <div class="section-title">Dispositivos vendidos</div>
-      <div class="section-sub">Productos que agotaron stock y fueron archivados automáticamente</div>
-    </div>
-    <button class="btn btn-danger btn-sm" onclick="vaciarVendidos()">🗑 Vaciar archivo</button>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;" id="vendidos-stats">
-    <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-label">Total vendidos</div><div class="stat-value" id="vd-total">0</div></div>
-    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">Ingresos generados</div><div class="stat-value" id="vd-ingresos">$0</div></div>
-    <div class="stat-card blue"><div class="stat-icon">📈</div><div class="stat-label">Ganancia generada</div><div class="stat-value" id="vd-ganancia">$0</div></div>
-  </div>
-  <div class="table-wrap card" style="padding:0;">
-    <table>
-      <thead><tr>
-        <th>Producto</th><th>Variante</th><th>Precio vendido</th>
-        <th>Costo</th><th>Ganancia</th><th>Fecha vendido</th>
-      </tr></thead>
-      <tbody id="vendidos-body"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3);">Ningún producto agotado aún</td></tr></tbody>
-    </table>
   </div>
 </div>
 
@@ -1305,17 +1259,7 @@ const WA_NUMBER  = '573233039179';
 // ─── HELPERS ───
 function fp(n){ return '$'+Number(n||0).toLocaleString('es-CO'); }
 function mascaraCedula(c){ const s=String(c||''); return s.length>4?'****'+s.slice(-4):s; }
-function todayDate(){
-  // Bogotá is GMT-5 (fixed, no DST)
-  const now = new Date();
-  const bog = new Date(now.getTime() - 5*60*60*1000);
-  return bog.toISOString().split('T')[0];
-}
-function bogotaDateStr(d){
-  // Convert any Date to Bogotá date string
-  const bog = new Date((d instanceof Date ? d : new Date(d)).getTime() - 5*60*60*1000);
-  return bog.toISOString().split('T')[0];
-}
+function todayDate(){ return new Date().toISOString().split('T')[0]; }
 function formatDate(ts){ if(!ts)return'—'; const d=ts.toDate?ts.toDate():new Date(ts); return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}); }
 function numFactura(n){ return String(n||1).padStart(5,'0'); }
 function showToast(msg,type=''){
@@ -1374,7 +1318,7 @@ const defaultStore={
     {id:3,name:'Cable USB-C Genérico',emoji:'🔌',price:25000,img:''},
     {id:4,name:'Audífonos Bluetooth',emoji:'🎵',price:150000,img:''},
   ],
-  clients:[],orders:[],activeEvent:null,videoUrl:'',clientesCRM:[],vendidosArchive:[],
+  clients:[],orders:[],activeEvent:null,videoUrl:'',clientesCRM:[],
   nextFactura:1,eventPromoProductId:null,eventPromoPrice:null,customEvent:null,
   configuracion:{
     nombre:'ZONA iPHONE',
@@ -1439,7 +1383,7 @@ async function initAdmin(){
   onSnapshot(storeRef,snap=>{
     if(snap.exists()){
       store={...defaultStore,...snap.data()};
-      renderProducts();renderOtros();renderClients();renderEvents();renderVideo();renderDescuentos();if(document.getElementById('sec-vendidos')?.classList.contains('active'))renderVendidos();
+      renderProducts();renderOtros();renderClients();renderEvents();renderVideo();renderDescuentos();
     }
   });
 }
@@ -1462,7 +1406,7 @@ function renderAll(){
 }
 
 // ─── NAV ───
-const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',vendidos:'Dispositivos vendidos',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
+const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
 window.showSection=function(id,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(s=>s.classList.remove('active'));
@@ -1496,7 +1440,7 @@ window.switchDashTab=function(tab,el){
 
 function renderDashboard(){
   const now=new Date();
-  const hoyStr=bogotaDateStr(now); // Bogotá GMT-5, no UTC
+  const hoyStr=now.toISOString().split('T')[0];
   const lunes=new Date(now); lunes.setDate(now.getDate()-now.getDay()+1); lunes.setHours(0,0,0,0);
   const mesStart=new Date(now.getFullYear(),now.getMonth(),1);
   const anioStart=new Date(now.getFullYear(),0,1);
@@ -1509,9 +1453,8 @@ function renderDashboard(){
       if(!v.fecha) return false;
       if(v.estado==='cancelada'||v.estado==='reembolsada') return false; // exclude cancelled
       const d=v.fecha.toDate?v.fecha.toDate():new Date(v.fecha);
-      if(filterFrom && d<new Date(filterFrom+'T05:00:00Z')) return false;  // midnight Bogotá = 5am UTC
-      if(filterTo && d>new Date(filterTo+'T28:59:59Z').valueOf() && false) {} // skip, use simple approach
-      if(filterTo){const endBog=new Date(filterTo+'T05:00:00Z');endBog.setDate(endBog.getDate()+1);if(d>=endBog)return false;}
+      if(filterFrom && d<new Date(filterFrom)) return false;
+      if(filterTo && d>new Date(filterTo+'T23:59:59')) return false;
       if(filterCaja && v.caja!==filterCaja) return false;
       return true;
     });
@@ -1530,7 +1473,7 @@ function renderDashboard(){
 
   // General stats (always from full allVentas for period cards)
   const sumPeriod=from=>allVentas.filter(v=>{if(v.estado==='cancelada'||v.estado==='reembolsada')return false;const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
-  periodStats(sumPeriod(new Date(hoyStr+'T05:00:00Z')),'sg-hoy','sg-hoy-n'); // 5am UTC = 0am Bogotá
+  periodStats(sumPeriod(new Date(hoyStr)),'sg-hoy','sg-hoy-n');
   periodStats(sumPeriod(lunes),'sg-sem','sg-sem-n');
   periodStats(sumPeriod(mesStart),'sg-mes','sg-mes-n');
   periodStats(sumPeriod(anioStart),'sg-anio','sg-anio-n');
@@ -1555,7 +1498,7 @@ function renderDashboard(){
     }
   });
 
-  // ── Ingresos cobrados (lo que entró en caja) ──
+  // ── Ingresos brutos (lo que entró en caja, para referencia) ──
   let totalIngresos=0;
   sumPeriod(mesStart).forEach(v=>{
     if(v.tipoPago==='credito'&&v.datosCredito){
@@ -1567,47 +1510,69 @@ function renderDashboard(){
     }
   });
 
-  // ── Ganancia REAL = (precio vendido − costo del producto) por cada venta ──
-  // Esto es la ganancia bruta real, no el ingreso total
-  let gananciaReal=0;
+  // ── GANANCIA REAL por producto: precio_venta - costo_del_producto ──
+  // Ejemplo: vendí iPhone en $1.000.000 que costó $800.000 → gané $200.000
+  let gananciaBruta=0;
+  let costoTotal=0;
   sumPeriod(mesStart).forEach(v=>{
     (v.productos||[]).forEach(prod=>{
-      const vendido = (prod.precio||prod.subtotal/Math.max(prod.cantidad||1,1)||0);
-      // Buscar costo en inventario actual
-      const inv = (store.products||[]).find(p=>p.name===prod.nombre);
-      let costoUnit = inv ? (Number(inv.cost)||0) : 0;
-      // Si el producto tiene variantes, intentar encontrar el costo de esa variante
-      if(inv && inv.storageVariants && inv.storageVariants.length) {
-        const varName = prod.nombre.replace(inv.name,'').trim();
-        const variant = inv.storageVariants.find(sv=>sv.gb===varName||prod.nombre.includes(sv.gb));
-        if(variant && variant.costo) costoUnit = Number(variant.costo);
+      const cantidad = Number(prod.cantidad)||1;
+      const precioUnit = Number(prod.precio) || (Number(prod.subtotal)||0)/cantidad;
+
+      // Buscar el costo real del producto en el inventario actual
+      let costoUnit = 0;
+      const invProd = (store.products||[]).find(p=>{
+        // Buscar por nombre exacto o nombre base si tiene variante
+        return p.name===prod.nombre || prod.nombre.startsWith(p.name);
+      });
+      if(invProd){
+        costoUnit = Number(invProd.cost)||0;
+        // Si el producto tiene variantes (128GB, 256GB…), buscar el costo de esa variante
+        if(invProd.storageVariants && invProd.storageVariants.length){
+          const sv = invProd.storageVariants.find(v=>prod.nombre.includes(v.gb));
+          if(sv && sv.costo) costoUnit = Number(sv.costo);
+        }
+      } else {
+        // Producto ya no está en inventario (fue archivado al venderse)
+        // Buscar en vendidosArchive por nombre
+        const arch = (store.vendidosArchive||[]).find(a=>
+          a.nombre===prod.nombre || prod.nombre.startsWith(a.nombre)
+        );
+        if(arch) costoUnit = Number(arch.costo)||0;
       }
-      const cantidad = prod.cantidad || 1;
-      gananciaReal += (vendido - costoUnit) * cantidad;
+
+      const gananciaEsteProducto = (precioUnit - costoUnit) * cantidad;
+      gananciaBruta += gananciaEsteProducto;
+      costoTotal    += costoUnit * cantidad;
     });
   });
 
-  const netaReal = gananciaReal - totalGastos - totalSalarios;
+  // Ganancia neta = lo que gané en producto - gastos operativos - salarios
+  const gananciaNeta = gananciaBruta - totalGastos - totalSalarios;
 
   document.getElementById('sg-gastos').textContent=fp(totalGastos);
   if(document.getElementById('sg-salarios')) document.getElementById('sg-salarios').textContent=fp(totalSalarios);
-  document.getElementById('sg-neta').textContent=fp(netaReal);
+  document.getElementById('sg-neta').textContent=fp(gananciaNeta);
 
-  // Financial breakdown
+  // ── Resumen financiero detallado ──
   const rfEl=document.getElementById('resumen-financiero');
   if(rfEl){
-    const row=(label,val,color,icon)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:var(--radius-sm);background:var(--bg2);">
-      <span style="font-size:13px;">${icon} ${label}</span>
+    const row=(label,val,color,icon,sub)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:var(--radius-sm);background:var(--bg2);">
+      <div><span style="font-size:13px;">${icon} ${label}</span>${sub?`<div style="font-size:10px;color:var(--text3);margin-top:1px;">${sub}</div>`:''}</div>
       <span style="font-family:var(--font-display);font-size:16px;color:${color};">${val}</span>
     </div>`;
     rfEl.innerHTML=[
-      row('Ingresos brutos cobrados',fp(totalIngresos),'var(--green)','💵'),
-      row('Ganancia bruta (precio − costo)',fp(gananciaReal),'var(--green)','📈'),
-      row('Gastos registrados','-'+fp(totalGastos),'var(--red)','💸'),
-      row('Salarios empleados','-'+fp(totalSalarios),'var(--orange)','👤'),
-      `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:var(--radius-sm);background:var(--text);color:white;">
-        <span style="font-size:13px;font-weight:700;">💎 GANANCIA NETA</span>
-        <span style="font-family:var(--font-display);font-size:20px;color:${netaReal>=0?'#4ade80':'#f87171'};">${fp(netaReal)}</span>
+      row('Ingresos brutos',fp(totalIngresos),'var(--blue)','💵','Total cobrado en ventas del mes'),
+      row('Costo de productos','-'+fp(costoTotal),'var(--text3)','📦','Lo que pagaste por los productos vendidos'),
+      row('Ganancia bruta',fp(gananciaBruta),gananciaBruta>=0?'var(--green)':'var(--red)','📈','Ingresos − costo de productos'),
+      row('Gastos operativos','-'+fp(totalGastos),'var(--red)','💸','Arriendo, servicios, etc.'),
+      row('Salarios empleados','-'+fp(totalSalarios),'var(--orange)','👤','Nómina del mes'),
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:var(--radius-sm);background:var(--text);color:white;margin-top:4px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">💎 GANANCIA NETA</div>
+          <div style="font-size:10px;opacity:0.55;margin-top:1px;">Lo que realmente ganaste este mes</div>
+        </div>
+        <span style="font-family:var(--font-display);font-size:22px;color:${gananciaNeta>=0?'#4ade80':'#f87171'};">${fp(gananciaNeta)}</span>
       </div>`,
     ].join('');
   }
@@ -1621,23 +1586,47 @@ function renderDashboard(){
 
   // Local 1
   const sp1=from=>v1.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
-  periodStats(sp1(new Date(hoyStr+'T05:00:00Z')),'s1-hoy','s1-hoy-n');
+  periodStats(sp1(new Date(hoyStr)),'s1-hoy','s1-hoy-n');
   periodStats(sp1(lunes),'s1-sem','s1-sem-n');
   periodStats(sp1(mesStart),'s1-mes','s1-mes-n');
   periodStats(sp1(anioStart),'s1-anio','s1-anio-n');
   const g1=allGastos.filter(g=>g.caja==='caja1'||g.caja==='general').reduce((s,g)=>s+(g.monto||0),0);
   document.getElementById('s1-gastos').textContent=fp(g1);
-  document.getElementById('s1-neta').textContent=fp(sumArr(sp1(mesStart))-g1);
+  // Ganancia neta Local 1: (venta-costo) por cada venta de caja1
+  let ganL1=0;
+  v1.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=mesStart;}).forEach(v=>{
+    (v.productos||[]).forEach(prod=>{
+      const cant=Number(prod.cantidad)||1;
+      const prec=Number(prod.precio)||(Number(prod.subtotal)||0)/cant;
+      const inv=(store.products||[]).find(p=>p.name===prod.nombre||prod.nombre.startsWith(p.name));
+      let cost=inv?Number(inv.cost)||0:0;
+      if(inv&&inv.storageVariants){const sv=inv.storageVariants.find(sv=>prod.nombre.includes(sv.gb));if(sv&&sv.costo)cost=Number(sv.costo);}
+      ganL1+=(prec-cost)*cant;
+    });
+  });
+  document.getElementById('s1-neta').textContent=fp(ganL1-g1);
 
   // Local 2
   const sp2=from=>v2.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
-  periodStats(sp2(new Date(hoyStr+'T05:00:00Z')),'s2-hoy','s2-hoy-n');
+  periodStats(sp2(new Date(hoyStr)),'s2-hoy','s2-hoy-n');
   periodStats(sp2(lunes),'s2-sem','s2-sem-n');
   periodStats(sp2(mesStart),'s2-mes','s2-mes-n');
   periodStats(sp2(anioStart),'s2-anio','s2-anio-n');
   const g2=allGastos.filter(g=>g.caja==='caja2'||g.caja==='general').reduce((s,g)=>s+(g.monto||0),0);
   document.getElementById('s2-gastos').textContent=fp(g2);
-  document.getElementById('s2-neta').textContent=fp(sumArr(sp2(mesStart))-g2);
+  // Ganancia neta Local 2
+  let ganL2=0;
+  v2.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=mesStart;}).forEach(v=>{
+    (v.productos||[]).forEach(prod=>{
+      const cant=Number(prod.cantidad)||1;
+      const prec=Number(prod.precio)||(Number(prod.subtotal)||0)/cant;
+      const inv=(store.products||[]).find(p=>p.name===prod.nombre||prod.nombre.startsWith(p.name));
+      let cost=inv?Number(inv.cost)||0:0;
+      if(inv&&inv.storageVariants){const sv=inv.storageVariants.find(sv=>prod.nombre.includes(sv.gb));if(sv&&sv.costo)cost=Number(sv.costo);}
+      ganL2+=(prec-cost)*cant;
+    });
+  });
+  document.getElementById('s2-neta').textContent=fp(ganL2-g2);
 
   renderChart30('chart-general',ventas,'#C9A84C');
   renderChart30('chart-l1',v1,'#2563EB');
@@ -1903,71 +1892,13 @@ window.finalizarVenta=async function(){
     venta.id=ref.id;
     allVentas.unshift(venta);
 
-    // ── Decrease stock + archive sold-out products ──
-    const vendidosArchive = [...(store.vendidosArchive||[])];
-    let productsChanged = false;
-
+    // Decrease stock
     productos.forEach(p=>{
-      const prodIdx = store.products.findIndex(x=>x.name===p.nombre);
-      if(prodIdx === -1) return;
-      const prod = store.products[prodIdx];
-
-      // Check if this product has a storageVariant match
-      const varName = p.nombre.replace(prod.name,'').trim(); // e.g. "128GB"
-      const varIdx  = prod.storageVariants ? prod.storageVariants.findIndex(v=>p.nombre.includes(v.gb)) : -1;
-
-      if(varIdx !== -1 && prod.storageVariants) {
-        // ── Variant product ──
-        const v = prod.storageVariants[varIdx];
-        v.stock = Math.max(0, (v.stock||0) - (p.cantidad||1));
-        if(v.stock === 0) {
-          // Archive this variant entry
-          vendidosArchive.push({
-            nombre: prod.name + ' ' + v.gb,
-            variante: v.gb,
-            precio: v.precio,
-            costo: v.costo||prod.cost||0,
-            cat: prod.cat,
-            emoji: prod.emoji,
-            img: prod.img||'',
-            fechaVendido: new Date().toLocaleDateString('es-CO'),
-            ventaId: ref.id
-          });
-          // Remove variant from array
-          prod.storageVariants.splice(varIdx, 1);
-          // Update base price to first remaining variant, or remove product if no variants left
-          if(prod.storageVariants.length === 0) {
-            // No variants left — archive whole product and remove
-            store.products.splice(prodIdx, 1);
-          } else {
-            prod.price = prod.storageVariants[0].precio;
-          }
-          productsChanged = true;
-        }
-      } else {
-        // ── Simple product ──
-        prod.stock = Math.max(0, (prod.stock||0) - (p.cantidad||1));
-        if(prod.stock === 0) {
-          vendidosArchive.push({
-            nombre: prod.name,
-            variante: null,
-            precio: prod.price,
-            costo: prod.cost||0,
-            cat: prod.cat,
-            emoji: prod.emoji,
-            img: prod.img||'',
-            fechaVendido: new Date().toLocaleDateString('es-CO'),
-            ventaId: ref.id
-          });
-          store.products.splice(prodIdx, 1);
-          productsChanged = true;
-        }
-      }
+      const prod=store.products.find(x=>x.name===p.nombre);
+      if(prod&&prod.stock!==undefined) prod.stock=Math.max(0,prod.stock-p.cantidad);
     });
-
-    store.vendidosArchive = vendidosArchive;
     store.nextFactura=(factNum||1)+1;
-    await saveToFirebase({products:store.products, vendidosArchive:store.vendidosArchive, nextFactura:store.nextFactura});
+    await saveToFirebase({products:store.products,nextFactura:store.nextFactura});
     updateFacturaBadge();
 
     lastVenta=venta;
@@ -2441,20 +2372,11 @@ function renderProducts(){
       : stock!=null&&stock<3
         ? '<span class="badge badge-orange" style="font-size:9px;margin-left:4px;">Stock bajo</span>'
         : '';
-    const condBadge = (()=>{
-      const c=(p.condicion||p.badge||'').toLowerCase();
-      if(c==='nuevo') return '<span class="badge" style="background:#111;color:#C9A84C;font-size:9px;margin-left:4px;">Nuevo</span>';
-      if(c==='usado') return '<span class="badge badge-orange" style="font-size:9px;margin-left:4px;">Usado</span>';
-      if(c==='promocion') return '<span class="badge badge-gold" style="font-size:9px;margin-left:4px;">Promo</span>';
-      if(c==='descuento'||c==='oferta') return '<span class="badge badge-red" style="font-size:9px;margin-left:4px;">Oferta</span>';
-      if(c==='personalizado') return '<span class="badge badge-purple" style="font-size:9px;margin-left:4px;">Custom</span>';
-      return '';
-    })();
 
     return '<tr>'
       +'<td><div style="display:flex;align-items:center;gap:9px;">'
       +imgCell
-      +'<div><div style="font-weight:600;font-size:13px;">'+p.name+condBadge+stockBadge+'</div>'
+      +'<div><div style="font-weight:600;font-size:13px;">'+p.name+stockBadge+'</div>'
       +'<div style="font-size:10px;color:var(--text3);text-transform:capitalize;">'+p.cat+'</div></div>'
       +'</div></td>'
       +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(precio)+'</td>'
@@ -2476,7 +2398,7 @@ window.addProduct=async function(){
   const price=document.getElementById('p-price').value;
   if(!name||!price){showToast('Nombre y precio requeridos','error');return;}
   const newId=Math.max(0,...store.products.map(p=>p.id))+1;
-  store.products.push({id:newId,name,cat:document.getElementById('p-cat').value,price:Number(price),cost:Number(document.getElementById('p-cost').value||0),stock:Number(document.getElementById('p-stock').value||0),emoji:document.getElementById('p-emoji').value||'📱',img:document.getElementById('p-img').value||'',storage:document.getElementById('p-storage').value.split(',').map(s=>s.trim()).filter(Boolean),colors:document.getElementById('p-colors').value.split(',').map(s=>s.trim()).filter(Boolean),badge:document.getElementById('p-badge').value,condicion:document.getElementById('p-badge').value,desc:document.getElementById('p-desc').value.trim(),provNombre:document.getElementById('p-prov-nombre').value.trim(),provTel:document.getElementById('p-prov-tel').value.trim(),provInfo:document.getElementById('p-prov-info').value.trim()});
+  store.products.push({id:newId,name,cat:document.getElementById('p-cat').value,price:Number(price),cost:Number(document.getElementById('p-cost').value||0),stock:Number(document.getElementById('p-stock').value||0),emoji:document.getElementById('p-emoji').value||'📱',img:document.getElementById('p-img').value||'',storage:document.getElementById('p-storage').value.split(',').map(s=>s.trim()).filter(Boolean),colors:document.getElementById('p-colors').value.split(',').map(s=>s.trim()).filter(Boolean),badge:document.getElementById('p-badge').value.trim(),desc:document.getElementById('p-desc').value.trim(),provNombre:document.getElementById('p-prov-nombre').value.trim(),provTel:document.getElementById('p-prov-tel').value.trim(),provInfo:document.getElementById('p-prov-info').value.trim()});
   await saveToFirebase({products:store.products});renderProducts();
   ['p-name','p-price','p-cost','p-stock','p-emoji','p-img','p-storage','p-colors','p-badge','p-desc','p-prov-nombre','p-prov-tel','p-prov-info'].forEach(i=>document.getElementById(i).value='');
   clearNewProdImg();
@@ -2491,7 +2413,6 @@ window.openEditModal=function(id){
   document.getElementById('edit-cost').value=p.cost||0;
   document.getElementById('edit-stock').value=p.stock??0;
   document.getElementById('edit-emoji').value=p.emoji||'';
-  document.getElementById('edit-condicion').value=p.condicion||p.badge||'';
   document.getElementById('edit-storage').value=(p.storage||[]).join(', ');
   document.getElementById('edit-colors').value=(p.colors||[]).join(', ');
   document.getElementById('edit-badge').value=p.badge||'';
@@ -2536,9 +2457,7 @@ window.saveEdit=async function(){
   p.emoji=document.getElementById('edit-emoji').value||'📱';
   p.storage=document.getElementById('edit-storage').value.split(',').map(s=>s.trim()).filter(Boolean);
   p.colors=document.getElementById('edit-colors').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const condVal = document.getElementById('edit-condicion')?.value||'';
-  p.condicion = condVal;
-  p.badge     = condVal; // keep badge in sync for backwards compat
+  p.badge=document.getElementById('edit-badge').value.trim();
   p.img=document.getElementById('edit-img').value;
   p.desc=document.getElementById('edit-desc').value.trim();
   p.provNombre=document.getElementById('edit-prov-nombre').value.trim();
@@ -3169,59 +3088,6 @@ window.addNewVariant=function(){newVariantsData.push({gb:'',precio:0,costo:0,sto
 if(typeof renderDescuentos==='undefined'){
   window.renderDescuentos=function(){};
 }
-
-// ─── DISPOSITIVOS VENDIDOS ───
-function renderVendidos(){
-  const archive = store.vendidosArchive||[];
-  let totalGan=0, totalIng=0;
-  archive.forEach(v=>{
-    totalIng += Number(v.precio||0);
-    totalGan += Number(v.precio||0) - Number(v.costo||0);
-  });
-  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  setEl('vd-total', archive.length);
-  setEl('vd-ingresos', fp(totalIng));
-  setEl('vd-ganancia', fp(totalGan));
-
-  const tbody = document.getElementById('vendidos-body');
-  if(!tbody) return;
-  if(!archive.length){
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3);">Ningún producto agotado aún</td></tr>';
-    return;
-  }
-  tbody.innerHTML = [...archive].reverse().map((v,i)=>{
-    const gan = Number(v.precio||0) - Number(v.costo||0);
-    const ganColor = gan>0?'var(--green)':gan<0?'var(--red)':'var(--text3)';
-    const imgHtml = v.img
-      ? '<img src="'+v.img+'" style="width:28px;height:28px;object-fit:cover;border-radius:5px;margin-right:8px;vertical-align:middle;">'
-      : '<span style="font-size:18px;margin-right:6px;vertical-align:middle;">'+(v.emoji||'📦')+'</span>';
-    return '<tr>'
-      +'<td>'+imgHtml+'<strong>'+v.nombre+'</strong></td>'
-      +'<td>'+(v.variante?'<span class="badge badge-gray">'+v.variante+'</span>':'—')+'</td>'
-      +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(v.precio||0)+'</td>'
-      +'<td style="color:var(--text3);">'+fp(v.costo||0)+'</td>'
-      +'<td style="color:'+ganColor+';font-weight:700;">'+fp(gan)+'</td>'
-      +'<td style="font-size:12px;color:var(--text3);">'+(v.fechaVendido||'—')+'</td>'
-      +'</tr>';
-  }).join('');
-}
-
-window.vaciarVendidos=async function(){
-  const n=(store.vendidosArchive||[]).length;
-  if(!n){showToast('No hay dispositivos archivados');return;}
-  if(!confirm('¿Vaciar el archivo de '+n+' dispositivos vendidos? Esta acción no se puede deshacer.'))return;
-  store.vendidosArchive=[];
-  await saveToFirebase({vendidosArchive:[]});
-  renderVendidos();
-  showToast('Archivo vaciado','success');
-};
-
-// Auto-render when section is shown
-const _origShowSectionVend=window.showSection;
-window.showSection=function(id,el){
-  _origShowSectionVend(id,el);
-  if(id==='vendidos') renderVendidos();
-};
 
 // ─── CLOSE MODALS ───
 ['venta-modal','client-modal','edit-modal','empleado-modal','pago-emp-modal','proveedor-modal'].forEach(id=>{
