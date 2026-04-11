@@ -209,6 +209,13 @@ tr:hover td{background:var(--bg2);}
 .stock-ok{color:var(--green);font-weight:700;}
 .stock-low{color:var(--orange);font-weight:700;}
 .stock-out{color:var(--red);font-weight:700;}
+/* Badge etiquetas de condición */
+.badge-cond{display:inline-block;font-size:9px;font-weight:800;letter-spacing:0.8px;padding:2px 7px;border-radius:4px;text-transform:uppercase;margin-left:5px;vertical-align:middle;}
+.badge-cond-nuevo{background:#1A1814;color:#C9A84C;}
+.badge-cond-usado{background:#FEF3E2;color:#D97706;}
+.badge-cond-promo{background:#C9A84C;color:#1A1814;}
+.badge-cond-oferta{background:#FDECEA;color:#C0392B;}
+.badge-cond-personalizado{background:#F5F0FD;color:#7C3AED;}
 /* TABS */
 .tab-bar{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);padding:4px;border-radius:var(--radius-sm);width:fit-content;}
 .tab-btn{padding:7px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);border:none;background:none;transition:all 0.15s;}
@@ -276,6 +283,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</button>
       <button class="nav-item" onclick="showSection('ventas',this)"><span class="nav-icon">🛍</span>Nueva Venta</button>
       <button class="nav-item" onclick="showSection('historial',this)"><span class="nav-icon">📋</span>Historial</button>
+      <button class="nav-item" onclick="showSection('vendidos',this)"><span class="nav-icon">✅</span>Dispositivos vendidos</button>
       <div class="sidebar-section-label">Catálogo</div>
       <button class="nav-item" onclick="showSection('productos',this)"><span class="nav-icon">📱</span>Productos</button>
       <button class="nav-item" onclick="showSection('otros',this)"><span class="nav-icon">🛒</span>Otros</button>
@@ -628,7 +636,17 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         </div>
         <div class="form-grid" style="margin-bottom:10px;">
           <div class="field"><label class="field-label">Emoji</label><input class="input" id="edit-emoji"></div>
-          <div class="field"><label class="field-label">Badge</label><input class="input" id="edit-badge" placeholder="NUEVO"></div>
+          <div class="field">
+            <label class="field-label">Etiqueta / Condición</label>
+            <select class="select" id="edit-badge">
+              <option value="">— Sin etiqueta —</option>
+              <option value="NUEVO">✅ Nuevo</option>
+              <option value="USADO">♻️ Usado</option>
+              <option value="PROMO">🔥 Promoción</option>
+              <option value="OFERTA">💥 Oferta / Descuento</option>
+              <option value="PERSONALIZADO">⭐ Personalizado</option>
+            </select>
+          </div>
         </div>
         <div class="field" style="margin-bottom:10px;"><label class="field-label">Capacidades GB (por coma, sin precios)</label><input class="input" id="edit-storage" placeholder="128GB, 256GB, 512GB"></div>
         <div style="margin-bottom:12px;">
@@ -676,7 +694,17 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       </div>
       <div class="form-grid" style="margin-bottom:10px;">
         <div class="field"><label class="field-label">Emoji</label><input class="input" id="p-emoji" placeholder="📱"></div>
-        <div class="field"><label class="field-label">Badge</label><input class="input" id="p-badge" placeholder="NUEVO"></div>
+        <div class="field">
+          <label class="field-label">Etiqueta / Condición</label>
+          <select class="select" id="p-badge">
+            <option value="">— Sin etiqueta —</option>
+            <option value="NUEVO">✅ Nuevo</option>
+            <option value="USADO">♻️ Usado</option>
+            <option value="PROMO">🔥 Promoción</option>
+            <option value="OFERTA">💥 Oferta / Descuento</option>
+            <option value="PERSONALIZADO">⭐ Personalizado</option>
+          </select>
+        </div>
       </div>
       <div class="field" style="margin-bottom:10px;"><label class="field-label">Capacidades (solo texto)</label><input class="input" id="p-storage" placeholder="128GB, 256GB"></div>
       <div style="margin-bottom:10px;">
@@ -723,6 +751,61 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </tr></thead>
   <tbody id="products-body"></tbody>
 </table>
+  </div>
+</div>
+
+<!-- ═══ DISPOSITIVOS VENDIDOS ═══ -->
+<div class="section" id="sec-vendidos">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div class="section-title">Dispositivos vendidos</div>
+      <div class="section-sub">Productos que agotaron stock — archivados automáticamente al vender la última unidad</div>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="vaciarVendidos()">🗑 Vaciar archivo</button>
+  </div>
+
+  <!-- Tarjetas resumen -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Total archivados</div>
+      <div class="stat-value" id="vd-total">0</div>
+      <div class="stat-change">dispositivos agotados</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Ingresos generados</div>
+      <div class="stat-value" id="vd-ingresos">$0</div>
+      <div class="stat-change">precio de venta total</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Ganancia generada</div>
+      <div class="stat-value" id="vd-ganancia">$0</div>
+      <div class="stat-change">precio − costo total</div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-wrap card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Variante</th>
+          <th>Precio vendido</th>
+          <th>Costo</th>
+          <th>Ganancia</th>
+          <th>Categoría</th>
+          <th>Fecha archivado</th>
+        </tr>
+      </thead>
+      <tbody id="vendidos-body">
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">
+          Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0
+        </td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
@@ -1318,7 +1401,7 @@ const defaultStore={
     {id:3,name:'Cable USB-C Genérico',emoji:'🔌',price:25000,img:''},
     {id:4,name:'Audífonos Bluetooth',emoji:'🎵',price:150000,img:''},
   ],
-  clients:[],orders:[],activeEvent:null,videoUrl:'',clientesCRM:[],
+  clients:[],orders:[],activeEvent:null,videoUrl:'',clientesCRM:[],vendidosArchive:[],
   nextFactura:1,eventPromoProductId:null,eventPromoPrice:null,customEvent:null,
   configuracion:{
     nombre:'ZONA iPHONE',
@@ -1406,7 +1489,7 @@ function renderAll(){
 }
 
 // ─── NAV ───
-const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
+const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',vendidos:'Dispositivos vendidos',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
 window.showSection=function(id,el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(s=>s.classList.remove('active'));
@@ -1892,13 +1975,79 @@ window.finalizarVenta=async function(){
     venta.id=ref.id;
     allVentas.unshift(venta);
 
-    // Decrease stock
+    // ── Decrease stock + archivar si llega a 0 ──
+    const vendidosArchive = [...(store.vendidosArchive||[])];
+    const fechaHoy = new Date().toLocaleDateString('es-CO');
+
     productos.forEach(p=>{
-      const prod=store.products.find(x=>x.name===p.nombre);
-      if(prod&&prod.stock!==undefined) prod.stock=Math.max(0,prod.stock-p.cantidad);
+      // Buscar el producto en el catálogo por nombre exacto o nombre base
+      let prodIdx = store.products.findIndex(x => x.name === p.nombre);
+      // Si no encontró exacto, buscar si el nombre del producto es prefijo (variante: "iPhone 16 Pro 128GB")
+      if(prodIdx === -1){
+        prodIdx = store.products.findIndex(x => p.nombre.startsWith(x.name+' ') || p.nombre === x.name);
+      }
+      if(prodIdx === -1) return;
+      const prod = store.products[prodIdx];
+
+      // Verificar si hay una variante específica vendida
+      const varIdx = prod.storageVariants
+        ? prod.storageVariants.findIndex(v => p.nombre.includes(v.gb))
+        : -1;
+
+      if(varIdx !== -1){
+        // ── Es una VARIANTE ──
+        const v = prod.storageVariants[varIdx];
+        v.stock = Math.max(0, (v.stock||0) - (p.cantidad||1));
+        if(v.stock === 0){
+          // Archivar esta variante
+          vendidosArchive.push({
+            nombre:  prod.name + ' ' + v.gb,
+            variante: v.gb,
+            precio:  Number(v.precio||prod.price||0),
+            costo:   Number(v.costo||prod.cost||0),
+            cat:     prod.cat||'',
+            emoji:   prod.emoji||'📦',
+            img:     prod.img||'',
+            badge:   prod.badge||'',
+            fechaArchivado: fechaHoy,
+            ventaId: ref.id,
+          });
+          // Eliminar variante del array
+          prod.storageVariants.splice(varIdx, 1);
+          if(prod.storageVariants.length === 0){
+            // Sin variantes restantes → eliminar el producto completo
+            store.products.splice(prodIdx, 1);
+          } else {
+            // Actualizar precio base al de la primera variante restante
+            prod.price = prod.storageVariants[0].precio;
+          }
+        }
+      } else {
+        // ── Producto SIMPLE (sin variantes) ──
+        prod.stock = Math.max(0, (prod.stock||0) - (p.cantidad||1));
+        if(prod.stock === 0){
+          // Archivar el producto
+          vendidosArchive.push({
+            nombre:  prod.name,
+            variante: null,
+            precio:  Number(prod.price||0),
+            costo:   Number(prod.cost||0),
+            cat:     prod.cat||'',
+            emoji:   prod.emoji||'📦',
+            img:     prod.img||'',
+            badge:   prod.badge||'',
+            fechaArchivado: fechaHoy,
+            ventaId: ref.id,
+          });
+          // Eliminar del catálogo
+          store.products.splice(prodIdx, 1);
+        }
+      }
     });
+
+    store.vendidosArchive = vendidosArchive;
     store.nextFactura=(factNum||1)+1;
-    await saveToFirebase({products:store.products,nextFactura:store.nextFactura});
+    await saveToFirebase({products:store.products, vendidosArchive:store.vendidosArchive, nextFactura:store.nextFactura});
     updateFacturaBadge();
 
     lastVenta=venta;
@@ -2311,6 +2460,24 @@ window.switchInvTab = function(tab, el){
   renderProducts();
 };
 
+// Helper: badge HTML según la etiqueta del producto
+function _condBadge(p){
+  const b=(p.badge||'').toUpperCase();
+  if(!b) return '';
+  const map={
+    'NUEVO':    'badge-cond-nuevo',
+    'USED':     'badge-cond-usado',
+    'USADO':    'badge-cond-usado',
+    'PROMO':    'badge-cond-promo',
+    'OFERTA':   'badge-cond-oferta',
+    'DESCUENTO':'badge-cond-oferta',
+    'PERSONALIZADO':'badge-cond-personalizado',
+  };
+  const cls = map[b] || 'badge-cond-nuevo';
+  const txt = {NUEVO:'Nuevo',USED:'Usado',USADO:'Usado',PROMO:'Promo',OFERTA:'Oferta',DESCUENTO:'Oferta',PERSONALIZADO:'Custom'}[b]||b;
+  return '<span class="badge-cond '+cls+'">'+txt+'</span>';
+}
+
 function renderProducts(){
   const allProds = store.products || [];
   // Filter by current tab
@@ -2376,7 +2543,7 @@ function renderProducts(){
     return '<tr>'
       +'<td><div style="display:flex;align-items:center;gap:9px;">'
       +imgCell
-      +'<div><div style="font-weight:600;font-size:13px;">'+p.name+stockBadge+'</div>'
+      +'<div><div style="font-weight:600;font-size:13px;">'+p.name+_condBadge(p)+stockBadge+'</div>'
       +'<div style="font-size:10px;color:var(--text3);text-transform:capitalize;">'+p.cat+'</div></div>'
       +'</div></td>'
       +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(precio)+'</td>'
@@ -3435,6 +3602,82 @@ window.handleVideoGaleria=function(input){
   };
   r.readAsDataURL(f);
 };
+
+
+
+// ════════════════════════════════════════
+// DISPOSITIVOS VENDIDOS
+// ════════════════════════════════════════
+function renderVendidos(){
+  const archive = store.vendidosArchive || [];
+
+  // Calcular totales
+  let totalIng = 0, totalGan = 0;
+  archive.forEach(a => {
+    totalIng += Number(a.precio||0);
+    totalGan += Number(a.precio||0) - Number(a.costo||0);
+  });
+
+  const setEl = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('vd-total',    archive.length);
+  setEl('vd-ingresos', fp(totalIng));
+  setEl('vd-ganancia', fp(totalGan));
+
+  const tbody = document.getElementById('vendidos-body');
+  if(!tbody) return;
+
+  if(!archive.length){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0</td></tr>';
+    return;
+  }
+
+  const catLabels = {iphone:'iPhone',ipad:'iPad',airpods:'AirPods',macbook:'MacBook',accesorio:'Accesorio',otro:'Otro'};
+
+  tbody.innerHTML = [...archive].reverse().map(a => {
+    const gan     = Number(a.precio||0) - Number(a.costo||0);
+    const ganColor= gan>0?'var(--green)':gan<0?'var(--red)':'var(--text3)';
+    const imgCell = a.img
+      ? '<img src="'+a.img+'" style="width:30px;height:30px;object-fit:cover;border-radius:6px;margin-right:8px;vertical-align:middle;">'
+      : '<span style="font-size:20px;margin-right:6px;vertical-align:middle;">'+(a.emoji||'📦')+'</span>';
+    const varBadge = a.variante
+      ? '<span class="badge badge-gray" style="font-size:10px;">'+a.variante+'</span>'
+      : '<span style="color:var(--text3);">—</span>';
+    const condBadge = (()=>{
+      const b=(a.badge||'').toUpperCase();
+      const map={NUEVO:'badge-cond-nuevo',USADO:'badge-cond-usado',PROMO:'badge-cond-promo',OFERTA:'badge-cond-oferta',PERSONALIZADO:'badge-cond-personalizado'};
+      const txt={NUEVO:'Nuevo',USADO:'Usado',PROMO:'Promo',OFERTA:'Oferta',PERSONALIZADO:'Custom'};
+      return b&&map[b]?'<span class="badge-cond '+map[b]+'">'+txt[b]+'</span>':'';
+    })();
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;">'+imgCell+'<div><strong>'+a.nombre+'</strong>'+condBadge+'</div></div></td>'
+      +'<td>'+varBadge+'</td>'
+      +'<td style="font-weight:600;color:var(--gold-dark);">'+fp(a.precio||0)+'</td>'
+      +'<td style="color:var(--text3);">'+fp(a.costo||0)+'</td>'
+      +'<td style="color:'+ganColor+';font-weight:700;">'+fp(gan)+'</td>'
+      +'<td><span class="badge badge-gray">'+(catLabels[a.cat]||a.cat||'—')+'</span></td>'
+      +'<td style="font-size:12px;color:var(--text3);">'+(a.fechaArchivado||'—')+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+window.vaciarVendidos = async function(){
+  const n = (store.vendidosArchive||[]).length;
+  if(!n){ showToast('No hay dispositivos archivados'); return; }
+  if(!confirm('¿Vaciar el archivo de '+n+' dispositivo(s) vendido(s)?\nEsta acción no se puede deshacer.')) return;
+  store.vendidosArchive = [];
+  await saveToFirebase({vendidosArchive: []});
+  renderVendidos();
+  showToast('Archivo vaciado','success');
+};
+
+// Parchar showSection para auto-renderizar vendidos al entrar a la sección
+(function(){
+  const _orig = window.showSection;
+  window.showSection = function(id, el){
+    _orig(id, el);
+    if(id === 'vendidos') renderVendidos();
+  };
+})();
 
 </script>
 
