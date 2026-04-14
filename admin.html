@@ -167,7 +167,7 @@ tr:hover td{background:var(--bg2);}
 /* DIVIDER */
 .divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
 /* PRODUCT ROW */
-.product-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;padding:10px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:8px;}
+.product-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto auto;gap:8px;align-items:end;padding:10px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:8px;}
 .product-row-add{border:1.5px dashed var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;color:var(--text3);font-size:13px;font-weight:500;border-radius:var(--radius-sm);transition:all 0.2s;width:100%;}
 .product-row-add:hover{border-color:var(--gold);color:var(--gold-dark);background:var(--accent-bg);}
 /* PAYMENT TABS */
@@ -251,6 +251,28 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 </style>
+<style>
+/* ══ MODULE SYSTEM ══ */
+.module{display:none;flex-direction:column;flex:1;min-width:0;height:calc(100vh - 56px);overflow:hidden;}
+.module.active{display:flex;}
+.module-tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:0;overflow-x:auto;min-height:44px;flex-shrink:0;}
+.module-tab{display:flex;align-items:center;gap:5px;padding:11px 16px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text3);white-space:nowrap;border:none;background:none;font-family:var(--font-body);transition:all 0.15s;border-bottom:2.5px solid transparent;margin-bottom:-1px;}
+.module-tab:hover{color:var(--text2);background:var(--bg2);}
+.module-tab.active{color:var(--gold-dark);border-bottom-color:var(--gold);background:none;}
+.module-content{flex:1;overflow-y:auto;}
+.module-content .section{padding:24px;}
+.module-content .section.active{display:block;}
+/* Single-section modules: dashboard and pos */
+#module-dashboard .module-content .section,
+#module-pos .module-content .section{padding:24px;}
+/* Sidebar: remove section labels, cleaner nav */
+.sidebar-nav{padding:14px 10px;flex:1;display:flex;flex-direction:column;gap:2px;}
+.nav-item{font-size:13.5px;padding:9px 13px;}
+/* Nav factura badge */
+#nav-factura-badge{margin-left:auto;font-size:9px;background:var(--accent-bg);color:var(--gold-dark);padding:2px 7px;border-radius:10px;font-weight:700;border:1px solid rgba(201,168,76,0.3);}
+/* Ensure topbar doesn't scroll */
+.topbar{position:sticky;top:0;z-index:50;}
+</style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
@@ -270,6 +292,8 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 
+
+
 <!-- APP -->
 <div id="admin-app">
   <!-- SIDEBAR -->
@@ -279,24 +303,12 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <div class="sidebar-logo-text">Zona iPhone<small>Admin Panel</small></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Principal</div>
-      <button class="nav-item active" onclick="showSection('dashboard',this)"><span class="nav-icon">📊</span>Dashboard</button>
-      <button class="nav-item" onclick="showSection('ventas',this)"><span class="nav-icon">🛍</span>Nueva Venta</button>
-      <button class="nav-item" onclick="showSection('historial',this)"><span class="nav-icon">📋</span>Historial</button>
-      <button class="nav-item" onclick="showSection('vendidos',this)"><span class="nav-icon">✅</span>Dispositivos vendidos</button>
-      <div class="sidebar-section-label">Catálogo</div>
-      <button class="nav-item" onclick="showSection('productos',this)"><span class="nav-icon">📱</span>Productos</button>
-      <button class="nav-item" onclick="showSection('otros',this)"><span class="nav-icon">🛒</span>Otros</button>
-      <div class="sidebar-section-label">Gestión</div>
-      <button class="nav-item" onclick="showSection('clientes',this)"><span class="nav-icon">👥</span>Clientes a Crédito</button>
-      <button class="nav-item" onclick="showSection('empleados',this)"><span class="nav-icon">👤</span>Empleados</button>
-      <button class="nav-item" onclick="showSection('proveedores',this)"><span class="nav-icon">🏭</span>Proveedores</button>
-      <button class="nav-item" onclick="showSection('gastos',this)"><span class="nav-icon">💸</span>Gastos</button>
-      <button class="nav-item" onclick="showSection('costo-detalle',this)"><span class="nav-icon">💎</span>Detalles de costo</button>
-      <div class="sidebar-section-label">Config</div>
-      <button class="nav-item" onclick="showSection('ajustes',this)"><span class="nav-icon">⚙️</span>Configuración</button>
-      <button class="nav-item" onclick="showSection('eventos',this)"><span class="nav-icon">🎉</span>Eventos</button>
-      <button class="nav-item" onclick="showSection('video',this)"><span class="nav-icon">🎬</span>Video</button>
+      <button class="nav-item active" data-module="dashboard" onclick="showModule('dashboard',this)"><span class="nav-icon">📊</span>Ganancias</button>
+      <button class="nav-item" data-module="pos" onclick="showModule('pos',this)"><span class="nav-icon">🛍</span>Nueva Venta <span id="nav-factura-badge">#00001</span></button>
+      <button class="nav-item" data-module="finanzas" onclick="showModule('finanzas',this)"><span class="nav-icon">💰</span>Finanzas</button>
+      <button class="nav-item" data-module="inventario" onclick="showModule('inventario',this)"><span class="nav-icon">📦</span>Inventario</button>
+      <button class="nav-item" data-module="clientes" onclick="showModule('clientes',this)"><span class="nav-icon">👥</span>Clientes y Empleados</button>
+      <button class="nav-item" data-module="config" onclick="showModule('config',this)"><span class="nav-icon">⚙️</span>Configuración</button>
     </nav>
     <div class="sidebar-footer">
       <a href="index.html" target="_blank" class="btn btn-outline btn-sm btn-block" style="margin-bottom:7px;">🌐 Ver Sitio</a>
@@ -310,16 +322,17 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <div class="topbar-title" id="topbar-title">Dashboard</div>
       <div class="topbar-right">
         <span class="topbar-date" id="topbar-date"></span>
-        <span class="topbar-badge" id="topbar-factura-badge">Factura #00001</span>
+        <span class="topbar-badge" id="topbar-factura-badge" style="display:none;">Factura #00001</span>
         <span class="topbar-badge" id="rt-badge" style="background:var(--green-bg);color:var(--green);border-color:rgba(45,122,79,0.25);">🟢 En vivo</span>
       </div>
     </header>
-    <div class="content">
 
-<!-- ═══ DASHBOARD ═══ -->
-<div class="section active" id="sec-dashboard">
+    <!-- MODULE: DASHBOARD -->
+    <div class="module active" id="module-dashboard">
+      <div class="module-content">
+        <div class="section active" id="sec-dashboard">
   <div class="section-header">
-    <div class="section-title">Dashboard</div>
+    <div class="section-title">Ganancias</div>
     <div class="section-sub" id="dash-subtitle">Cargando…</div>
   </div>
   <div class="filter-bar">
@@ -348,19 +361,33 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
   <!-- GENERAL -->
   <div id="dash-general">
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label">Ingresos Hoy</div><div class="stat-value" id="sg-hoy">$0</div><div class="stat-change" id="sg-hoy-n">0 ventas</div></div>
-      <div class="stat-card green"><div class="stat-icon">📅</div><div class="stat-label">Esta Semana</div><div class="stat-value" id="sg-sem">$0</div><div class="stat-change" id="sg-sem-n">0 ventas</div></div>
-      <div class="stat-card blue"><div class="stat-icon">📆</div><div class="stat-label">Este Mes</div><div class="stat-value" id="sg-mes">$0</div><div class="stat-change" id="sg-mes-n">0 ventas</div></div>
-      <div class="stat-card orange"><div class="stat-icon">🏆</div><div class="stat-label">Este Año</div><div class="stat-value" id="sg-anio">$0</div><div class="stat-change" id="sg-anio-n">0 ventas</div></div>
-      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos (mes)</div><div class="stat-value" id="sg-gastos">$0</div><div class="stat-change">total registrado</div></div>
-      <div class="stat-card orange"><div class="stat-icon">👤</div><div class="stat-label">Salarios (mes)</div><div class="stat-value" id="sg-salarios">$0</div><div class="stat-change">empleados activos</div></div>
-      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="sg-neta">$0</div><div class="stat-change">(venta − costo) − gastos − salarios</div></div>
+    <!-- Period selector pills -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <span style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Ver:</span>
+      <button class="btn btn-primary btn-sm" id="dash-period-hoy" onclick="setDashPeriod('hoy',this)">Hoy</button>
+      <button class="btn btn-outline btn-sm" id="dash-period-sem" onclick="setDashPeriod('sem',this)">Esta semana</button>
+      <button class="btn btn-outline btn-sm" id="dash-period-mes" onclick="setDashPeriod('mes',this)">Este mes</button>
+      <button class="btn btn-outline btn-sm" id="dash-period-anio" onclick="setDashPeriod('anio',this)">Este año</button>
+      <button class="btn btn-outline btn-sm" id="dash-period-custom" onclick="setDashPeriod('custom',this)">Fecha específica</button>
     </div>
+    <!-- Hidden period label -->
+    <div id="dash-period-label" style="font-size:12px;color:var(--text3);margin-bottom:14px;padding:7px 12px;background:var(--accent-bg);border-radius:var(--radius-sm);border-left:3px solid var(--gold);display:inline-block;">📅 Mostrando: <strong id="dash-period-label-text">Hoy</strong></div>
+    <!-- Single period stat cards (show selected period only) -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label" id="sg-period-label">Ingresos Hoy</div><div class="stat-value" id="sg-period-val">$0</div><div class="stat-change" id="sg-period-n">0 ventas</div></div>
+      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos</div><div class="stat-value" id="sg-gastos">$0</div><div class="stat-change" id="sg-gastos-sub">del período</div></div>
+      <div class="stat-card orange"><div class="stat-icon">👤</div><div class="stat-label">Salarios</div><div class="stat-value" id="sg-salarios">$0</div><div class="stat-change">empleados activos</div></div>
+      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="sg-neta">$0</div><div class="stat-change">(venta − costo) − gastos − sal.</div></div>
+    </div>
+    <!-- Hidden IDs kept for JS compatibility -->
+    <span id="sg-hoy" style="display:none;"></span><span id="sg-hoy-n" style="display:none;"></span>
+    <span id="sg-sem" style="display:none;"></span><span id="sg-sem-n" style="display:none;"></span>
+    <span id="sg-mes" style="display:none;"></span><span id="sg-mes-n" style="display:none;"></span>
+    <span id="sg-anio" style="display:none;"></span><span id="sg-anio-n" style="display:none;"></span>
     <div class="grid-3" style="margin-bottom:18px;">
       <div class="card"><div class="card-title">💵 Contado</div><div style="font-family:var(--font-display);font-size:20px;color:var(--green);" id="sg-contado">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-contado-n">0 ventas</div></div>
       <div class="card"><div class="card-title">💳 Crédito</div><div style="font-family:var(--font-display);font-size:20px;color:var(--blue);" id="sg-credito">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-credito-n">0 ventas</div></div>
-      <div class="card"><div class="card-title">🔄 Trade-In</div><div style="font-family:var(--font-display);font-size:20px;color:var(--orange);" id="sg-tradein">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-tradein-n">0 ventas</div></div>
+      <div class="card"><div class="card-title">📲 Celular como pago</div><div style="font-family:var(--font-display);font-size:20px;color:var(--orange);" id="sg-tradein">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-tradein-n">0 ventas</div></div>
     </div>
 
     <!-- RESUMEN FINANCIERO DETALLADO -->
@@ -420,9 +447,13 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="card"><div class="card-title">Ventas recientes — Local 2</div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="recent-l2"></tbody></table></div></div>
   </div>
 </div>
+      </div>
+    </div>
 
-<!-- ═══ NUEVA VENTA ═══ -->
-<div class="section" id="sec-ventas">
+    <!-- MODULE: POS (Nueva Venta) -->
+    <div class="module" id="module-pos">
+      <div class="module-content">
+        <div class="section active" id="sec-ventas">
   <div class="section-header"><div class="section-title">Nueva venta</div><div class="section-sub">Registra una venta y genera factura</div></div>
   <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:22px;align-items:start;">
     <div>
@@ -462,7 +493,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
         <div class="payment-tabs">
           <div class="payment-tab active" onclick="setPayment('contado',this)"><span class="pt-icon">💵</span>Contado</div>
           <div class="payment-tab" onclick="setPayment('credito',this)"><span class="pt-icon">💳</span>Crédito</div>
-          <div class="payment-tab" onclick="setPayment('tradein',this)"><span class="pt-icon">🔄</span>Trade-In</div>
+          <div class="payment-tab" onclick="setPayment('tradein',this)"><span class="pt-icon">🔄</span>Celular como pago</div>
         </div>
         <div class="payment-panel active" id="panel-contado">
           <div class="field"><label class="field-label">Método de pago</label>
@@ -515,9 +546,18 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </div>
 </div>
+      </div>
+    </div>
 
-<!-- ═══ HISTORIAL ═══ -->
-<div class="section" id="sec-historial">
+    <!-- MODULE: FINANZAS -->
+    <div class="module" id="module-finanzas">
+      <div class="module-tabs">
+  <button class="module-tab active" data-sec="historial" onclick="showSection('historial',this)">📋 Historial</button>
+  <button class="module-tab " data-sec="gastos" onclick="showSection('gastos',this)">💸 Gastos</button>
+  <button class="module-tab " data-sec="vendidos" onclick="showSection('vendidos',this)">📦 Vendidos</button>
+</div>
+      <div class="module-content">
+<div class="section active" id="sec-historial">
   <div class="section-header"><div class="section-title">Historial de ventas</div></div>
   <div class="tab-bar" style="margin-bottom:16px;">
     <button class="tab-btn active" onclick="switchHistTab('activas',this)">✅ Ventas activas</button>
@@ -525,10 +565,15 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
   <!-- ACTIVAS -->
   <div id="hist-tab-activas">
-    <div class="filter-bar" style="margin-bottom:14px;">
-      <label>Buscar:</label><input class="input" id="hist-search" placeholder="Nombre, teléfono…" style="width:200px;" oninput="renderHistorial()">
-      <label>Tipo:</label><select class="select" id="hist-tipo" style="width:130px;" onchange="renderHistorial()"><option value="">Todos</option><option value="contado">Contado</option><option value="credito">Crédito</option><option value="tradein">Trade-In</option></select>
-      <label>Caja:</label><select class="select" id="hist-caja" style="width:130px;" onchange="renderHistorial()"><option value="">Ambas</option><option value="caja1">Local 1</option><option value="caja2">Local 2</option></select>
+    <div class="filter-bar" style="margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <label>Buscar:</label><input class="input" id="hist-search" placeholder="Nombre, teléfono…" style="width:160px;" oninput="renderHistorial()">
+      <label>Tipo:</label><select class="select" id="hist-tipo" style="width:150px;" onchange="renderHistorial()"><option value="">Todos</option><option value="contado">Contado</option><option value="credito">Crédito</option><option value="tradein">Celular como pago</option></select>
+      <label>Caja:</label><select class="select" id="hist-caja" style="width:110px;" onchange="renderHistorial()"><option value="">Ambas</option><option value="caja1">Local 1</option><option value="caja2">Local 2</option></select>
+      <label>Desde:</label><input type="date" class="input" id="hist-fecha-from" style="width:140px;" onchange="renderHistorial()">
+      <label>Hasta:</label><input type="date" class="input" id="hist-fecha-to" style="width:140px;" onchange="renderHistorial()">
+      <button class="btn btn-outline btn-sm" onclick="histFiltroHoy()">Hoy</button>
+      <button class="btn btn-outline btn-sm" onclick="histFiltroMes()">Este mes</button>
+      <button class="btn btn-outline btn-sm" onclick="histFiltroClear()">Todos</button>
     </div>
     <div id="historial-list"><div style="text-align:center;padding:48px;color:var(--text3);">Cargando…</div></div>
   </div>
@@ -551,9 +596,112 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div id="historial-canceladas-list"><div style="text-align:center;padding:48px;color:var(--text3);">Sin cancelaciones</div></div>
   </div>
 </div>
+<div class="section" id="sec-gastos">
+  <div class="section-header"><div class="section-title">Gastos</div><div class="section-sub">Registro y análisis de egresos por período</div></div>
+  <!-- Resumen gastos por período -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card red"><div class="stat-icon">📅</div><div class="stat-label">Gastos hoy</div><div class="stat-value" id="g-hoy">$0</div><div class="stat-change" id="g-hoy-n">0 registros</div></div>
+    <div class="stat-card red"><div class="stat-icon">📆</div><div class="stat-label">Gastos este mes</div><div class="stat-value" id="g-mes">$0</div><div class="stat-change" id="g-mes-n">0 registros</div></div>
+    <div class="stat-card red"><div class="stat-icon">🗓️</div><div class="stat-label">Gastos este año</div><div class="stat-value" id="g-anio">$0</div><div class="stat-change" id="g-anio-n">0 registros</div></div>
+    <div class="stat-card orange"><div class="stat-icon">🔵</div><div class="stat-label">Local 1</div><div class="stat-value" id="g-l1">$0</div><div class="stat-change">Gastos caja 1</div></div>
+    <div class="stat-card purple"><div class="stat-icon">🟣</div><div class="stat-label">Local 2</div><div class="stat-value" id="g-l2">$0</div><div class="stat-change">Gastos caja 2</div></div>
+    <div class="stat-card"><div class="stat-icon">🏢</div><div class="stat-label">General</div><div class="stat-value" id="g-gen">$0</div><div class="stat-change">Gastos generales</div></div>
+  </div>
+  <!-- Filtro de período -->
+  <div class="filter-bar" style="margin-bottom:18px;">
+    <label>Período:</label>
+    <input type="date" class="input" id="g-filter-from" style="width:140px;" onchange="renderGastos()">
+    <span style="color:var(--text3);font-size:12px;">→</span>
+    <input type="date" class="input" id="g-filter-to" style="width:140px;" onchange="renderGastos()">
+    <button class="btn btn-outline btn-sm" onclick="gFilterHoy()">Hoy</button>
+    <button class="btn btn-outline btn-sm" onclick="gFilterMes()">Este mes</button>
+    <button class="btn btn-outline btn-sm" onclick="gFilterAnio()">Este año</button>
+    <button class="btn btn-outline btn-sm" onclick="gFilterAll()">Todo</button>
+    <label>Caja:</label>
+    <select class="select" id="g-filter-caja" style="width:130px;" onchange="renderGastos()">
+      <option value="">Todas</option>
+      <option value="caja1">🔵 Local 1</option>
+      <option value="caja2">🟣 Local 2</option>
+      <option value="general">🏢 General</option>
+    </select>
+  </div>
+  <div class="card" style="max-width:560px;margin-bottom:18px;">
+    <div class="card-title">Registrar gasto</div>
+    <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Descripción *</label><input class="input" id="g-desc" placeholder="Arriendo local, servicios…"></div><div class="field"><label class="field-label">Monto (COP)</label><input class="input" id="g-monto" type="number" placeholder="0"></div></div>
+    <div class="form-grid" style="margin-bottom:12px;"><div class="field"><label class="field-label">Caja / Local</label><select class="select" id="g-caja"><option value="caja1">🔵 Local 1</option><option value="caja2">🟣 Local 2</option><option value="general">🏢 General</option></select></div><div class="field"><label class="field-label">Fecha</label><input class="input" id="g-fecha" type="date"></div></div>
+    <button class="btn btn-primary" onclick="addGasto()">+ Registrar gasto</button>
+  </div>
+  <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Descripción</th><th>Local</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="gastos-body"></tbody></table></div>
+</div>
+<div class="section" id="sec-vendidos">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div class="section-title">Dispositivos vendidos</div>
+      <div class="section-sub">Agotaron stock — archivados automáticamente. Puedes restaurarlos al inventario.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-green btn-sm" onclick="restaurarTodosVendidos()">♻️ Restaurar todos</button>
+      <button class="btn btn-danger btn-sm" onclick="vaciarVendidos()">🗑 Vaciar archivo</button>
+    </div>
+  </div>
 
-<!-- ═══ PRODUCTOS ═══ -->
-<div class="section" id="sec-productos">
+  <!-- Tarjetas resumen -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Total archivados</div>
+      <div class="stat-value" id="vd-total">0</div>
+      <div class="stat-change">dispositivos agotados</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Ingresos generados</div>
+      <div class="stat-value" id="vd-ingresos">$0</div>
+      <div class="stat-change">precio de venta total</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Ganancia generada</div>
+      <div class="stat-value" id="vd-ganancia">$0</div>
+      <div class="stat-change">precio − costo total</div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-wrap card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Variante</th>
+          <th>Precio vendido</th>
+          <th>Costo</th>
+          <th>Ganancia</th>
+          <th>Categoría</th>
+          <th>Fecha archivado</th>
+          <th>Restaurar</th>
+        </tr>
+      </thead>
+      <tbody id="vendidos-body">
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">
+          Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+    </div>
+
+    <!-- MODULE: INVENTARIO -->
+    <div class="module" id="module-inventario">
+      <div class="module-tabs">
+  <button class="module-tab active" data-sec="productos" onclick="showSection('productos',this)">📱 Productos</button>
+  <button class="module-tab " data-sec="otros" onclick="showSection('otros',this)">🛒 Accesorios</button>
+  <button class="module-tab " data-sec="costo-detalle" onclick="showSection('costo-detalle',this)">💎 Análisis</button>
+</div>
+      <div class="module-content">
+<div class="section active" id="sec-productos">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <div>
       <div class="section-title">Inventario & Productos</div>
@@ -674,6 +822,17 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
             <div class="field"><label class="field-label">Nombre del proveedor</label><input class="input" id="edit-prov-nombre" placeholder="Ej: Carlos Distrib."></div>
             <div class="field"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="edit-prov-tel" placeholder="Ej: 3001234567" type="tel"></div>
           </div>
+          <div class="field" style="margin-bottom:8px;" id="edit-imei-wrap">
+            <label class="field-label">📱 IMEI / Serial</label>
+            <input class="input" id="edit-imei" placeholder="Ej: 350753693084980">
+          </div>
+          <div class="field" style="margin-bottom:8px;">
+            <label class="field-label">💰 Origen del costo de compra</label>
+            <select class="select" id="edit-costo-origen">
+              <option value="ganancia_neta">📈 Salió de la ganancia neta</option>
+              <option value="capital_aparte">💼 Capital aparte</option>
+            </select>
+          </div>
           <div class="field" style="margin-bottom:0;"><label class="field-label">Información adicional</label><textarea class="textarea" id="edit-prov-info" placeholder="Compra en efectivo, traído de Bogotá…" rows="2"></textarea></div>
         </div>
         <div style="display:flex;gap:8px;"><button class="btn btn-primary btn-block" onclick="saveEdit()">💾 Guardar</button><button class="btn btn-outline" onclick="closeEditModal()">Cancelar</button></div>
@@ -732,7 +891,22 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
           <div class="field"><label class="field-label">Nombre del proveedor</label><input class="input" id="p-prov-nombre" placeholder="Ej: Carlos Distrib."></div>
           <div class="field"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="p-prov-tel" placeholder="Ej: 3001234567" type="tel"></div>
         </div>
-        <div class="field" style="margin-bottom:0;"><label class="field-label">Información adicional</label><textarea class="textarea" id="p-prov-info" placeholder="Compra en efectivo, traído de Bogotá…" rows="2"></textarea></div>
+        <!-- IMEI - solo visible para iPhone, iPad, MacBook -->
+        <div class="field" style="margin-bottom:8px;" id="p-imei-wrap">
+          <label class="field-label">📱 IMEI / Serial</label>
+          <input class="input" id="p-imei" placeholder="Ej: 350753693084980">
+          <span class="field-hint">Visible solo para iPhone, iPad y MacBook</span>
+        </div>
+        <!-- Origen del costo -->
+        <div class="field" style="margin-bottom:8px;">
+          <label class="field-label">💰 Origen del costo de compra</label>
+          <select class="select" id="p-costo-origen" onchange="toggleCostoOrigen()">
+            <option value="ganancia_neta">📈 Salió de la ganancia neta del negocio</option>
+            <option value="capital_aparte">💼 Capital aparte (inversión propia)</option>
+          </select>
+          <span class="field-hint" id="p-costo-origen-hint" style="color:var(--orange);">⚠️ Este costo se descontará de la ganancia neta del negocio</span>
+        </div>
+        <div class="field" style="margin-bottom:8px;"><label class="field-label">Información adicional</label><textarea class="textarea" id="p-prov-info" placeholder="Compra en efectivo, traído de Bogotá…" rows="2"></textarea></div>
       </div>
       <button class="btn btn-primary" onclick="addProduct()">+ Agregar</button>
     </div>
@@ -753,63 +927,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 </table>
   </div>
 </div>
-
-<!-- ═══ DISPOSITIVOS VENDIDOS ═══ -->
-<div class="section" id="sec-vendidos">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-    <div>
-      <div class="section-title">Dispositivos vendidos</div>
-      <div class="section-sub">Productos que agotaron stock — archivados automáticamente al vender la última unidad</div>
-    </div>
-    <button class="btn btn-danger btn-sm" onclick="vaciarVendidos()">🗑 Vaciar archivo</button>
-  </div>
-
-  <!-- Tarjetas resumen -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
-    <div class="stat-card green">
-      <div class="stat-icon">✅</div>
-      <div class="stat-label">Total archivados</div>
-      <div class="stat-value" id="vd-total">0</div>
-      <div class="stat-change">dispositivos agotados</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-icon">💵</div>
-      <div class="stat-label">Ingresos generados</div>
-      <div class="stat-value" id="vd-ingresos">$0</div>
-      <div class="stat-change">precio de venta total</div>
-    </div>
-    <div class="stat-card purple">
-      <div class="stat-icon">📈</div>
-      <div class="stat-label">Ganancia generada</div>
-      <div class="stat-value" id="vd-ganancia">$0</div>
-      <div class="stat-change">precio − costo total</div>
-    </div>
-  </div>
-
-  <!-- Tabla -->
-  <div class="table-wrap card" style="padding:0;">
-    <table>
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Variante</th>
-          <th>Precio vendido</th>
-          <th>Costo</th>
-          <th>Ganancia</th>
-          <th>Categoría</th>
-          <th>Fecha archivado</th>
-        </tr>
-      </thead>
-      <tbody id="vendidos-body">
-        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">
-          Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0
-        </td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ═══ OTROS ═══ -->
 <div class="section" id="sec-otros">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <div><div class="section-title">Otros productos</div><div class="section-sub">Gestión de catálogo · ganancias y stock en tiempo real</div></div>
@@ -865,9 +982,65 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </table>
 </div>
 </div>
+<div class="section" id="sec-costo-detalle">
+  <div class="section-header">
+    <div class="section-title">Detalles de Costo</div>
+    <div class="section-sub">Análisis de inversión por categoría de producto</div>
+  </div>
 
-<!-- ═══ CLIENTES ═══ -->
-<div class="section" id="sec-clientes">
+  <!-- Tabs por categoría -->
+  <div class="tab-bar" style="margin-bottom:20px;">
+    <button class="tab-btn active" onclick="switchCostoTab('iphone',this)">📱 iPhone</button>
+    <button class="tab-btn" onclick="switchCostoTab('ipad',this)">💻 iPad</button>
+    <button class="tab-btn" onclick="switchCostoTab('airpods',this)">🎧 AirPods</button>
+    <button class="tab-btn" onclick="switchCostoTab('macbook',this)">💻 MacBook</button>
+  </div>
+
+  <!-- Cards resumen de la categoría -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;" id="costo-summary-cards">
+    <div class="stat-card blue"><div class="stat-icon">📦</div><div class="stat-label">Capital invertido</div><div class="stat-value" id="cd-costo">$0</div><div class="stat-change" id="cd-costo-n">0 unidades</div></div>
+    <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-label">Valor en venta</div><div class="stat-value" id="cd-valor">$0</div><div class="stat-change">Precio de venta × stock</div></div>
+    <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-label">Ganancia potencial</div><div class="stat-value" id="cd-ganancia">$0</div><div class="stat-change">Si se vende todo</div></div>
+    <div class="stat-card orange"><div class="stat-icon">📊</div><div class="stat-label">Margen promedio</div><div class="stat-value" id="cd-margen">0%</div><div class="stat-change">Ganancia / Precio venta</div></div>
+    <div class="stat-card purple"><div class="stat-icon">🗃️</div><div class="stat-label">Unidades en stock</div><div class="stat-value" id="cd-stock">0</div><div class="stat-change">Total disponibles</div></div>
+  </div>
+
+  <!-- Tabla detalle por producto -->
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:14px;">📋 Detalle por producto — <span id="cd-cat-label">iPhone</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Variante / GB</th>
+            <th>Precio venta</th>
+            <th>Costo compra</th>
+            <th>Ganancia unit.</th>
+            <th>Margen</th>
+            <th>Stock</th>
+            <th>Invertido (stock)</th>
+            <th>Ganancia (stock)</th>
+            <th>Proveedor</th>
+          </tr>
+        </thead>
+        <tbody id="costo-detalle-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+    </div>
+
+    <!-- MODULE: CLIENTES -->
+    <div class="module" id="module-clientes">
+      <div class="module-tabs">
+  <button class="module-tab active" data-sec="clientes" onclick="showSection('clientes',this)">👥 Crédito</button>
+  <button class="module-tab " data-sec="proveedores" onclick="showSection('proveedores',this)">🏭 Proveedores</button>
+  <button class="module-tab " data-sec="empleados" onclick="showSection('empleados',this)">👤 Empleados</button>
+</div>
+      <div class="module-content">
+<div class="section active" id="sec-clientes">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div><div class="section-title">Clientes a Crédito</div><div class="section-sub">Clientes registrados automáticamente al vender a crédito</div></div>
     <div style="font-size:12px;color:var(--blue);padding:6px 12px;background:var(--blue-bg);border-radius:var(--radius-sm);border:1px solid rgba(37,99,235,0.2);">💡 Los clientes se agregan automáticamente al finalizar una venta a crédito</div>
@@ -926,8 +1099,30 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <table><thead><tr><th>Cliente</th><th>Cédula</th><th>Teléfono</th><th>Producto</th><th>Pago</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="clients-body"></tbody></table>
   </div>
 </div>
-
-<!-- ═══ EMPLEADOS ═══ -->
+<div class="section" id="sec-proveedores">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div><div class="section-title">Proveedores</div></div>
+    <button class="btn btn-primary" onclick="openProveedorModal()">+ Agregar proveedor</button>
+  </div>
+  <div class="modal-overlay" id="proveedor-modal">
+    <div class="modal"><div class="modal-header"><div class="modal-title" id="prov-modal-title">Nuevo proveedor</div><button class="modal-close" onclick="closeProveedorModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="prov-id">
+      <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Nombre *</label><input class="input" id="prov-name"></div><div class="field"><label class="field-label">Teléfono</label><input class="input" id="prov-phone" type="tel"></div></div>
+      <div class="field" style="margin-bottom:10px;"><label class="field-label">Cuenta bancaria</label><input class="input" id="prov-cuenta" placeholder="Bancolombia 123456789"></div>
+      <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:14px;"><div class="card-title">💰 Finanzas</div>
+        <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Total a pagar</label><input class="input" id="prov-total" type="number" placeholder="0"></div><div class="field"><label class="field-label">Abonos realizados</label><input class="input" id="prov-abonos" type="number" placeholder="0" oninput="calcProvSaldo()"></div></div>
+        <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Saldo restante</label><input class="input" id="prov-saldo" type="number" readonly style="background:var(--bg3);"></div><div class="field"><label class="field-label">Fecha límite</label><input class="input" id="prov-fecha" type="date"></div></div>
+      </div>
+      <div class="field"><label class="field-label">Notas</label><textarea class="textarea" id="prov-notas"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProveedorModal()">Cancelar</button><button class="btn btn-primary" onclick="saveProveedor()">💾 Guardar</button></div>
+    </div>
+  </div>
+  <div class="table-wrap card" style="padding:0;">
+    <table><thead><tr><th>Proveedor</th><th>Teléfono</th><th>Total</th><th>Abonado</th><th>Saldo</th><th>Fecha límite</th><th>Acciones</th></tr></thead><tbody id="proveedores-body"></tbody></table>
+  </div>
+</div>
 <div class="section" id="sec-empleados">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <div><div class="section-title">Empleados</div><div class="section-sub">Gestión del personal · salarios se restan automáticamente de ganancias</div></div>
@@ -981,123 +1176,84 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <table><thead><tr><th>Empleado</th><th>Caja</th><th>Tipo pago</th><th>Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="empleados-body"></tbody></table>
   </div>
 </div>
+</div>
+    </div>
 
-<!-- ═══ PROVEEDORES ═══ -->
-<div class="section" id="sec-proveedores">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-    <div><div class="section-title">Proveedores</div></div>
-    <button class="btn btn-primary" onclick="openProveedorModal()">+ Agregar proveedor</button>
-  </div>
-  <div class="modal-overlay" id="proveedor-modal">
-    <div class="modal"><div class="modal-header"><div class="modal-title" id="prov-modal-title">Nuevo proveedor</div><button class="modal-close" onclick="closeProveedorModal()">✕</button></div>
-    <div class="modal-body">
-      <input type="hidden" id="prov-id">
-      <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Nombre *</label><input class="input" id="prov-name"></div><div class="field"><label class="field-label">Teléfono</label><input class="input" id="prov-phone" type="tel"></div></div>
-      <div class="field" style="margin-bottom:10px;"><label class="field-label">Cuenta bancaria</label><input class="input" id="prov-cuenta" placeholder="Bancolombia 123456789"></div>
-      <div style="border-top:1px solid var(--border);margin:12px 0 14px;padding-top:14px;"><div class="card-title">💰 Finanzas</div>
-        <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Total a pagar</label><input class="input" id="prov-total" type="number" placeholder="0"></div><div class="field"><label class="field-label">Abonos realizados</label><input class="input" id="prov-abonos" type="number" placeholder="0" oninput="calcProvSaldo()"></div></div>
-        <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Saldo restante</label><input class="input" id="prov-saldo" type="number" readonly style="background:var(--bg3);"></div><div class="field"><label class="field-label">Fecha límite</label><input class="input" id="prov-fecha" type="date"></div></div>
+    <!-- MODULE: CONFIG -->
+    <div class="module" id="module-config">
+      <div class="module-tabs">
+  <button class="module-tab active" data-sec="ajustes" onclick="showSection('ajustes',this)">⚙️ Ajustes</button>
+  <button class="module-tab " data-sec="eventos" onclick="showSection('eventos',this)">🎉 Eventos</button>
+  <button class="module-tab " data-sec="video" onclick="showSection('video',this)">🎬 Video</button>
+</div>
+      <div class="module-content">
+<div class="section active" id="sec-ajustes">
+  <div class="section-header"><div class="section-title">Configuración</div><div class="section-sub">Datos del negocio, textos y diseño de factura</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
+
+    <!-- Columna izquierda: Datos del negocio -->
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:14px;">🏪 Datos del negocio</div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">Nombre del negocio</label><input class="input" id="cfg-nombre" placeholder="ZONA iPHONE"></div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">Subtítulo factura</label><input class="input" id="cfg-subtitulo" placeholder="CELULARES &amp; ACCESORIOS"><span class="field-hint">Aparece debajo del logo en la factura</span></div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">NIT</label><input class="input" id="cfg-nit" placeholder="900.123.456-1"></div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">Dirección</label><input class="input" id="cfg-direccion" placeholder="Cra 4 # 5-21, Barranquilla"></div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">Ciudad</label><input class="input" id="cfg-ciudad" placeholder="Barranquilla, Atlántico"></div>
+        <div class="field" style="margin-bottom:10px;"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="cfg-telefono" placeholder="+57 323 303 9179"></div>
+        <div class="field" style="margin-bottom:14px;"><label class="field-label">Correo electrónico</label><input class="input" id="cfg-email" placeholder="zonaiphone@gmail.com" type="email"></div>
+        <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Guardar datos</button>
       </div>
-      <div class="field"><label class="field-label">Notas</label><textarea class="textarea" id="prov-notas"></textarea></div>
+
+      <!-- Vista previa visual en el admin -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">🖨️ Vista previa del ticket</div>
+        <div style="display:flex;justify-content:center;">
+          <div id="ticket-preview-visual" style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.6;color:#111;background:#fff;width:240px;padding:14px 10px 20px;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <div style="text-align:center;margin-bottom:6px;font-weight:bold;font-size:12px;">Vista previa</div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-block btn-sm" style="margin-top:10px;" onclick="previewTicketVisual()">🔄 Actualizar vista previa</button>
+      </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProveedorModal()">Cancelar</button><button class="btn btn-primary" onclick="saveProveedor()">💾 Guardar</button></div>
+
+    <!-- Columna derecha: Textos de factura -->
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:14px;">📄 Textos de factura</div>
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Tiempo de garantía</label>
+          <input class="input" id="cfg-garantia-tiempo" placeholder="6 MESES">
+          <span class="field-hint">Se muestra en: "GARANTIA: 6 MESES"</span>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Texto de garantía y condiciones</label>
+          <textarea class="textarea" id="cfg-garantia-texto" rows="5" placeholder="Nuestros equipos cuentan con una garantía..."></textarea>
+          <span class="field-hint">Párrafo completo de garantía en la factura</span>
+        </div>
+        <div class="field" style="margin-bottom:10px;">
+          <label class="field-label">Texto legal (bajo el total)</label>
+          <textarea class="textarea" id="cfg-texto-legal" rows="3" placeholder="ESTA FACTURA PRESTA MERITO EJECUTIVO..."></textarea>
+          <span class="field-hint">Texto legal que aparece después del total</span>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label class="field-label">Mensaje de cierre</label>
+          <input class="input" id="cfg-mensaje-final" placeholder="¡Gracias por su compra!">
+          <span class="field-hint">Aparece al final del ticket</span>
+        </div>
+        <button class="btn btn-gold btn-block" onclick="saveConfig()">💾 Guardar textos de factura</button>
+      </div>
+
+      <!-- Botón de prueba: generar PDF de prueba -->
+      <div class="card" style="border-left:3px solid var(--green);">
+        <div class="card-title" style="margin-bottom:10px;color:var(--green);">🧪 Probar factura</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Genera un PDF de prueba con los datos actuales de configuración para verificar el diseño antes de usarlo en ventas reales.</div>
+        <button class="btn btn-green btn-block" onclick="generarFacturaPrueba()">📄 Generar PDF de prueba</button>
+      </div>
     </div>
-  </div>
-  <div class="table-wrap card" style="padding:0;">
-    <table><thead><tr><th>Proveedor</th><th>Teléfono</th><th>Total</th><th>Abonado</th><th>Saldo</th><th>Fecha límite</th><th>Acciones</th></tr></thead><tbody id="proveedores-body"></tbody></table>
+
   </div>
 </div>
-
-<!-- ═══ GASTOS ═══ -->
-<div class="section" id="sec-gastos">
-  <div class="section-header"><div class="section-title">Gastos</div><div class="section-sub">Registro y análisis de egresos por período</div></div>
-  <!-- Resumen gastos por período -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
-    <div class="stat-card red"><div class="stat-icon">📅</div><div class="stat-label">Gastos hoy</div><div class="stat-value" id="g-hoy">$0</div><div class="stat-change" id="g-hoy-n">0 registros</div></div>
-    <div class="stat-card red"><div class="stat-icon">📆</div><div class="stat-label">Gastos este mes</div><div class="stat-value" id="g-mes">$0</div><div class="stat-change" id="g-mes-n">0 registros</div></div>
-    <div class="stat-card red"><div class="stat-icon">🗓️</div><div class="stat-label">Gastos este año</div><div class="stat-value" id="g-anio">$0</div><div class="stat-change" id="g-anio-n">0 registros</div></div>
-    <div class="stat-card orange"><div class="stat-icon">🔵</div><div class="stat-label">Local 1</div><div class="stat-value" id="g-l1">$0</div><div class="stat-change">Gastos caja 1</div></div>
-    <div class="stat-card purple"><div class="stat-icon">🟣</div><div class="stat-label">Local 2</div><div class="stat-value" id="g-l2">$0</div><div class="stat-change">Gastos caja 2</div></div>
-    <div class="stat-card"><div class="stat-icon">🏢</div><div class="stat-label">General</div><div class="stat-value" id="g-gen">$0</div><div class="stat-change">Gastos generales</div></div>
-  </div>
-  <!-- Filtro de período -->
-  <div class="filter-bar" style="margin-bottom:18px;">
-    <label>Período:</label>
-    <input type="date" class="input" id="g-filter-from" style="width:140px;" onchange="renderGastos()">
-    <span style="color:var(--text3);font-size:12px;">→</span>
-    <input type="date" class="input" id="g-filter-to" style="width:140px;" onchange="renderGastos()">
-    <button class="btn btn-outline btn-sm" onclick="gFilterHoy()">Hoy</button>
-    <button class="btn btn-outline btn-sm" onclick="gFilterMes()">Este mes</button>
-    <button class="btn btn-outline btn-sm" onclick="gFilterAnio()">Este año</button>
-    <button class="btn btn-outline btn-sm" onclick="gFilterAll()">Todo</button>
-    <label>Caja:</label>
-    <select class="select" id="g-filter-caja" style="width:130px;" onchange="renderGastos()">
-      <option value="">Todas</option>
-      <option value="caja1">🔵 Local 1</option>
-      <option value="caja2">🟣 Local 2</option>
-      <option value="general">🏢 General</option>
-    </select>
-  </div>
-  <div class="card" style="max-width:560px;margin-bottom:18px;">
-    <div class="card-title">Registrar gasto</div>
-    <div class="form-grid" style="margin-bottom:10px;"><div class="field"><label class="field-label">Descripción *</label><input class="input" id="g-desc" placeholder="Arriendo local, servicios…"></div><div class="field"><label class="field-label">Monto (COP)</label><input class="input" id="g-monto" type="number" placeholder="0"></div></div>
-    <div class="form-grid" style="margin-bottom:12px;"><div class="field"><label class="field-label">Caja / Local</label><select class="select" id="g-caja"><option value="caja1">🔵 Local 1</option><option value="caja2">🟣 Local 2</option><option value="general">🏢 General</option></select></div><div class="field"><label class="field-label">Fecha</label><input class="input" id="g-fecha" type="date"></div></div>
-    <button class="btn btn-primary" onclick="addGasto()">+ Registrar gasto</button>
-  </div>
-  <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Descripción</th><th>Local</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="gastos-body"></tbody></table></div>
-</div>
-
-
-<!-- ═══ DETALLES DE COSTO ═══ -->
-<div class="section" id="sec-costo-detalle">
-  <div class="section-header">
-    <div class="section-title">Detalles de Costo</div>
-    <div class="section-sub">Análisis de inversión por categoría de producto</div>
-  </div>
-
-  <!-- Tabs por categoría -->
-  <div class="tab-bar" style="margin-bottom:20px;">
-    <button class="tab-btn active" onclick="switchCostoTab('iphone',this)">📱 iPhone</button>
-    <button class="tab-btn" onclick="switchCostoTab('ipad',this)">💻 iPad</button>
-    <button class="tab-btn" onclick="switchCostoTab('airpods',this)">🎧 AirPods</button>
-    <button class="tab-btn" onclick="switchCostoTab('macbook',this)">💻 MacBook</button>
-  </div>
-
-  <!-- Cards resumen de la categoría -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;" id="costo-summary-cards">
-    <div class="stat-card blue"><div class="stat-icon">📦</div><div class="stat-label">Capital invertido</div><div class="stat-value" id="cd-costo">$0</div><div class="stat-change" id="cd-costo-n">0 unidades</div></div>
-    <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-label">Valor en venta</div><div class="stat-value" id="cd-valor">$0</div><div class="stat-change">Precio de venta × stock</div></div>
-    <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-label">Ganancia potencial</div><div class="stat-value" id="cd-ganancia">$0</div><div class="stat-change">Si se vende todo</div></div>
-    <div class="stat-card orange"><div class="stat-icon">📊</div><div class="stat-label">Margen promedio</div><div class="stat-value" id="cd-margen">0%</div><div class="stat-change">Ganancia / Precio venta</div></div>
-    <div class="stat-card purple"><div class="stat-icon">🗃️</div><div class="stat-label">Unidades en stock</div><div class="stat-value" id="cd-stock">0</div><div class="stat-change">Total disponibles</div></div>
-  </div>
-
-  <!-- Tabla detalle por producto -->
-  <div class="card" style="margin-bottom:18px;">
-    <div class="card-title" style="margin-bottom:14px;">📋 Detalle por producto — <span id="cd-cat-label">iPhone</span></div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Variante / GB</th>
-            <th>Precio venta</th>
-            <th>Costo compra</th>
-            <th>Ganancia unit.</th>
-            <th>Margen</th>
-            <th>Stock</th>
-            <th>Invertido (stock)</th>
-            <th>Ganancia (stock)</th>
-            <th>Proveedor</th>
-          </tr>
-        </thead>
-        <tbody id="costo-detalle-body"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ EVENTOS ═══ -->
 <div class="section" id="sec-eventos">
   <div class="section-header"><div class="section-title">Eventos</div><div class="section-sub">Activa un evento para cambiar el tema del sitio y configurar promociones</div></div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:18px;" id="events-grid"></div>
@@ -1168,77 +1324,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <button class="btn btn-primary" onclick="activateCustomEvent()" style="background:var(--purple);">✨ Activar evento personalizado</button>
   </div>
 </div>
-
-<!-- ═══ CONFIGURACIÓN ═══ -->
-<div class="section" id="sec-ajustes">
-  <div class="section-header"><div class="section-title">Configuración</div><div class="section-sub">Datos del negocio, textos y diseño de factura</div></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
-
-    <!-- Columna izquierda: Datos del negocio -->
-    <div>
-      <div class="card" style="margin-bottom:14px;">
-        <div class="card-title" style="margin-bottom:14px;">🏪 Datos del negocio</div>
-        <div class="field" style="margin-bottom:10px;"><label class="field-label">Nombre del negocio</label><input class="input" id="cfg-nombre" placeholder="ZONA iPHONE"></div>
-        <div class="field" style="margin-bottom:10px;"><label class="field-label">Subtítulo factura</label><input class="input" id="cfg-subtitulo" placeholder="CELULARES &amp; ACCESORIOS"><span class="field-hint">Aparece debajo del logo en la factura</span></div>
-        <div class="field" style="margin-bottom:10px;"><label class="field-label">NIT</label><input class="input" id="cfg-nit" placeholder="900.123.456-1"></div>
-        <div class="field" style="margin-bottom:10px;"><label class="field-label">Dirección</label><input class="input" id="cfg-direccion" placeholder="Cra 4 # 5-21, Barranquilla"></div>
-        <div class="field" style="margin-bottom:10px;"><label class="field-label">Ciudad</label><input class="input" id="cfg-ciudad" placeholder="Barranquilla, Atlántico"></div>
-        <div class="field" style="margin-bottom:10px;"><label class="field-label">Teléfono / WhatsApp</label><input class="input" id="cfg-telefono" placeholder="+57 323 303 9179"></div>
-        <div class="field" style="margin-bottom:14px;"><label class="field-label">Correo electrónico</label><input class="input" id="cfg-email" placeholder="zonaiphone@gmail.com" type="email"></div>
-        <button class="btn btn-primary btn-block" onclick="saveConfig()">💾 Guardar datos</button>
-      </div>
-
-      <!-- Vista previa visual en el admin -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:12px;">🖨️ Vista previa del ticket</div>
-        <div style="display:flex;justify-content:center;">
-          <div id="ticket-preview-visual" style="font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.6;color:#111;background:#fff;width:240px;padding:14px 10px 20px;border:1px solid #ddd;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-            <div style="text-align:center;margin-bottom:6px;font-weight:bold;font-size:12px;">Vista previa</div>
-          </div>
-        </div>
-        <button class="btn btn-outline btn-block btn-sm" style="margin-top:10px;" onclick="previewTicketVisual()">🔄 Actualizar vista previa</button>
-      </div>
-    </div>
-
-    <!-- Columna derecha: Textos de factura -->
-    <div>
-      <div class="card" style="margin-bottom:14px;">
-        <div class="card-title" style="margin-bottom:14px;">📄 Textos de factura</div>
-        <div class="field" style="margin-bottom:10px;">
-          <label class="field-label">Tiempo de garantía</label>
-          <input class="input" id="cfg-garantia-tiempo" placeholder="6 MESES">
-          <span class="field-hint">Se muestra en: "GARANTIA: 6 MESES"</span>
-        </div>
-        <div class="field" style="margin-bottom:10px;">
-          <label class="field-label">Texto de garantía y condiciones</label>
-          <textarea class="textarea" id="cfg-garantia-texto" rows="5" placeholder="Nuestros equipos cuentan con una garantía..."></textarea>
-          <span class="field-hint">Párrafo completo de garantía en la factura</span>
-        </div>
-        <div class="field" style="margin-bottom:10px;">
-          <label class="field-label">Texto legal (bajo el total)</label>
-          <textarea class="textarea" id="cfg-texto-legal" rows="3" placeholder="ESTA FACTURA PRESTA MERITO EJECUTIVO..."></textarea>
-          <span class="field-hint">Texto legal que aparece después del total</span>
-        </div>
-        <div class="field" style="margin-bottom:14px;">
-          <label class="field-label">Mensaje de cierre</label>
-          <input class="input" id="cfg-mensaje-final" placeholder="¡Gracias por su compra!">
-          <span class="field-hint">Aparece al final del ticket</span>
-        </div>
-        <button class="btn btn-gold btn-block" onclick="saveConfig()">💾 Guardar textos de factura</button>
-      </div>
-
-      <!-- Botón de prueba: generar PDF de prueba -->
-      <div class="card" style="border-left:3px solid var(--green);">
-        <div class="card-title" style="margin-bottom:10px;color:var(--green);">🧪 Probar factura</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Genera un PDF de prueba con los datos actuales de configuración para verificar el diseño antes de usarlo en ventas reales.</div>
-        <button class="btn btn-green btn-block" onclick="generarFacturaPrueba()">📄 Generar PDF de prueba</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ═══ VIDEO ═══ -->
 <div class="section" id="sec-video">
   <div class="section-header"><div class="section-title">Video principal</div></div>
   <div class="card" style="max-width:580px;">
@@ -1257,10 +1342,12 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </div>
 </div>
+</div>
+    </div>
 
-    </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /admin-app -->
+
 
 <!-- VENTA MODAL -->
 <div class="modal-overlay" id="venta-modal">
@@ -1314,9 +1401,12 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </div>
 </div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, getDocs, Timestamp, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -1489,14 +1579,39 @@ function renderAll(){
 }
 
 // ─── NAV ───
-const sectionTitles={dashboard:'Dashboard',ventas:'Nueva venta',historial:'Historial',vendidos:'Dispositivos vendidos',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
+const sectionTitles={dashboard:'Ganancias',ventas:'Nueva venta',historial:'Historial',vendidos:'Dispositivos vendidos',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
 window.showSection=function(id,el){
+  // Map section to module
+  const sectionToModule={'dashboard':'dashboard','ventas':'pos','historial':'finanzas','gastos':'finanzas','vendidos':'finanzas','productos':'inventario','otros':'inventario','costo-detalle':'inventario','clientes':'clientes','proveedores':'clientes','empleados':'clientes','ajustes':'config','eventos':'config','video':'config'};
+  const moduleId = sectionToModule[id]||'dashboard';
+  // Activate module
+  document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));
+  const mod = document.getElementById('module-'+moduleId);
+  if(mod) mod.classList.add('active');
+  // Activate section within module
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(s=>s.classList.remove('active'));
   document.getElementById('sec-'+id).classList.add('active');
-  if(el) el.classList.add('active');
+  // Update module tabs
+  const moduleEl = mod||document.body;
+  moduleEl.querySelectorAll('.module-tab').forEach(t=>t.classList.remove('active'));
+  const activeTab = moduleEl.querySelector(`.module-tab[data-sec="${id}"]`);
+  if(activeTab) activeTab.classList.add('active');
+  // Update sidebar nav
+  document.querySelectorAll('.nav-item').forEach(s=>s.classList.remove('active'));
+  const navEl = document.querySelector(`.nav-item[data-module="${moduleId}"]`);
+  if(navEl) navEl.classList.add('active');
+  if(el && el.classList && !el.classList.contains('module-tab')) el.classList.add('active');
   document.getElementById('topbar-title').textContent=sectionTitles[id]||id;
   if(id==='historial') renderHistorial();
+};
+window.showModule=function(moduleId,el){
+  const moduleFirstSection={'dashboard':'dashboard','pos':'ventas','finanzas':'historial','inventario':'productos','clientes':'clientes','config':'ajustes'};
+  const sid = moduleFirstSection[moduleId]||moduleId;
+  window.showSection(sid, null);
+  // Re-highlight nav
+  document.querySelectorAll('.nav-item').forEach(s=>s.classList.remove('active'));
+  const navEl = document.querySelector(`.nav-item[data-module="${moduleId}"]`);
+  if(navEl) navEl.classList.add('active');
 };
 
 // ─── LOAD DATA ───
@@ -1723,6 +1838,8 @@ function renderDashboard(){
   renderRecentTable(v2.slice(0,8),'recent-l2',false);
 
   document.getElementById('dash-subtitle').textContent=`Total ventas: ${allVentas.length} · Ingresos del mes: ${fp(totalIngresos)}`;
+  // Update period-based single stat card
+  updatePeriodStats();
   // Flash indicator on update
   document.querySelectorAll('.stat-value').forEach(el=>{
     el.classList.remove('val-updated');
@@ -1791,8 +1908,10 @@ function updateFacturaBadge(){
   const n=numFactura(store.nextFactura||1);
   const b=document.getElementById('topbar-factura-badge');
   const vn=document.getElementById('venta-factura-num');
+  const nb=document.getElementById('nav-factura-badge');
   if(b) b.textContent='Factura #'+n;
   if(vn) vn.textContent='#'+n;
+  if(nb) nb.textContent='#'+n;
 }
 
 function initVentaForm(){
@@ -1847,7 +1966,8 @@ window.addProductRow=function(){
       </select>
     </div>
     <div class="field"><label class="field-label">Cant.</label><input class="input" id="pq-${id}" type="number" value="1" min="1" oninput="updateVentaSummary()" style="width:70px;"></div>
-    <div class="field"><label class="field-label">Precio unit.</label><input class="input" id="pp-${id}" type="number" placeholder="0" oninput="updateVentaSummary()"></div>
+    <div class="field"><label class="field-label">Precio unit. <span style="font-size:9px;color:var(--text3);">(editable)</span></label><input class="input" id="pp-${id}" type="number" placeholder="0" oninput="updateRowProfit(${id});updateVentaSummary()"></div>
+    <div class="field"><label class="field-label">Ganancia</label><div id="pgan-${id}" style="font-size:12px;font-weight:700;color:var(--text3);padding:9px 0;">—</div></div>
     <div style="padding-bottom:2px;"><button class="btn btn-danger btn-sm" onclick="removeRow(${id})" title="Eliminar">✕</button></div>`;
   document.getElementById('product-rows').appendChild(row);
 };
@@ -1880,6 +2000,7 @@ window.onProductSelect=function(id){
     ci.style.display='none';
     if(varWrap) varWrap.style.display='none';
   }
+  updateRowProfit(id);
   updateVentaSummary();
 };
 
@@ -1888,6 +2009,7 @@ window.onVariantSelect=function(id){
   if(!val) return;
   const parts=val.split('|');
   document.getElementById('pp-'+id).value=parts[1]||0;
+  updateRowProfit(id);
   updateVentaSummary();
 };
 window.removeRow=function(id){const r=document.getElementById('prow-'+id);if(r){r.remove();updateVentaSummary();}};
@@ -2379,14 +2501,22 @@ window.renderHistorial=function(){
   const search=(document.getElementById('hist-search')?.value||'').toLowerCase();
   const tipo=document.getElementById('hist-tipo')?.value||'';
   const caja=document.getElementById('hist-caja')?.value||'';
+  const fechaFrom=document.getElementById('hist-fecha-from')?.value||'';
+  const fechaTo=document.getElementById('hist-fecha-to')?.value||'';
   const tBadge={contado:'badge-green',credito:'badge-blue',tradein:'badge-orange'};
-  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'🔄 Trade-In'};
+  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'📲 Celular como pago'};
   const cajaBadge={caja1:'<span class="badge badge-blue">🔵 L1</span>',caja2:'<span class="badge badge-purple">🟣 L2</span>'};
   const filtered=allVentas.filter(v=>{
-    if(v.estado==='cancelada'||v.estado==='reembolsada') return false; // exclude cancelled
+    if(v.estado==='cancelada'||v.estado==='reembolsada') return false;
     if(tipo&&v.tipoPago!==tipo)return false;
     if(caja&&v.caja!==caja)return false;
     if(search&&!(v.cliente||'').toLowerCase().includes(search)&&!(v.telefono||'').includes(search))return false;
+    if(fechaFrom||fechaTo){
+      const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);
+      const ds=d.toISOString().split('T')[0];
+      if(fechaFrom&&ds<fechaFrom)return false;
+      if(fechaTo&&ds>fechaTo)return false;
+    }
     return true;
   });
   const container=document.getElementById('historial-list');
@@ -2413,7 +2543,7 @@ window.renderHistorial=function(){
 window.openVentaModal=function(id){
   const v=allVentas.find(x=>x.id===id); if(!v)return;
   const tBadge={contado:'badge-green',credito:'badge-blue',tradein:'badge-orange'};
-  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'🔄 Trade-In'};
+  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'📲 Celular como pago'};
   const cajaBadge={caja1:'<span class="badge badge-blue">🔵 Local 1</span>',caja2:'<span class="badge badge-purple">🟣 Local 2</span>'};
   let html=`<div style="margin-bottom:14px;">
     <div style="font-family:var(--font-display);font-size:20px;margin-bottom:4px;">${v.cliente||'—'}</div>
@@ -2564,11 +2694,32 @@ window.addProduct=async function(){
   const name=document.getElementById('p-name').value.trim();
   const price=document.getElementById('p-price').value;
   if(!name||!price){showToast('Nombre y precio requeridos','error');return;}
+  const cat=document.getElementById('p-cat').value;
+  const costoOrigen=document.getElementById('p-costo-origen')?.value||'ganancia_neta';
+  const cost=Number(document.getElementById('p-cost').value||0);
   const newId=Math.max(0,...store.products.map(p=>p.id))+1;
-  store.products.push({id:newId,name,cat:document.getElementById('p-cat').value,price:Number(price),cost:Number(document.getElementById('p-cost').value||0),stock:Number(document.getElementById('p-stock').value||0),emoji:document.getElementById('p-emoji').value||'📱',img:document.getElementById('p-img').value||'',storage:document.getElementById('p-storage').value.split(',').map(s=>s.trim()).filter(Boolean),colors:document.getElementById('p-colors').value.split(',').map(s=>s.trim()).filter(Boolean),badge:document.getElementById('p-badge').value.trim(),desc:document.getElementById('p-desc').value.trim(),provNombre:document.getElementById('p-prov-nombre').value.trim(),provTel:document.getElementById('p-prov-tel').value.trim(),provInfo:document.getElementById('p-prov-info').value.trim()});
+  const newProd={id:newId,name,cat,price:Number(price),cost,stock:Number(document.getElementById('p-stock').value||0),
+    emoji:document.getElementById('p-emoji').value||'📱',img:document.getElementById('p-img').value||'',
+    storage:document.getElementById('p-storage').value.split(',').map(s=>s.trim()).filter(Boolean),
+    colors:document.getElementById('p-colors').value.split(',').map(s=>s.trim()).filter(Boolean),
+    badge:document.getElementById('p-badge').value.trim(),desc:document.getElementById('p-desc').value.trim(),
+    provNombre:document.getElementById('p-prov-nombre').value.trim(),
+    provTel:document.getElementById('p-prov-tel').value.trim(),
+    provInfo:document.getElementById('p-prov-info').value.trim(),
+    imei:document.getElementById('p-imei')?.value.trim()||'',
+    costoOrigen};
+  store.products.push(newProd);
+  // If cost came from ganancia_neta, register it as a gasto automático
+  if(costoOrigen==='ganancia_neta'&&cost>0){
+    try{
+      await addDoc(gastosCol,{desc:'🛒 Compra producto: '+name,monto:cost,caja:'general',fecha:new Date().toISOString().split('T')[0],tipo:'compra_inventario'});
+    }catch(e){console.warn('Error registering cost as gasto:',e);}
+  }
   await saveToFirebase({products:store.products});renderProducts();
-  ['p-name','p-price','p-cost','p-stock','p-emoji','p-img','p-storage','p-colors','p-badge','p-desc','p-prov-nombre','p-prov-tel','p-prov-info'].forEach(i=>document.getElementById(i).value='');
+  ['p-name','p-price','p-cost','p-stock','p-emoji','p-img','p-storage','p-colors','p-badge','p-desc','p-prov-nombre','p-prov-tel','p-prov-info','p-imei'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const coo=document.getElementById('p-costo-origen');if(coo)coo.value='ganancia_neta';
   clearNewProdImg();
+  showToast('✅ Producto agregado'+(costoOrigen==='ganancia_neta'?' · Costo registrado en gastos':''),'success');
 };
 window.deleteProduct=async function(id){if(!confirm('¿Eliminar?'))return;store.products=store.products.filter(p=>p.id!==id);await saveToFirebase({products:store.products});renderProducts();};
 window.openEditModal=function(id){
@@ -2588,6 +2739,10 @@ window.openEditModal=function(id){
   document.getElementById('edit-prov-nombre').value=p.provNombre||'';
   document.getElementById('edit-prov-tel').value=p.provTel||'';
   document.getElementById('edit-prov-info').value=p.provInfo||'';
+  const editImei=document.getElementById('edit-imei');if(editImei)editImei.value=p.imei||'';
+  const editCO=document.getElementById('edit-costo-origen');if(editCO)editCO.value=p.costoOrigen||'ganancia_neta';
+  // Show IMEI only for iPhone/iPad/MacBook
+  const eiw=document.getElementById('edit-imei-wrap');if(eiw)eiw.style.display=['iphone','ipad','macbook'].includes(p.cat)?'':'none';
   if(p.img){document.getElementById('edit-img-preview-img').src=p.img;document.getElementById('edit-img-preview').style.display='flex';}
   else document.getElementById('edit-img-preview').style.display='none';
   // Load existing variants
@@ -2630,6 +2785,8 @@ window.saveEdit=async function(){
   p.provNombre=document.getElementById('edit-prov-nombre').value.trim();
   p.provTel=document.getElementById('edit-prov-tel').value.trim();
   p.provInfo=document.getElementById('edit-prov-info').value.trim();
+  p.imei=document.getElementById('edit-imei')?.value.trim()||p.imei||'';
+  p.costoOrigen=document.getElementById('edit-costo-origen')?.value||p.costoOrigen||'ganancia_neta';
   // Save variants
   if(editVariantsData.length>0){
     p.storageVariants=editVariantsData.filter(v=>v.gb).map(v=>({gb:v.gb,precio:v.precio||p.price,costo:v.costo||p.cost,stock:v.stock||0}));
@@ -3175,7 +3332,7 @@ function renderCanceladas(){
   const el=document.getElementById('total-cancelado');
   if(el) el.textContent=fp(total);
   const tBadge={contado:'badge-green',credito:'badge-blue',tradein:'badge-orange'};
-  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'🔄 Trade-In'};
+  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'📲 Celular como pago'};
   const cajaBadge={caja1:'<span class="badge badge-blue">🔵 L1</span>',caja2:'<span class="badge badge-purple">🟣 L2</span>'};
   const stateBadge={cancelada:'<span class="badge badge-red">CANCELADA</span>',reembolsada:'<span class="badge badge-orange">REEMBOLSADA</span>'};
   const container=document.getElementById('historial-canceladas-list');
@@ -3587,6 +3744,185 @@ window.showSection = function(id, el){
   if(id==='costo-detalle') renderCostoDetalle();
 };
 
+// ─── DASH PERIOD SELECTOR ───
+let currentDashPeriod = 'hoy';
+window.setDashPeriod = function(period, el) {
+  currentDashPeriod = period;
+  document.querySelectorAll('[id^="dash-period-"]').forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-outline');
+  });
+  if(el){ el.classList.remove('btn-outline'); el.classList.add('btn-primary'); }
+  // If custom, set filter-from/to to today as default and show date filters
+  if(period === 'custom'){
+    const ff=document.getElementById('filter-from');
+    const ft=document.getElementById('filter-to');
+    if(ff&&!ff.value) ff.value=todayDate();
+    if(ft&&!ft.value) ft.value=todayDate();
+  }
+  renderDashboard();
+};
+
+// Override renderDashboard stats to use period selector
+const _origRenderDashboard_period = window.renderDashboard || (()=>{});
+function updatePeriodStats(){
+  const now=new Date();
+  const hoyStr=todayDate();
+  const lunes=new Date(now); lunes.setDate(now.getDate()-now.getDay()+1); lunes.setHours(0,0,0,0);
+  const mesStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const anioStart=new Date(now.getFullYear(),0,1);
+  const period=currentDashPeriod||'hoy';
+  
+  let fromDate, labelText, labelShort;
+  if(period==='hoy'){ fromDate=new Date(hoyStr); labelText='Hoy'; labelShort='Ingresos Hoy'; }
+  else if(period==='sem'){ fromDate=lunes; labelText='Esta semana'; labelShort='Esta Semana'; }
+  else if(period==='mes'){ fromDate=mesStart; labelText='Este mes'; labelShort='Este Mes'; }
+  else if(period==='anio'){ fromDate=anioStart; labelText='Este año'; labelShort='Este Año'; }
+  else { 
+    const ff=document.getElementById('filter-from')?.value||hoyStr;
+    const ft=document.getElementById('filter-to')?.value||hoyStr;
+    fromDate=new Date(ff); labelText=ff+(ft!==ff?' → '+ft:''); labelShort='Período selec.';
+  }
+
+  const periodVentas=allVentas.filter(v=>{
+    if(v.estado==='cancelada'||v.estado==='reembolsada')return false;
+    const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);
+    if(d<fromDate)return false;
+    if(period==='custom'){
+      const ft=document.getElementById('filter-to')?.value;
+      if(ft&&d>new Date(ft+'T23:59:59'))return false;
+    }
+    return true;
+  });
+  const periodTotal=periodVentas.reduce((s,v)=>s+(v.total||0),0);
+
+  const lbl=document.getElementById('sg-period-label');
+  const val=document.getElementById('sg-period-val');
+  const n=document.getElementById('sg-period-n');
+  const pll=document.getElementById('dash-period-label-text');
+  if(lbl) lbl.textContent=labelShort;
+  if(val) val.textContent=fp(periodTotal);
+  if(n) n.textContent=periodVentas.length+' ventas';
+  if(pll) pll.textContent=labelText;
+}
+
+// ─── HISTORIAL DATE QUICK FILTERS ───
+window.histFiltroHoy=function(){
+  const t=todayDate();
+  const ff=document.getElementById('hist-fecha-from');
+  const ft=document.getElementById('hist-fecha-to');
+  if(ff)ff.value=t; if(ft)ft.value=t;
+  renderHistorial();
+};
+window.histFiltroMes=function(){
+  const now=new Date();
+  const from=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const ff=document.getElementById('hist-fecha-from');
+  const ft=document.getElementById('hist-fecha-to');
+  if(ff)ff.value=from; if(ft)ft.value=todayDate();
+  renderHistorial();
+};
+window.histFiltroClear=function(){
+  const ff=document.getElementById('hist-fecha-from');
+  const ft=document.getElementById('hist-fecha-to');
+  if(ff)ff.value=''; if(ft)ft.value='';
+  renderHistorial();
+};
+
+// ─── PRODUCT ROW PROFIT LIVE UPDATE ───
+window.updateRowProfit=function(id){
+  const sel=document.getElementById('ps-'+id);
+  const priceEl=document.getElementById('pp-'+id);
+  const ganEl=document.getElementById('pgan-'+id);
+  if(!ganEl||!priceEl) return;
+  const precio=parseFloat(priceEl.value)||0;
+  if(!precio||!sel?.value){ ganEl.textContent='—'; ganEl.style.color='var(--text3)'; return; }
+  // Find cost
+  let costoUnit=0;
+  const parts=sel.value.split('|');
+  const prodId=parseInt(parts[0]);
+  const prod=store.products.find(p=>p.id===prodId);
+  if(prod){
+    costoUnit=Number(prod.cost)||0;
+    // Check variant
+    const varSel=document.getElementById('pvar-'+id);
+    if(varSel?.value){
+      const vparts=varSel.value.split('|');
+      const vc=parseFloat(vparts[2]||0);
+      if(vc>0) costoUnit=vc;
+    }
+  }
+  if(!costoUnit){ ganEl.textContent='—'; ganEl.style.color='var(--text3)'; return; }
+  const cant=parseFloat(document.getElementById('pq-'+id)?.value||1);
+  const ganUnit=precio-costoUnit;
+  const ganTotal=ganUnit*cant;
+  const margen=costoUnit>0?((ganUnit/precio)*100).toFixed(1):0;
+  const color=ganUnit>=0?'var(--green)':'var(--red)';
+  ganEl.innerHTML=`<span style="color:${color};font-size:12px;">${fp(ganTotal)}</span><br><span style="color:var(--text3);font-size:10px;">${margen}% margen</span>`;
+};
+
+// ─── COSTO ORIGEN TOGGLE ───
+window.toggleCostoOrigen=function(){
+  const sel=document.getElementById('p-costo-origen');
+  const hint=document.getElementById('p-costo-origen-hint');
+  if(!sel||!hint) return;
+  if(sel.value==='ganancia_neta'){
+    hint.textContent='⚠️ Este costo se descontará de la ganancia neta del negocio';
+    hint.style.color='var(--orange)';
+  } else {
+    hint.textContent='✅ Capital aparte — no afecta la ganancia neta';
+    hint.style.color='var(--green)';
+  }
+};
+
+// Show/hide IMEI based on category selection in new product form
+document.addEventListener('DOMContentLoaded',()=>{
+  const catSel=document.getElementById('p-cat');
+  const imeiWrap=document.getElementById('p-imei-wrap');
+  if(catSel&&imeiWrap){
+    const toggleImei=()=>{ imeiWrap.style.display=['iphone','ipad','macbook'].includes(catSel.value)?'':'none'; };
+    catSel.addEventListener('change',toggleImei);
+    toggleImei();
+  }
+});
+
+// ─── RESTAURAR VENDIDO ───
+window.restaurarVendido=async function(idx){
+  const archive=store.vendidosArchive||[];
+  const item=archive[idx];
+  if(!item){showToast('❌ Producto no encontrado','error');return;}
+  if(!confirm('¿Restaurar "'+item.nombre+'" al inventario? Se agregará con stock 1.'))return;
+  // Add back to products
+  const newId=Math.max(0,...(store.products||[]).map(p=>p.id),0)+1;
+  const restored={id:newId,name:item.nombre,cat:item.cat||'otro',price:Number(item.precio||0),cost:Number(item.costo||0),
+    stock:1,emoji:item.emoji||'📦',img:item.img||'',badge:item.badge||'',
+    storage:[],colors:[],desc:'Restaurado de dispositivos vendidos',
+    provNombre:'',provTel:'',provInfo:''};
+  store.products.push(restored);
+  // Remove from archive
+  archive.splice(idx,1);
+  store.vendidosArchive=archive;
+  await saveToFirebase({products:store.products,vendidosArchive:archive});
+  renderVendidos();renderProducts();
+  showToast('✅ "'+item.nombre+'" restaurado al inventario','success');
+};
+
+window.restaurarTodosVendidos=async function(){
+  const archive=store.vendidosArchive||[];
+  if(!archive.length){showToast('No hay productos archivados');return;}
+  if(!confirm('¿Restaurar TODOS los '+archive.length+' dispositivos al inventario?'))return;
+  const maxId=Math.max(0,...(store.products||[]).map(p=>p.id),0);
+  archive.forEach((item,i)=>{
+    store.products.push({id:maxId+i+1,name:item.nombre,cat:item.cat||'otro',price:Number(item.precio||0),
+      cost:Number(item.costo||0),stock:1,emoji:item.emoji||'📦',img:item.img||'',badge:item.badge||'',
+      storage:[],colors:[],desc:'Restaurado de dispositivos vendidos',provNombre:'',provTel:'',provInfo:''});
+  });
+  store.vendidosArchive=[];
+  await saveToFirebase({products:store.products,vendidosArchive:[]});
+  renderVendidos();renderProducts();
+  showToast('✅ '+archive.length+' dispositivos restaurados','success');
+};
+
 // ─── VIDEO DESDE GALERÍA ───
 window.handleVideoGaleria=function(input){
   const f=input.files[0]; if(!f) return;
@@ -3627,13 +3963,14 @@ function renderVendidos(){
   if(!tbody) return;
 
   if(!archive.length){
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3);">Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0</td></tr>';
     return;
   }
 
   const catLabels = {iphone:'iPhone',ipad:'iPad',airpods:'AirPods',macbook:'MacBook',accesorio:'Accesorio',otro:'Otro'};
 
-  tbody.innerHTML = [...archive].reverse().map(a => {
+  const archiveRev=[...archive].reverse();
+  tbody.innerHTML = archiveRev.map((a, i) => { const idx=archive.length-1-i;
     const gan     = Number(a.precio||0) - Number(a.costo||0);
     const ganColor= gan>0?'var(--green)':gan<0?'var(--red)':'var(--text3)';
     const imgCell = a.img
@@ -3656,6 +3993,7 @@ function renderVendidos(){
       +'<td style="color:'+ganColor+';font-weight:700;">'+fp(gan)+'</td>'
       +'<td><span class="badge badge-gray">'+(catLabels[a.cat]||a.cat||'—')+'</span></td>'
       +'<td style="font-size:12px;color:var(--text3);">'+(a.fechaArchivado||'—')+'</td>'
+      +'<td><button class="btn btn-green btn-sm" onclick="restaurarVendido(\''+idx+'\')" title="Restaurar al inventario">♻️ Restaurar</button></td>'
       +'</tr>';
   }).join('');
 }
@@ -3680,8 +4018,6 @@ window.vaciarVendidos = async function(){
 })();
 
 </script>
-
-
 
 </body>
 </html>
