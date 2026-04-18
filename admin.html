@@ -335,25 +335,47 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="section-title">Ganancias</div>
     <div class="section-sub" id="dash-subtitle">Cargando…</div>
   </div>
-  <div class="filter-bar">
-    <label>Periodo:</label>
-    <input type="date" class="input" id="filter-from" style="width:140px;" onchange="applyFilter()">
-    <span style="color:var(--text3);font-size:12px;">→</span>
-    <input type="date" class="input" id="filter-to" style="width:140px;" onchange="applyFilter()">
-    <button class="btn btn-outline btn-sm" onclick="resetFilter()">Hoy</button>
-    <button class="btn btn-outline btn-sm" onclick="filterWeek()">Semana</button>
-    <button class="btn btn-outline btn-sm" onclick="filterMonth()">Mes</button>
-    <button class="btn btn-outline btn-sm" onclick="filterYear()">Año</button>
-    <label>Caja:</label>
-    <select class="select" id="filter-caja" style="width:130px;" onchange="applyFilter()">
-      <option value="">Ambas cajas</option>
-      <option value="caja1">🔵 Local 1</option>
-      <option value="caja2">🟣 Local 2</option>
-    </select>
+  <!-- ── FILTROS GANANCIAS ── -->
+  <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">📅 Período</label>
+      <select class="select" id="dash-periodo-sel" style="min-width:160px;" onchange="onDashPeriodoChange()">
+        <option value="hoy">Hoy</option>
+        <option value="sem">Esta semana</option>
+        <option value="mes" selected>Este mes</option>
+        <option value="anio">Este año</option>
+        <option value="custom">Fecha específica…</option>
+      </select>
+    </div>
+    <div id="dash-custom-dates" style="display:none;align-items:flex-end;gap:8px;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">Desde</label>
+        <input type="date" class="input" id="filter-from" style="width:138px;" onchange="applyDashFilter()">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">Hasta</label>
+        <input type="date" class="input" id="filter-to" style="width:138px;" onchange="applyDashFilter()">
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">🏪 Local</label>
+      <select class="select" id="filter-caja" style="min-width:140px;" onchange="applyDashFilter()">
+        <option value="">Ambos locales</option>
+        <option value="caja1">🔵 Local 1</option>
+        <option value="caja2">🟣 Local 2</option>
+      </select>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--accent-bg);border-radius:var(--radius-sm);border:1px solid rgba(201,168,76,0.25);">
+      <span style="font-size:14px;">📊</span>
+      <div>
+        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">Mostrando</div>
+        <div style="font-size:12px;font-weight:700;color:var(--gold-dark);" id="dash-period-label-text">Este mes</div>
+      </div>
+    </div>
   </div>
 
   <!-- GENERAL TABS -->
-  <div class="tab-bar">
+  <div class="tab-bar" style="margin-bottom:16px;">
     <button class="tab-btn active" onclick="switchDashTab('general',this)">📊 General</button>
     <button class="tab-btn" onclick="switchDashTab('local1',this)">🔵 Local 1</button>
     <button class="tab-btn" onclick="switchDashTab('local2',this)">🟣 Local 2</button>
@@ -361,25 +383,14 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
   <!-- GENERAL -->
   <div id="dash-general">
-    <!-- Period selector pills -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-      <span style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Ver:</span>
-      <button class="btn btn-primary btn-sm" id="dash-period-hoy" onclick="setDashPeriod('hoy',this)">Hoy</button>
-      <button class="btn btn-outline btn-sm" id="dash-period-sem" onclick="setDashPeriod('sem',this)">Esta semana</button>
-      <button class="btn btn-outline btn-sm" id="dash-period-mes" onclick="setDashPeriod('mes',this)">Este mes</button>
-      <button class="btn btn-outline btn-sm" id="dash-period-anio" onclick="setDashPeriod('anio',this)">Este año</button>
-      <button class="btn btn-outline btn-sm" id="dash-period-custom" onclick="setDashPeriod('custom',this)">Fecha específica</button>
-    </div>
-    <!-- Hidden period label -->
-    <div id="dash-period-label" style="font-size:12px;color:var(--text3);margin-bottom:14px;padding:7px 12px;background:var(--accent-bg);border-radius:var(--radius-sm);border-left:3px solid var(--gold);display:inline-block;">📅 Mostrando: <strong id="dash-period-label-text">Hoy</strong></div>
-    <!-- Single period stat cards (show selected period only) -->
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label" id="sg-period-label">Ingresos Hoy</div><div class="stat-value" id="sg-period-val">$0</div><div class="stat-change" id="sg-period-n">0 ventas</div></div>
+    <!-- Stats for selected period -->
+    <div class="stats-grid" style="margin-bottom:16px;">
+      <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label" id="sg-period-label">Ingresos</div><div class="stat-value" id="sg-period-val">$0</div><div class="stat-change" id="sg-period-n">0 ventas</div></div>
       <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos</div><div class="stat-value" id="sg-gastos">$0</div><div class="stat-change" id="sg-gastos-sub">del período</div></div>
       <div class="stat-card orange"><div class="stat-icon">👤</div><div class="stat-label">Salarios</div><div class="stat-value" id="sg-salarios">$0</div><div class="stat-change">empleados activos</div></div>
       <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="sg-neta">$0</div><div class="stat-change">(venta − costo) − gastos − sal.</div></div>
     </div>
-    <!-- Hidden IDs kept for JS compatibility -->
+    <!-- Hidden compat IDs -->
     <span id="sg-hoy" style="display:none;"></span><span id="sg-hoy-n" style="display:none;"></span>
     <span id="sg-sem" style="display:none;"></span><span id="sg-sem-n" style="display:none;"></span>
     <span id="sg-mes" style="display:none;"></span><span id="sg-mes-n" style="display:none;"></span>
@@ -554,7 +565,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
       <div class="module-tabs">
   <button class="module-tab active" data-sec="historial" onclick="showSection('historial',this)">📋 Historial</button>
   <button class="module-tab " data-sec="gastos" onclick="showSection('gastos',this)">💸 Gastos</button>
-  <button class="module-tab " data-sec="vendidos" onclick="showSection('vendidos',this)">📦 Vendidos</button>
 </div>
       <div class="module-content">
 <div class="section active" id="sec-historial">
@@ -633,63 +643,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
   <div class="table-wrap card" style="padding:0;"><table><thead><tr><th>Descripción</th><th>Local</th><th>Monto</th><th>Fecha</th><th>Acciones</th></tr></thead><tbody id="gastos-body"></tbody></table></div>
 </div>
-<div class="section" id="sec-vendidos">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-    <div>
-      <div class="section-title">Dispositivos vendidos</div>
-      <div class="section-sub">Agotaron stock — archivados automáticamente. Puedes restaurarlos al inventario.</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn btn-green btn-sm" onclick="restaurarTodosVendidos()">♻️ Restaurar todos</button>
-      <button class="btn btn-danger btn-sm" onclick="vaciarVendidos()">🗑 Vaciar archivo</button>
-    </div>
-  </div>
 
-  <!-- Tarjetas resumen -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
-    <div class="stat-card green">
-      <div class="stat-icon">✅</div>
-      <div class="stat-label">Total archivados</div>
-      <div class="stat-value" id="vd-total">0</div>
-      <div class="stat-change">dispositivos agotados</div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-icon">💵</div>
-      <div class="stat-label">Ingresos generados</div>
-      <div class="stat-value" id="vd-ingresos">$0</div>
-      <div class="stat-change">precio de venta total</div>
-    </div>
-    <div class="stat-card purple">
-      <div class="stat-icon">📈</div>
-      <div class="stat-label">Ganancia generada</div>
-      <div class="stat-value" id="vd-ganancia">$0</div>
-      <div class="stat-change">precio − costo total</div>
-    </div>
-  </div>
-
-  <!-- Tabla -->
-  <div class="table-wrap card" style="padding:0;">
-    <table>
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Variante</th>
-          <th>Precio vendido</th>
-          <th>Costo</th>
-          <th>Ganancia</th>
-          <th>Categoría</th>
-          <th>Fecha archivado</th>
-          <th>Restaurar</th>
-        </tr>
-      </thead>
-      <tbody id="vendidos-body">
-        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">
-          Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0
-        </td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
 </div>
     </div>
 
@@ -699,6 +653,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   <button class="module-tab active" data-sec="productos" onclick="showSection('productos',this)">📱 Productos</button>
   <button class="module-tab " data-sec="otros" onclick="showSection('otros',this)">🛒 Accesorios</button>
   <button class="module-tab " data-sec="costo-detalle" onclick="showSection('costo-detalle',this)">💎 Análisis</button>
+  <button class="module-tab " data-sec="vendidos" onclick="showSection('vendidos',this)">📦 Vendidos</button>
 </div>
       <div class="module-content">
 <div class="section active" id="sec-productos">
@@ -1029,6 +984,63 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     </div>
   </div>
 </div>
+<div class="section" id="sec-vendidos">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div class="section-title">Dispositivos vendidos</div>
+      <div class="section-sub">Agotaron stock — archivados automáticamente. Puedes restaurarlos al inventario.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-green btn-sm" onclick="restaurarTodosVendidos()">♻️ Restaurar todos</button>
+      <button class="btn btn-danger btn-sm" onclick="vaciarVendidos()">🗑 Vaciar archivo</button>
+    </div>
+  </div>
+
+  <!-- Tarjetas resumen -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card green">
+      <div class="stat-icon">✅</div>
+      <div class="stat-label">Total archivados</div>
+      <div class="stat-value" id="vd-total">0</div>
+      <div class="stat-change">dispositivos agotados</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">💵</div>
+      <div class="stat-label">Ingresos generados</div>
+      <div class="stat-value" id="vd-ingresos">$0</div>
+      <div class="stat-change">precio de venta total</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-icon">📈</div>
+      <div class="stat-label">Ganancia generada</div>
+      <div class="stat-value" id="vd-ganancia">$0</div>
+      <div class="stat-change">precio − costo total</div>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-wrap card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Variante</th>
+          <th>Precio vendido</th>
+          <th>Costo</th>
+          <th>Ganancia</th>
+          <th>Categoría</th>
+          <th>Fecha archivado</th>
+          <th>Restaurar</th>
+        </tr>
+      </thead>
+      <tbody id="vendidos-body">
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3);">
+          Ningún producto agotado aún — aparecerán aquí cuando el stock llegue a 0
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 </div>
     </div>
 
@@ -1347,7 +1359,7 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
   </div><!-- /main -->
 </div><!-- /admin-app -->
-
+git pushgit 
 
 <!-- VENTA MODAL -->
 <div class="modal-overlay" id="venta-modal">
@@ -1513,7 +1525,15 @@ let productRowCount=0;
 
 // ─── INIT ───
 async function initAdmin(){
-  document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  (function updateTopbarClock(){
+    const el=document.getElementById('topbar-date');
+    if(!el)return;
+    const now=new Date();
+    const dateStr=now.toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    const timeStr=now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',hour12:true});
+    el.textContent=dateStr+' · '+timeStr;
+    setTimeout(updateTopbarClock,30000);
+  })();
   try {
     const snap=await getDoc(storeRef);
     if(snap.exists()) store={...defaultStore,...snap.data()};
@@ -1582,7 +1602,7 @@ function renderAll(){
 const sectionTitles={dashboard:'Ganancias',ventas:'Nueva venta',historial:'Historial',vendidos:'Dispositivos vendidos',productos:'Productos',otros:'Otros productos',clientes:'Clientes CRM',empleados:'Empleados',proveedores:'Proveedores',gastos:'Gastos',ajustes:'Configuración',eventos:'Eventos',video:'Video'};
 window.showSection=function(id,el){
   // Map section to module
-  const sectionToModule={'dashboard':'dashboard','ventas':'pos','historial':'finanzas','gastos':'finanzas','vendidos':'finanzas','productos':'inventario','otros':'inventario','costo-detalle':'inventario','clientes':'clientes','proveedores':'clientes','empleados':'clientes','ajustes':'config','eventos':'config','video':'config'};
+  const sectionToModule={'dashboard':'dashboard','ventas':'pos','historial':'finanzas','gastos':'finanzas','vendidos':'inventario','productos':'inventario','otros':'inventario','costo-detalle':'inventario','clientes':'clientes','proveedores':'clientes','empleados':'clientes','ajustes':'config','eventos':'config','video':'config'};
   const moduleId = sectionToModule[id]||'dashboard';
   // Activate module
   document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));
@@ -1646,13 +1666,25 @@ function renderDashboard(){
   const filterTo=document.getElementById('filter-to')?.value;
   const filterCaja=document.getElementById('filter-caja')?.value||'';
 
+  // Build period dates from dropdown
+  const dashPeriod=(document.getElementById('dash-periodo-sel')?.value)||'mes';
+  let periodFrom=null, periodTo=null;
+  if(dashPeriod==='hoy'){ periodFrom=new Date(hoyStr); }
+  else if(dashPeriod==='sem'){ periodFrom=lunes; }
+  else if(dashPeriod==='mes'){ periodFrom=mesStart; }
+  else if(dashPeriod==='anio'){ periodFrom=anioStart; }
+  else if(dashPeriod==='custom'){
+    if(filterFrom) periodFrom=new Date(filterFrom);
+    if(filterTo) periodTo=new Date(filterTo+'T23:59:59');
+  }
+
   function filterV(all){
     return all.filter(v=>{
       if(!v.fecha) return false;
-      if(v.estado==='cancelada'||v.estado==='reembolsada') return false; // exclude cancelled
+      if(v.estado==='cancelada'||v.estado==='reembolsada') return false;
       const d=v.fecha.toDate?v.fecha.toDate():new Date(v.fecha);
-      if(filterFrom && d<new Date(filterFrom)) return false;
-      if(filterTo && d>new Date(filterTo+'T23:59:59')) return false;
+      if(periodFrom && d<periodFrom) return false;
+      if(periodTo && d>periodTo) return false;
       if(filterCaja && v.caja!==filterCaja) return false;
       return true;
     });
@@ -3746,21 +3778,44 @@ window.showSection = function(id, el){
 
 // ─── DASH PERIOD SELECTOR ───
 let currentDashPeriod = 'hoy';
-window.setDashPeriod = function(period, el) {
-  currentDashPeriod = period;
-  document.querySelectorAll('[id^="dash-period-"]').forEach(b => {
-    b.classList.remove('btn-primary');
-    b.classList.add('btn-outline');
-  });
-  if(el){ el.classList.remove('btn-outline'); el.classList.add('btn-primary'); }
-  // If custom, set filter-from/to to today as default and show date filters
+// ── DASHBOARD DROPDOWN FILTER SYSTEM ──
+window.onDashPeriodoChange = function(){
+  const sel = document.getElementById('dash-periodo-sel');
+  const period = sel?.value || 'mes';
+  const customDiv = document.getElementById('dash-custom-dates');
+  if(customDiv) customDiv.style.display = (period === 'custom') ? 'flex' : 'none';
   if(period === 'custom'){
     const ff=document.getElementById('filter-from');
     const ft=document.getElementById('filter-to');
-    if(ff&&!ff.value) ff.value=todayDate();
-    if(ft&&!ft.value) ft.value=todayDate();
+    const today=todayDate();
+    if(ff&&!ff.value) ff.value=today;
+    if(ft&&!ft.value) ft.value=today;
   }
-  renderDashboard();
+  applyDashFilter();
+};
+window.applyDashFilter = function(){ renderDashboard(); };
+// Legacy compat
+window.applyFilter = window.applyDashFilter;
+window.resetFilter = function(){ 
+  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='hoy';
+  onDashPeriodoChange();
+};
+window.filterWeek = function(){ 
+  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='sem';
+  onDashPeriodoChange();
+};
+window.filterMonth = function(){ 
+  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='mes';
+  onDashPeriodoChange();
+};
+window.filterYear = function(){ 
+  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='anio';
+  onDashPeriodoChange();
+};
+// Legacy pill buttons (kept for compat)
+window.setDashPeriod = function(period, el) {
+  const s=document.getElementById('dash-periodo-sel'); if(s) s.value=period;
+  onDashPeriodoChange();
 };
 
 // Override renderDashboard stats to use period selector
@@ -3771,27 +3826,26 @@ function updatePeriodStats(){
   const lunes=new Date(now); lunes.setDate(now.getDate()-now.getDay()+1); lunes.setHours(0,0,0,0);
   const mesStart=new Date(now.getFullYear(),now.getMonth(),1);
   const anioStart=new Date(now.getFullYear(),0,1);
-  const period=currentDashPeriod||'hoy';
+  // Read from dropdown selector
+  const period=(document.getElementById('dash-periodo-sel')?.value)||'mes';
   
-  let fromDate, labelText, labelShort;
-  if(period==='hoy'){ fromDate=new Date(hoyStr); labelText='Hoy'; labelShort='Ingresos Hoy'; }
-  else if(period==='sem'){ fromDate=lunes; labelText='Esta semana'; labelShort='Esta Semana'; }
-  else if(period==='mes'){ fromDate=mesStart; labelText='Este mes'; labelShort='Este Mes'; }
-  else if(period==='anio'){ fromDate=anioStart; labelText='Este año'; labelShort='Este Año'; }
+  let fromDate, toDate=null, labelText, labelShort;
+  if(period==='hoy'){ fromDate=new Date(hoyStr); labelText='Hoy'; labelShort='Ingresos de hoy'; }
+  else if(period==='sem'){ fromDate=lunes; labelText='Esta semana'; labelShort='Esta semana'; }
+  else if(period==='mes'){ fromDate=mesStart; labelText='Este mes'; labelShort='Este mes'; }
+  else if(period==='anio'){ fromDate=anioStart; labelText='Este año'; labelShort='Este año'; }
   else { 
     const ff=document.getElementById('filter-from')?.value||hoyStr;
     const ft=document.getElementById('filter-to')?.value||hoyStr;
-    fromDate=new Date(ff); labelText=ff+(ft!==ff?' → '+ft:''); labelShort='Período selec.';
+    fromDate=new Date(ff); toDate=new Date(ft+'T23:59:59');
+    labelText=ff===ft?ff:ff+' → '+ft; labelShort='Período: '+ff.slice(5);
   }
 
   const periodVentas=allVentas.filter(v=>{
     if(v.estado==='cancelada'||v.estado==='reembolsada')return false;
     const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);
     if(d<fromDate)return false;
-    if(period==='custom'){
-      const ft=document.getElementById('filter-to')?.value;
-      if(ft&&d>new Date(ft+'T23:59:59'))return false;
-    }
+    if(toDate&&d>toDate)return false;
     return true;
   });
   const periodTotal=periodVentas.reduce((s,v)=>s+(v.total||0),0);
@@ -3802,7 +3856,7 @@ function updatePeriodStats(){
   const pll=document.getElementById('dash-period-label-text');
   if(lbl) lbl.textContent=labelShort;
   if(val) val.textContent=fp(periodTotal);
-  if(n) n.textContent=periodVentas.length+' ventas';
+  if(n) n.textContent=periodVentas.length+(periodVentas.length===1?' venta':' ventas');
   if(pll) pll.textContent=labelText;
 }
 
