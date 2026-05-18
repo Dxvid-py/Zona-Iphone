@@ -247,6 +247,9 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 /* RESPONSIVE */
 @media(max-width:900px){.grid-2,.grid-60-40{grid-template-columns:1fr;}.grid-3,.grid-4{grid-template-columns:1fr 1fr;}.form-grid,.form-grid-3{grid-template-columns:1fr;}.product-row{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.content{padding:14px;}.stats-grid{grid-template-columns:1fr 1fr;}.grid-3,.grid-4{grid-template-columns:1fr;}.topbar{padding:0 14px;}}
+.dash-pill{padding:7px 18px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:var(--font-body);}
+.dash-pill:hover{border-color:var(--gold);color:var(--gold-dark);}
+.dash-pill.active{background:var(--text);color:white;border-color:var(--text);}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -331,132 +334,166 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
     <div class="module active" id="module-dashboard">
       <div class="module-content">
         <div class="section active" id="sec-dashboard">
-  <div class="section-header">
+
+  <!-- ══ HEADER ══ -->
+  <div style="margin-bottom:24px;">
     <div class="section-title">Ganancias</div>
-    <div class="section-sub" id="dash-subtitle">Cargando…</div>
+    <div class="section-sub">Selecciona un período para ver exactamente lo que quieres</div>
   </div>
-  <!-- ── FILTROS GANANCIAS ── -->
-  <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);">
-    <div style="display:flex;flex-direction:column;gap:4px;">
-      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">📅 Período</label>
-      <select class="select" id="dash-periodo-sel" style="min-width:160px;" onchange="onDashPeriodoChange()">
-        <option value="hoy">Hoy</option>
-        <option value="sem">Esta semana</option>
-        <option value="mes" selected>Este mes</option>
-        <option value="anio">Este año</option>
-        <option value="custom">Fecha específica…</option>
-      </select>
+
+  <!-- ══ SELECTOR DE PERÍODO — limpio, un solo control ══ -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;box-shadow:var(--shadow);">
+    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">📅 ¿Qué período quieres ver?</div>
+
+    <!-- Pills de período -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="dash-pill active" id="pill-hoy" onclick="selectPeriod('hoy',this)">Hoy</button>
+      <button class="dash-pill" id="pill-sem" onclick="selectPeriod('sem',this)">Esta semana</button>
+      <button class="dash-pill" id="pill-mes" onclick="selectPeriod('mes',this)">Este mes</button>
+      <button class="dash-pill" id="pill-anio" onclick="selectPeriod('anio',this)">Este año</button>
+      <button class="dash-pill" id="pill-custom" onclick="selectPeriod('custom',this)">📆 Fecha específica</button>
     </div>
-    <div id="dash-custom-dates" style="display:none;align-items:flex-end;gap:8px;">
+
+    <!-- Date pickers — solo si custom -->
+    <div id="dash-custom-wrap" style="display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
       <div style="display:flex;flex-direction:column;gap:4px;">
         <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">Desde</label>
-        <input type="date" class="input" id="filter-from" style="width:138px;" onchange="applyDashFilter()">
+        <input type="date" class="input" id="filter-from" onchange="applyDashFilter()" style="width:145px;">
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
         <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">Hasta</label>
-        <input type="date" class="input" id="filter-to" style="width:138px;" onchange="applyDashFilter()">
+        <input type="date" class="input" id="filter-to" onchange="applyDashFilter()" style="width:145px;">
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:4px;">
-      <label style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">🏪 Local</label>
-      <select class="select" id="filter-caja" style="min-width:140px;" onchange="applyDashFilter()">
+
+    <!-- Filtro local (opcional, discreto) -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:11px;color:var(--text3);">Filtrar por local:</span>
+      <select class="select" id="filter-caja" style="width:140px;font-size:12px;padding:6px 10px;" onchange="applyDashFilter()">
         <option value="">Ambos locales</option>
         <option value="caja1">🔵 Local 1</option>
         <option value="caja2">🟣 Local 2</option>
       </select>
-    </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--accent-bg);border-radius:var(--radius-sm);border:1px solid rgba(201,168,76,0.25);">
-      <span style="font-size:14px;">📊</span>
-      <div>
-        <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;">Mostrando</div>
-        <div style="font-size:12px;font-weight:700;color:var(--gold-dark);" id="dash-period-label-text">Este mes</div>
+      <!-- Chip mostrando período activo -->
+      <div style="margin-left:auto;display:inline-flex;align-items:center;gap:7px;padding:5px 14px;background:var(--accent-bg);border:1px solid rgba(201,168,76,0.3);border-radius:20px;">
+        <span style="font-size:12px;">📊</span>
+        <span style="font-size:12px;font-weight:700;color:var(--gold-dark);" id="dash-period-label-text">Hoy</span>
       </div>
     </div>
   </div>
 
-  <!-- GENERAL TABS -->
-  <div class="tab-bar" style="margin-bottom:16px;">
-    <button class="tab-btn active" onclick="switchDashTab('general',this)">📊 General</button>
-    <button class="tab-btn" onclick="switchDashTab('local1',this)">🔵 Local 1</button>
-    <button class="tab-btn" onclick="switchDashTab('local2',this)">🟣 Local 2</button>
+  <!-- ══ 3 TARJETAS PRINCIPALES ══ -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px;">
+
+    <!-- Inversión en productos -->
+    <div class="stat-card blue" style="padding:22px 24px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">Inversión en productos</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Costo de lo que vendiste</div>
+        </div>
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:18px;">📦</div>
+      </div>
+      <div style="font-family:var(--font-display);font-size:30px;color:var(--text);line-height:1;margin-bottom:6px;" id="dash-costo-total">$0</div>
+      <div style="font-size:11px;color:var(--text3);" id="dash-costo-n">0 productos vendidos</div>
+    </div>
+
+    <!-- Ingresos totales -->
+    <div class="stat-card" style="padding:22px 24px;border-top-color:var(--gold);">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">Ingresos totales</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Lo que entraste en caja</div>
+        </div>
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:18px;">💵</div>
+      </div>
+      <div style="font-family:var(--font-display);font-size:30px;color:var(--text);line-height:1;margin-bottom:6px;" id="dash-ingresos">$0</div>
+      <div style="font-size:11px;color:var(--text3);" id="dash-ventas-n">0 ventas</div>
+    </div>
+
+    <!-- Ganancia neta -->
+    <div class="stat-card" id="dash-neta-card" style="padding:22px 24px;border-top-color:var(--green);">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);">Ganancia neta</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;" id="dash-neta-sub">ingresos − costo − gastos</div>
+        </div>
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:18px;" id="dash-neta-icon">💎</div>
+      </div>
+      <div style="font-family:var(--font-display);font-size:30px;line-height:1;margin-bottom:6px;" id="sg-neta">$0</div>
+      <div style="font-size:11px;color:var(--text3);" id="dash-neta-detail">ganancia bruta − gastos − salarios</div>
+    </div>
+
   </div>
 
-  <!-- GENERAL -->
-  <div id="dash-general">
-    <!-- Stats for selected period -->
-    <div class="stats-grid" style="margin-bottom:16px;">
-      <div class="stat-card"><div class="stat-icon">💵</div><div class="stat-label" id="sg-period-label">Ingresos</div><div class="stat-value" id="sg-period-val">$0</div><div class="stat-change" id="sg-period-n">0 ventas</div></div>
-      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos</div><div class="stat-value" id="sg-gastos">$0</div><div class="stat-change" id="sg-gastos-sub">del período</div></div>
-      <div class="stat-card orange"><div class="stat-icon">👤</div><div class="stat-label">Salarios</div><div class="stat-value" id="sg-salarios">$0</div><div class="stat-change">empleados activos</div></div>
-      <div class="stat-card purple"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="sg-neta">$0</div><div class="stat-change">(venta − costo) − gastos − sal.</div></div>
+  <!-- ══ DESGLOSE (colapsable) ══ -->
+  <div id="dash-desglose" style="margin-bottom:24px;display:none;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      <div style="padding:14px 18px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);">Desglose del período</div>
+      <div id="resumen-financiero" style="padding:0;"></div>
     </div>
-    <!-- Hidden compat IDs -->
-    <span id="sg-hoy" style="display:none;"></span><span id="sg-hoy-n" style="display:none;"></span>
-    <span id="sg-sem" style="display:none;"></span><span id="sg-sem-n" style="display:none;"></span>
-    <span id="sg-mes" style="display:none;"></span><span id="sg-mes-n" style="display:none;"></span>
-    <span id="sg-anio" style="display:none;"></span><span id="sg-anio-n" style="display:none;"></span>
-    <div class="grid-3" style="margin-bottom:18px;">
-      <div class="card"><div class="card-title">💵 Contado</div><div style="font-family:var(--font-display);font-size:20px;color:var(--green);" id="sg-contado">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-contado-n">0 ventas</div></div>
-      <div class="card"><div class="card-title">💳 Crédito</div><div style="font-family:var(--font-display);font-size:20px;color:var(--blue);" id="sg-credito">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-credito-n">0 ventas</div></div>
-      <div class="card"><div class="card-title">📲 Celular como pago</div><div style="font-family:var(--font-display);font-size:20px;color:var(--orange);" id="sg-tradein">$0</div><div style="font-size:11px;color:var(--text3);" id="sg-tradein-n">0 ventas</div></div>
-    </div>
+  </div>
+  <button onclick="toggleDesglose()" id="btn-desglose" style="display:flex;align-items:center;gap:6px;background:none;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;margin-bottom:24px;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold-dark)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">
+    <span id="btn-desglose-icon">▼</span> Ver desglose completo
+  </button>
 
-    <!-- RESUMEN FINANCIERO DETALLADO -->
-    <div class="card" style="margin-bottom:18px;">
-      <div class="card-title" style="margin-bottom:12px;">📊 Resumen financiero del mes</div>
-      <div id="resumen-financiero" style="display:grid;gap:8px;">
-        <!-- populated by renderDashboard -->
+  <!-- ══ GRÁFICA VENTAS ══ -->
+  <div class="grid-60-40" style="margin-bottom:24px;">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div class="card-title" style="margin:0;">Ventas por día</div>
+        <div style="font-size:11px;color:var(--text3);" id="chart-period-label">Últimos 30 días</div>
       </div>
-    </div>
-    <div class="grid-60-40">
-      <div class="card"><div class="card-title" style="margin-bottom:14px;">Ventas por día (últimos 30 días)</div><div class="chart-wrap"><canvas id="chart-general"></canvas></div></div>
-      <div class="card"><div class="card-title" style="margin-bottom:14px;">Productos más vendidos</div><div class="chart-wrap"><canvas id="chart-prods-g"></canvas></div></div>
-    </div>
-    <div class="card" style="margin-bottom:18px;">
-      <div class="card-title">Detalle productos vendidos</div>
-      <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Cant.</th><th>Total</th><th>%</th></tr></thead><tbody id="prod-detail-g"></tbody></table></div>
+      <div class="chart-wrap"><canvas id="chart-general"></canvas></div>
     </div>
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div class="card-title" style="margin:0;">Ventas recientes</div><button class="btn btn-outline btn-sm" onclick="showSection('historial',document.querySelectorAll('.nav-item')[2])">Ver todo →</button></div>
-      <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Caja</th><th>Tipo</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="recent-sales"></tbody></table></div>
+      <div class="card-title" style="margin-bottom:14px;">Productos más vendidos</div>
+      <div class="chart-wrap"><canvas id="chart-prods-g"></canvas></div>
     </div>
   </div>
 
-  <!-- LOCAL 1 -->
-  <div id="dash-local1" style="display:none;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="width:14px;height:14px;border-radius:50%;background:var(--blue);display:inline-block;"></span><span style="font-weight:700;color:var(--blue);">LOCAL 1 — CAJA 1</span></div>
-    <div class="stats-grid">
-      <div class="stat-card blue"><div class="stat-icon">💵</div><div class="stat-label">Ingresos Hoy</div><div class="stat-value" id="s1-hoy">$0</div><div class="stat-change" id="s1-hoy-n">0 ventas</div></div>
-      <div class="stat-card blue"><div class="stat-icon">📅</div><div class="stat-label">Esta Semana</div><div class="stat-value" id="s1-sem">$0</div><div class="stat-change" id="s1-sem-n">0 ventas</div></div>
-      <div class="stat-card blue"><div class="stat-icon">📆</div><div class="stat-label">Este Mes</div><div class="stat-value" id="s1-mes">$0</div><div class="stat-change" id="s1-mes-n">0 ventas</div></div>
-      <div class="stat-card blue"><div class="stat-icon">🏆</div><div class="stat-label">Este Año</div><div class="stat-value" id="s1-anio">$0</div><div class="stat-change" id="s1-anio-n">0 ventas</div></div>
-      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos</div><div class="stat-value" id="s1-gastos">$0</div><div class="stat-change">Local 1</div></div>
-      <div class="stat-card green"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="s1-neta">$0</div><div class="stat-change">ingresos − gastos</div></div>
+  <!-- ══ VENTAS RECIENTES ══ -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">Ventas del período</div>
+      <button class="btn btn-outline btn-sm" onclick="showSection('historial',null)">Ver historial →</button>
     </div>
-    <div class="grid-60-40">
-      <div class="card"><div class="card-title" style="margin-bottom:14px;">Ventas Local 1</div><div class="chart-wrap"><canvas id="chart-l1"></canvas></div></div>
-      <div class="card"><div class="card-title" style="margin-bottom:14px;">Productos Local 1</div><div class="chart-wrap"><canvas id="chart-prods-l1"></canvas></div></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Cliente</th><th>Productos</th><th>Tipo pago</th><th>Total</th><th>Fecha</th></tr></thead>
+      <tbody id="recent-sales"></tbody></table>
     </div>
-    <div class="card"><div class="card-title">Ventas recientes — Local 1</div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="recent-l1"></tbody></table></div></div>
   </div>
 
-  <!-- LOCAL 2 -->
-  <div id="dash-local2" style="display:none;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="width:14px;height:14px;border-radius:50%;background:var(--purple);display:inline-block;"></span><span style="font-weight:700;color:var(--purple);">LOCAL 2 — CAJA 2</span></div>
-    <div class="stats-grid">
-      <div class="stat-card purple"><div class="stat-icon">💵</div><div class="stat-label">Ingresos Hoy</div><div class="stat-value" id="s2-hoy">$0</div><div class="stat-change" id="s2-hoy-n">0 ventas</div></div>
-      <div class="stat-card purple"><div class="stat-icon">📅</div><div class="stat-label">Esta Semana</div><div class="stat-value" id="s2-sem">$0</div><div class="stat-change" id="s2-sem-n">0 ventas</div></div>
-      <div class="stat-card purple"><div class="stat-icon">📆</div><div class="stat-label">Este Mes</div><div class="stat-value" id="s2-mes">$0</div><div class="stat-change" id="s2-mes-n">0 ventas</div></div>
-      <div class="stat-card purple"><div class="stat-icon">🏆</div><div class="stat-label">Este Año</div><div class="stat-value" id="s2-anio">$0</div><div class="stat-change" id="s2-anio-n">0 ventas</div></div>
-      <div class="stat-card red"><div class="stat-icon">💸</div><div class="stat-label">Gastos</div><div class="stat-value" id="s2-gastos">$0</div><div class="stat-change">Local 2</div></div>
-      <div class="stat-card green"><div class="stat-icon">📈</div><div class="stat-label">Ganancia Neta</div><div class="stat-value" id="s2-neta">$0</div><div class="stat-change">ingresos − gastos</div></div>
-    </div>
-    <div class="grid-60-40">
-      <div class="card"><div class="card-title" style="margin-bottom:14px;">Ventas Local 2</div><div class="chart-wrap"><canvas id="chart-l2"></canvas></div></div>
-      <div class="card"><div class="card-title" style="margin-bottom:14px;">Productos Local 2</div><div class="chart-wrap"><canvas id="chart-prods-l2"></canvas></div></div>
-    </div>
-    <div class="card"><div class="card-title">Ventas recientes — Local 2</div><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Total</th><th>Fecha</th></tr></thead><tbody id="recent-l2"></tbody></table></div></div>
-  </div>
+  <!-- Hidden compat IDs (needed by other parts of JS) -->
+  <span id="sg-hoy" style="display:none;"></span><span id="sg-hoy-n" style="display:none;"></span>
+  <span id="sg-sem" style="display:none;"></span><span id="sg-sem-n" style="display:none;"></span>
+  <span id="sg-mes" style="display:none;"></span><span id="sg-mes-n" style="display:none;"></span>
+  <span id="sg-anio" style="display:none;"></span><span id="sg-anio-n" style="display:none;"></span>
+  <span id="sg-gastos" style="display:none;"></span><span id="sg-salarios" style="display:none;"></span>
+  <span id="sg-period-val" style="display:none;"></span><span id="sg-period-n" style="display:none;"></span>
+  <span id="sg-period-label" style="display:none;"></span>
+  <span id="sg-ganancia-bruta" style="display:none;"></span>
+  <span id="sg-contado" style="display:none;"></span><span id="sg-contado-n" style="display:none;"></span>
+  <span id="sg-credito" style="display:none;"></span><span id="sg-credito-n" style="display:none;"></span>
+  <span id="sg-tradein" style="display:none;"></span><span id="sg-tradein-n" style="display:none;"></span>
+  <span id="dash-subtitle" style="display:none;"></span>
+  <!-- Local 1 / Local 2 compat IDs -->
+  <span id="s1-hoy" style="display:none;"></span><span id="s1-hoy-n" style="display:none;"></span>
+  <span id="s1-sem" style="display:none;"></span><span id="s1-sem-n" style="display:none;"></span>
+  <span id="s1-mes" style="display:none;"></span><span id="s1-mes-n" style="display:none;"></span>
+  <span id="s1-anio" style="display:none;"></span><span id="s1-anio-n" style="display:none;"></span>
+  <span id="s1-gastos" style="display:none;"></span><span id="s1-neta" style="display:none;"></span>
+  <span id="s2-hoy" style="display:none;"></span><span id="s2-hoy-n" style="display:none;"></span>
+  <span id="s2-sem" style="display:none;"></span><span id="s2-sem-n" style="display:none;"></span>
+  <span id="s2-mes" style="display:none;"></span><span id="s2-mes-n" style="display:none;"></span>
+  <span id="s2-anio" style="display:none;"></span><span id="s2-anio-n" style="display:none;"></span>
+  <span id="s2-gastos" style="display:none;"></span><span id="s2-neta" style="display:none;"></span>
+  <span id="recent-l1" style="display:none;"></span><span id="recent-l2" style="display:none;"></span>
+  <span id="prod-detail-g" style="display:none;"></span>
+  <canvas id="chart-l1" style="display:none;"></canvas><canvas id="chart-l2" style="display:none;"></canvas>
+  <canvas id="chart-prods-l1" style="display:none;"></canvas><canvas id="chart-prods-l2" style="display:none;"></canvas>
+  <!-- Removed: dash-general, dash-local1, dash-local2 divs -->
+  <span id="dash-period-label-text-old" style="display:none;"></span>
 </div>
       </div>
     </div>
@@ -607,7 +644,15 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
   </div>
 </div>
 <div class="section" id="sec-gastos">
-  <div class="section-header"><div class="section-title">Gastos</div><div class="section-sub">Registro y análisis de egresos por período</div></div>
+  <div class="section-header"><div class="section-title">Gastos operativos</div><div class="section-sub">Arriendo, servicios, transportes, publicidad — lo que cuesta operar el negocio</div></div>
+  <!-- Tip: what goes in gastos -->
+  <div style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;background:var(--blue-bg);border:1px solid rgba(37,99,235,0.2);border-radius:var(--radius);margin-bottom:20px;">
+    <span style="font-size:18px;flex-shrink:0;">💡</span>
+    <div style="font-size:12px;color:var(--blue);line-height:1.6;">
+      <strong>¿Qué registrar aquí?</strong> Solo gastos operativos: arriendo del local, servicios (luz, internet), transportes, publicidad, suministros.<br>
+      <strong>¿Qué NO va aquí?</strong> El costo de compra de productos (iPhones, iPads, etc.) — ese ya se descuenta automáticamente cuando vendes.
+    </div>
+  </div>
   <!-- Resumen gastos por período -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
     <div class="stat-card red"><div class="stat-icon">📅</div><div class="stat-label">Gastos hoy</div><div class="stat-value" id="g-hoy">$0</div><div class="stat-change" id="g-hoy-n">0 registros</div></div>
@@ -1359,8 +1404,6 @@ details[open] summary{border-radius:var(--radius-sm) var(--radius-sm) 0 0;border
 
   </div><!-- /main -->
 </div><!-- /admin-app -->
-git pushgit 
-
 <!-- VENTA MODAL -->
 <div class="modal-overlay" id="venta-modal">
   <div class="modal" style="max-width:620px;">
@@ -1656,229 +1699,238 @@ window.switchDashTab=function(tab,el){
   el.classList.add('active');
 };
 
+// ── PERIOD STATE ──
+let _dashPeriod = 'hoy';
+
+window.selectPeriod = function(period, el){
+  _dashPeriod = period;
+  document.querySelectorAll('.dash-pill').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const customWrap = document.getElementById('dash-custom-wrap');
+  if(customWrap) customWrap.style.display = period==='custom'?'flex':'none';
+  if(period==='custom'){
+    const t=todayDate();
+    const ff=document.getElementById('filter-from');
+    const ft=document.getElementById('filter-to');
+    if(ff&&!ff.value)ff.value=t;
+    if(ft&&!ft.value)ft.value=t;
+  }
+  renderDashboard();
+};
+
+window.applyDashFilter = function(){ renderDashboard(); };
+// Legacy compat
+window.applyFilter = window.applyDashFilter;
+window.onDashPeriodoChange = function(){
+  const v=document.getElementById('dash-periodo-sel')?.value||'hoy';
+  selectPeriod(v, document.getElementById('pill-'+v));
+};
+window.resetFilter=function(){ selectPeriod('hoy',document.getElementById('pill-hoy')); };
+window.filterWeek=function(){ selectPeriod('sem',document.getElementById('pill-sem')); };
+window.filterMonth=function(){ selectPeriod('mes',document.getElementById('pill-mes')); };
+window.filterYear=function(){ selectPeriod('anio',document.getElementById('pill-anio')); };
+window.setDashPeriod=function(p){ selectPeriod(p,document.getElementById('pill-'+p)); };
+window.switchDashTab=function(tab,el){}; // no-op, removed tabs
+
+let _desgloseOpen = false;
+window.toggleDesglose = function(){
+  _desgloseOpen = !_desgloseOpen;
+  const d=document.getElementById('dash-desglose');
+  const btn=document.getElementById('btn-desglose');
+  const icon=document.getElementById('btn-desglose-icon');
+  if(d) d.style.display=_desgloseOpen?'block':'none';
+  if(icon) icon.textContent=_desgloseOpen?'▲':'▼';
+  if(btn) btn.querySelector('span:last-child')?null:null;
+};
+
 function renderDashboard(){
   const now=new Date();
   const hoyStr=now.toISOString().split('T')[0];
   const lunes=new Date(now); lunes.setDate(now.getDate()-now.getDay()+1); lunes.setHours(0,0,0,0);
   const mesStart=new Date(now.getFullYear(),now.getMonth(),1);
   const anioStart=new Date(now.getFullYear(),0,1);
-  const filterFrom=document.getElementById('filter-from')?.value;
-  const filterTo=document.getElementById('filter-to')?.value;
+  const filterFrom=document.getElementById('filter-from')?.value||'';
+  const filterTo=document.getElementById('filter-to')?.value||'';
   const filterCaja=document.getElementById('filter-caja')?.value||'';
+  const period=_dashPeriod||'hoy';
 
-  // Build period dates from dropdown
-  const dashPeriod=(document.getElementById('dash-periodo-sel')?.value)||'mes';
-  let periodFrom=null, periodTo=null;
-  if(dashPeriod==='hoy'){ periodFrom=new Date(hoyStr); }
-  else if(dashPeriod==='sem'){ periodFrom=lunes; }
-  else if(dashPeriod==='mes'){ periodFrom=mesStart; }
-  else if(dashPeriod==='anio'){ periodFrom=anioStart; }
-  else if(dashPeriod==='custom'){
+  // ── Period dates ──
+  let periodFrom=null, periodTo=null, periodLabel='Hoy', chartLabel='Hoy';
+  if(period==='hoy'){
+    periodFrom=new Date(hoyStr); periodLabel='Hoy'; chartLabel='Hoy';
+  } else if(period==='sem'){
+    periodFrom=lunes; periodLabel='Esta semana'; chartLabel='Esta semana';
+  } else if(period==='mes'){
+    periodFrom=mesStart; periodLabel='Este mes'; chartLabel='Este mes';
+  } else if(period==='anio'){
+    periodFrom=anioStart; periodLabel='Este año'; chartLabel='Este año';
+  } else {
     if(filterFrom) periodFrom=new Date(filterFrom);
     if(filterTo) periodTo=new Date(filterTo+'T23:59:59');
+    periodLabel=filterFrom&&filterTo&&filterFrom===filterTo ? filterFrom
+      : (filterFrom&&filterTo ? filterFrom+' → '+filterTo
+      : filterFrom ? 'Desde '+filterFrom : 'Rango personalizado');
+    chartLabel=periodLabel;
   }
 
-  function filterV(all){
-    return all.filter(v=>{
-      if(!v.fecha) return false;
-      if(v.estado==='cancelada'||v.estado==='reembolsada') return false;
-      const d=v.fecha.toDate?v.fecha.toDate():new Date(v.fecha);
-      if(periodFrom && d<periodFrom) return false;
-      if(periodTo && d>periodTo) return false;
-      if(filterCaja && v.caja!==filterCaja) return false;
-      return true;
-    });
-  }
-  const ventas=filterV(allVentas);
-  const v1=ventas.filter(v=>v.caja==='caja1');
-  const v2=ventas.filter(v=>v.caja==='caja2');
+  // Update period label chip
+  const pll=document.getElementById('dash-period-label-text');
+  if(pll) pll.textContent=periodLabel;
+  const cpl=document.getElementById('chart-period-label');
+  if(cpl) cpl.textContent=chartLabel;
 
-  function periodStats(arr, id, nid){
-    const sum=arr.reduce((s,v)=>s+(v.total||0),0);
-    document.getElementById(id).textContent=fp(sum);
-    document.getElementById(nid).textContent=arr.length+' ventas';
-    return sum;
-  }
-  function sumArr(arr){ return arr.reduce((s,v)=>s+(v.total||0),0); }
-
-  // General stats (always from full allVentas for period cards)
-  const sumPeriod=from=>allVentas.filter(v=>{if(v.estado==='cancelada'||v.estado==='reembolsada')return false;const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
-  periodStats(sumPeriod(new Date(hoyStr)),'sg-hoy','sg-hoy-n');
-  periodStats(sumPeriod(lunes),'sg-sem','sg-sem-n');
-  periodStats(sumPeriod(mesStart),'sg-mes','sg-mes-n');
-  periodStats(sumPeriod(anioStart),'sg-anio','sg-anio-n');
-
-  // Gastos del mes
-  const gastosMes=allGastos.filter(g=>{const d=new Date(g.fecha||0);return d>=mesStart;});
-  const totalGastos=gastosMes.reduce((s,g)=>s+(g.monto||0),0);
-
-  // Salarios del mes: sum daily workers (days attended * rate) + monthly workers
-  let totalSalarios=0;
-  const today2=new Date(); const daysInMonth=today2.getDate();
-  allEmpleados.forEach(e=>{
-    if(!e||e.estado==='inactivo') return;
-    if(e.tipoPago==='diario'){
-      // Count attendance days this month
-      const diasAsistidos=(e.asistencia||[]).filter(d=>{
-        const ad=new Date(d); return ad>=mesStart&&ad<=today2;
-      }).length;
-      totalSalarios+=diasAsistidos*(e.monto||0);
-    } else if(e.tipoPago==='mensual'||e.tipoPago==='quincenal'){
-      totalSalarios+=(e.monto||0);
-    }
+  // ── Filter ventas ──
+  const ventas=allVentas.filter(v=>{
+    if(!v.fecha)return false;
+    if(v.estado==='cancelada'||v.estado==='reembolsada')return false;
+    const d=v.fecha.toDate?v.fecha.toDate():new Date(v.fecha);
+    if(periodFrom&&d<periodFrom)return false;
+    if(periodTo&&d>periodTo)return false;
+    if(filterCaja&&v.caja!==filterCaja)return false;
+    return true;
   });
 
-  // ── Ingresos brutos (lo que entró en caja, para referencia) ──
-  let totalIngresos=0;
-  sumPeriod(mesStart).forEach(v=>{
-    if(v.tipoPago==='credito'&&v.datosCredito){
-      const dc=v.datosCredito;
-      const cuotasPagadas=(v.cuotasPagadas||[]).reduce((s,q)=>s+(q.monto||0),0);
-      totalIngresos+=(dc.abono||0)+cuotasPagadas;
-    } else {
-      totalIngresos+=(v.total||0);
-    }
-  });
+  // ── Ingresos totales ──
+  const totalIngresos=ventas.reduce((s,v)=>s+(v.total||0),0);
 
-  // ── GANANCIA REAL por producto: precio_venta - costo_del_producto ──
-  // Ejemplo: vendí iPhone en $1.000.000 que costó $800.000 → gané $200.000
-  let gananciaBruta=0;
+  // ── Costo e inversion: precio_costo × cantidad por cada producto vendido ──
   let costoTotal=0;
-  sumPeriod(mesStart).forEach(v=>{
+  ventas.forEach(v=>{
     (v.productos||[]).forEach(prod=>{
-      const cantidad = Number(prod.cantidad)||1;
-      const precioUnit = Number(prod.precio) || (Number(prod.subtotal)||0)/cantidad;
-
-      // Buscar el costo real del producto en el inventario actual
-      let costoUnit = 0;
-      const invProd = (store.products||[]).find(p=>{
-        // Buscar por nombre exacto o nombre base si tiene variante
-        return p.name===prod.nombre || prod.nombre.startsWith(p.name);
-      });
-      if(invProd){
-        costoUnit = Number(invProd.cost)||0;
-        // Si el producto tiene variantes (128GB, 256GB…), buscar el costo de esa variante
-        if(invProd.storageVariants && invProd.storageVariants.length){
-          const sv = invProd.storageVariants.find(v=>prod.nombre.includes(v.gb));
-          if(sv && sv.costo) costoUnit = Number(sv.costo);
+      const cant=Number(prod.cantidad)||1;
+      const precioUnit=Number(prod.precio)||(Number(prod.subtotal)||0)/cant;
+      let costoUnit=0;
+      const inv=(store.products||[]).find(p=>p.name===prod.nombre||prod.nombre.startsWith(p.name+' ')||prod.nombre===p.name);
+      if(inv){
+        costoUnit=Number(inv.cost)||0;
+        if(inv.storageVariants&&inv.storageVariants.length){
+          const sv=inv.storageVariants.find(sv=>prod.nombre.includes(sv.gb));
+          if(sv&&sv.costo)costoUnit=Number(sv.costo);
         }
       } else {
-        // Producto ya no está en inventario (fue archivado al venderse)
-        // Buscar en vendidosArchive por nombre
-        const arch = (store.vendidosArchive||[]).find(a=>
-          a.nombre===prod.nombre || prod.nombre.startsWith(a.nombre)
-        );
-        if(arch) costoUnit = Number(arch.costo)||0;
+        const arch=(store.vendidosArchive||[]).find(a=>a.nombre===prod.nombre||prod.nombre.startsWith(a.nombre));
+        if(arch)costoUnit=Number(arch.costo)||0;
       }
-
-      const gananciaEsteProducto = (precioUnit - costoUnit) * cantidad;
-      gananciaBruta += gananciaEsteProducto;
-      costoTotal    += costoUnit * cantidad;
+      costoTotal+=costoUnit*cant;
     });
   });
 
-  // Ganancia neta = lo que gané en producto - gastos operativos - salarios
-  const gananciaNeta = gananciaBruta - totalGastos - totalSalarios;
+  const gananciaBruta=totalIngresos-costoTotal;
 
-  document.getElementById('sg-gastos').textContent=fp(totalGastos);
-  if(document.getElementById('sg-salarios')) document.getElementById('sg-salarios').textContent=fp(totalSalarios);
-  document.getElementById('sg-neta').textContent=fp(gananciaNeta);
+  // ── Gastos operativos del período (excl. compra_inventario) ──
+  const gastosP=allGastos.filter(g=>{
+    if(g.tipo==='compra_inventario')return false;
+    const d=new Date(g.fecha||0);
+    if(periodFrom&&d<periodFrom)return false;
+    if(periodTo&&d>periodTo)return false;
+    if(filterCaja&&g.caja!==filterCaja&&g.caja!=='general')return false;
+    return true;
+  });
+  const totalGastos=gastosP.reduce((s,g)=>s+(g.monto||0),0);
 
-  // ── Resumen financiero detallado ──
-  const rfEl=document.getElementById('resumen-financiero');
-  if(rfEl){
-    const row=(label,val,color,icon,sub)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:var(--radius-sm);background:var(--bg2);">
-      <div><span style="font-size:13px;">${icon} ${label}</span>${sub?`<div style="font-size:10px;color:var(--text3);margin-top:1px;">${sub}</div>`:''}</div>
-      <span style="font-family:var(--font-display);font-size:16px;color:${color};">${val}</span>
-    </div>`;
-    rfEl.innerHTML=[
-      row('Ingresos brutos',fp(totalIngresos),'var(--blue)','💵','Total cobrado en ventas del mes'),
-      row('Costo de productos','-'+fp(costoTotal),'var(--text3)','📦','Lo que pagaste por los productos vendidos'),
-      row('Ganancia bruta',fp(gananciaBruta),gananciaBruta>=0?'var(--green)':'var(--red)','📈','Ingresos − costo de productos'),
-      row('Gastos operativos','-'+fp(totalGastos),'var(--red)','💸','Arriendo, servicios, etc.'),
-      row('Salarios empleados','-'+fp(totalSalarios),'var(--orange)','👤','Nómina del mes'),
-      `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:var(--radius-sm);background:var(--text);color:white;margin-top:4px;">
-        <div>
-          <div style="font-size:13px;font-weight:700;">💎 GANANCIA NETA</div>
-          <div style="font-size:10px;opacity:0.55;margin-top:1px;">Lo que realmente ganaste este mes</div>
-        </div>
-        <span style="font-family:var(--font-display);font-size:22px;color:${gananciaNeta>=0?'#4ade80':'#f87171'};">${fp(gananciaNeta)}</span>
-      </div>`,
-    ].join('');
+  // ── Salarios del período ──
+  let totalSalarios=0;
+  allEmpleados.forEach(e=>{
+    if(!e||e.estado==='inactivo')return;
+    if(e.tipoPago==='diario'){
+      const dias=(e.asistencia||[]).filter(d=>{
+        const ad=new Date(d);
+        return(!periodFrom||ad>=periodFrom)&&(!periodTo||ad<=periodTo);
+      }).length;
+      totalSalarios+=dias*(e.monto||0);
+    } else if(periodFrom){
+      // For monthly/quincenal, only count if period spans at least half a month
+      const diffDays=periodTo?(periodTo-periodFrom)/(1000*60*60*24):
+        (now-periodFrom)/(1000*60*60*24);
+      if(diffDays>=14) totalSalarios+=(e.monto||0);
+      else if(diffDays>=7) totalSalarios+=((e.monto||0)/2);
+    }
+  });
+
+  const gananciaNeta=gananciaBruta-totalGastos-totalSalarios;
+
+  // ── Update 3 cards ──
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('dash-costo-total',fp(costoTotal));
+  setEl('dash-costo-n',(ventas.length)+' ventas · costo de lo vendido');
+  setEl('dash-ingresos',fp(totalIngresos));
+  setEl('dash-ventas-n',ventas.length+(ventas.length===1?' venta':' ventas'));
+  setEl('sg-neta',fp(gananciaNeta));
+
+  // Color ganancia neta card
+  const netaCard=document.getElementById('dash-neta-card');
+  const netaIcon=document.getElementById('dash-neta-icon');
+  if(netaCard){
+    netaCard.style.borderTopColor=gananciaNeta>=0?'var(--green)':'var(--red)';
+    const valEl=document.getElementById('sg-neta');
+    if(valEl)valEl.style.color=gananciaNeta>=0?'var(--green)':'var(--red)';
+  }
+  if(netaIcon)netaIcon.textContent=gananciaNeta>=0?'💎':'⚠️';
+
+  const netatDetail=document.getElementById('dash-neta-detail');
+  if(netatDetail){
+    const parts=[];
+    if(totalGastos>0)parts.push('gastos '+fp(totalGastos));
+    if(totalSalarios>0)parts.push('salarios '+fp(totalSalarios));
+    netatDetail.textContent=parts.length?'ganancia bruta − '+parts.join(' − '):'solo ingresos − costo de productos';
   }
 
-  // Type breakdown
-  const byType=t=>ventas.filter(v=>v.tipoPago===t);
-  const co=byType('contado'),cr=byType('credito'),ti=byType('tradein');
-  document.getElementById('sg-contado').textContent=fp(sumArr(co)); document.getElementById('sg-contado-n').textContent=co.length+' ventas';
-  document.getElementById('sg-credito').textContent=fp(sumArr(cr)); document.getElementById('sg-credito-n').textContent=cr.length+' ventas';
-  document.getElementById('sg-tradein').textContent=fp(sumArr(ti)); document.getElementById('sg-tradein-n').textContent=ti.length+' ventas';
+  // ── Resumen financiero (desglose) ──
+  const rfEl=document.getElementById('resumen-financiero');
+  if(rfEl){
+    if(!ventas.length){
+      rfEl.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px;">Sin ventas en este período</div>';
+    } else {
+      const lnColor=n=>n>=0?'var(--green)':'var(--red)';
+      rfEl.innerHTML=[
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);">
+          <div><div style="font-size:13px;font-weight:600;">💵 Ingresos de ventas</div><div style="font-size:11px;color:var(--text3);">${ventas.length} ventas</div></div>
+          <div style="font-family:var(--font-display);font-size:17px;color:var(--blue);">${fp(totalIngresos)}</div>
+        </div>`,
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);">
+          <div><div style="font-size:13px;font-weight:600;">📦 − Costo de lo vendido</div><div style="font-size:11px;color:var(--text3);">Lo que pagaste por los productos</div></div>
+          <div style="font-family:var(--font-display);font-size:17px;color:var(--text3);">−${fp(costoTotal)}</div>
+        </div>`,
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--green-bg);border-bottom:1px solid var(--border);">
+          <div><div style="font-size:13px;font-weight:700;color:var(--green);">📈 Ganancia bruta</div><div style="font-size:11px;color:var(--text3);">Antes de gastos del negocio</div></div>
+          <div style="font-family:var(--font-display);font-size:17px;color:${lnColor(gananciaBruta)};">${fp(gananciaBruta)}</div>
+        </div>`,
+        totalGastos>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);">
+          <div><div style="font-size:13px;font-weight:600;">💸 − Gastos operativos</div><div style="font-size:11px;color:var(--text3);">Arriendo, servicios, etc.</div></div>
+          <div style="font-family:var(--font-display);font-size:17px;color:var(--red);">−${fp(totalGastos)}</div>
+        </div>`:'',
+        totalSalarios>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--border);">
+          <div><div style="font-size:13px;font-weight:600;">👤 − Salarios</div><div style="font-size:11px;color:var(--text3);">Nómina del período</div></div>
+          <div style="font-family:var(--font-display);font-size:17px;color:var(--orange);">−${fp(totalSalarios)}</div>
+        </div>`:'',
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:${gananciaNeta>=0?'var(--green-bg)':'var(--red-bg)'};">
+          <div><div style="font-size:14px;font-weight:700;color:${lnColor(gananciaNeta)};">💎 Lo que te queda</div><div style="font-size:11px;color:var(--text3);">Ganancia real del período</div></div>
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:${lnColor(gananciaNeta)};">${fp(gananciaNeta)}</div>
+        </div>`,
+      ].join('');
+    }
+  }
 
-  // Local 1
-  const sp1=from=>v1.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
-  periodStats(sp1(new Date(hoyStr)),'s1-hoy','s1-hoy-n');
-  periodStats(sp1(lunes),'s1-sem','s1-sem-n');
-  periodStats(sp1(mesStart),'s1-mes','s1-mes-n');
-  periodStats(sp1(anioStart),'s1-anio','s1-anio-n');
-  const g1=allGastos.filter(g=>g.caja==='caja1'||g.caja==='general').reduce((s,g)=>s+(g.monto||0),0);
-  document.getElementById('s1-gastos').textContent=fp(g1);
-  // Ganancia neta Local 1: (venta-costo) por cada venta de caja1
-  let ganL1=0;
-  v1.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=mesStart;}).forEach(v=>{
-    (v.productos||[]).forEach(prod=>{
-      const cant=Number(prod.cantidad)||1;
-      const prec=Number(prod.precio)||(Number(prod.subtotal)||0)/cant;
-      const inv=(store.products||[]).find(p=>p.name===prod.nombre||prod.nombre.startsWith(p.name));
-      let cost=inv?Number(inv.cost)||0:0;
-      if(inv&&inv.storageVariants){const sv=inv.storageVariants.find(sv=>prod.nombre.includes(sv.gb));if(sv&&sv.costo)cost=Number(sv.costo);}
-      ganL1+=(prec-cost)*cant;
-    });
-  });
-  document.getElementById('s1-neta').textContent=fp(ganL1-g1);
-
-  // Local 2
-  const sp2=from=>v2.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=from;});
-  periodStats(sp2(new Date(hoyStr)),'s2-hoy','s2-hoy-n');
-  periodStats(sp2(lunes),'s2-sem','s2-sem-n');
-  periodStats(sp2(mesStart),'s2-mes','s2-mes-n');
-  periodStats(sp2(anioStart),'s2-anio','s2-anio-n');
-  const g2=allGastos.filter(g=>g.caja==='caja2'||g.caja==='general').reduce((s,g)=>s+(g.monto||0),0);
-  document.getElementById('s2-gastos').textContent=fp(g2);
-  // Ganancia neta Local 2
-  let ganL2=0;
-  v2.filter(v=>{const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);return d>=mesStart;}).forEach(v=>{
-    (v.productos||[]).forEach(prod=>{
-      const cant=Number(prod.cantidad)||1;
-      const prec=Number(prod.precio)||(Number(prod.subtotal)||0)/cant;
-      const inv=(store.products||[]).find(p=>p.name===prod.nombre||prod.nombre.startsWith(p.name));
-      let cost=inv?Number(inv.cost)||0:0;
-      if(inv&&inv.storageVariants){const sv=inv.storageVariants.find(sv=>prod.nombre.includes(sv.gb));if(sv&&sv.costo)cost=Number(sv.costo);}
-      ganL2+=(prec-cost)*cant;
-    });
-  });
-  document.getElementById('s2-neta').textContent=fp(ganL2-g2);
-
+  // ── Charts ──
   renderChart30('chart-general',ventas,'#C9A84C');
-  renderChart30('chart-l1',v1,'#2563EB');
-  renderChart30('chart-l2',v2,'#7C3AED');
   renderChartProds('chart-prods-g',ventas);
-  renderChartProds('chart-prods-l1',v1);
-  renderChartProds('chart-prods-l2',v2);
-  renderProdDetail(ventas,'prod-detail-g');
-  renderRecentTable(allVentas.slice(0,10),'recent-sales',true);
-  renderRecentTable(v1.slice(0,8),'recent-l1',false);
-  renderRecentTable(v2.slice(0,8),'recent-l2',false);
 
-  document.getElementById('dash-subtitle').textContent=`Total ventas: ${allVentas.length} · Ingresos del mes: ${fp(totalIngresos)}`;
-  // Update period-based single stat card
-  updatePeriodStats();
-  // Flash indicator on update
-  document.querySelectorAll('.stat-value').forEach(el=>{
-    el.classList.remove('val-updated');
-    void el.offsetWidth; // reflow
-    el.classList.add('val-updated');
-  });
+  // ── Recent sales table ──
+  const tBadge={contado:'badge-green',credito:'badge-blue',tradein:'badge-orange'};
+  const tLabel={contado:'💵 Contado',credito:'💳 Crédito',tradein:'📲 Cel como pago'};
+  const recBody=document.getElementById('recent-sales');
+  if(recBody){
+    const shown=ventas.slice(0,15);
+    recBody.innerHTML=shown.length?shown.map(v=>`<tr style="cursor:pointer;" onclick="openVentaModal('${v.id}')">
+      <td><strong>${v.cliente||'—'}</strong></td>
+      <td style="font-size:12px;color:var(--text3);">${(v.productos||[]).map(p=>p.nombre).slice(0,2).join(', ')+(v.productos?.length>2?' +más':'')}</td>
+      <td><span class="badge ${tBadge[v.tipoPago]||'badge-gray'}">${tLabel[v.tipoPago]||'—'}</span></td>
+      <td><strong>${fp(v.total)}</strong></td>
+      <td style="color:var(--text3);">${formatDate(v.fecha)}</td>
+    </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3);">Sin ventas en este período</td></tr>';
+  }
 }
+
 
 function renderChart30(canvasId,ventas,color){
   const ctx=document.getElementById(canvasId)?.getContext('2d'); if(!ctx)return;
@@ -2741,12 +2793,10 @@ window.addProduct=async function(){
     imei:document.getElementById('p-imei')?.value.trim()||'',
     costoOrigen};
   store.products.push(newProd);
-  // If cost came from ganancia_neta, register it as a gasto automático
-  if(costoOrigen==='ganancia_neta'&&cost>0){
-    try{
-      await addDoc(gastosCol,{desc:'🛒 Compra producto: '+name,monto:cost,caja:'general',fecha:new Date().toISOString().split('T')[0],tipo:'compra_inventario'});
-    }catch(e){console.warn('Error registering cost as gasto:',e);}
-  }
+  // NOTA: NO registramos el costo como gasto automático.
+  // El costo del inventario ya se descuenta en la ganancia bruta cuando se vende
+  // (ganancia = precio_venta - costo_compra). Registrarlo como gasto causaría doble descuento.
+  // El campo costoOrigen es informativo para el dueño, no afecta el cálculo.
   await saveToFirebase({products:store.products});renderProducts();
   ['p-name','p-price','p-cost','p-stock','p-emoji','p-img','p-storage','p-colors','p-badge','p-desc','p-prov-nombre','p-prov-tel','p-prov-info','p-imei'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   const coo=document.getElementById('p-costo-origen');if(coo)coo.value='ganancia_neta';
@@ -3173,12 +3223,14 @@ function renderGastos(){
   const sum=(arr,fn)=>arr.reduce((s,g)=>{const v=fn(g);return isNaN(v)?s:s+v;},0);
   const monto=g=>Number(g.monto||0);
 
-  const ghoy=allGastos.filter(g=>g.fecha===hoy);
-  const gmes=allGastos.filter(g=>g.fecha&&new Date(g.fecha)>=mesStart);
-  const ganio=allGastos.filter(g=>g.fecha&&new Date(g.fecha)>=anioStart);
-  const gl1=allGastos.filter(g=>g.caja==='caja1');
-  const gl2=allGastos.filter(g=>g.caja==='caja2');
-  const ggen=allGastos.filter(g=>g.caja==='general');
+  // Exclude compra_inventario from all gastos summaries (double-counting prevention)
+  const gastosReales=allGastos.filter(g=>g.tipo!=='compra_inventario');
+  const ghoy=gastosReales.filter(g=>g.fecha===hoy);
+  const gmes=gastosReales.filter(g=>g.fecha&&new Date(g.fecha)>=mesStart);
+  const ganio=gastosReales.filter(g=>g.fecha&&new Date(g.fecha)>=anioStart);
+  const gl1=gastosReales.filter(g=>g.caja==='caja1');
+  const gl2=gastosReales.filter(g=>g.caja==='caja2');
+  const ggen=gastosReales.filter(g=>g.caja==='general');
 
   const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   setEl('g-hoy',fp(sum(ghoy,monto))); setEl('g-hoy-n',ghoy.length+' registro'+(ghoy.length!==1?'s':''));
@@ -3196,6 +3248,9 @@ function renderGastos(){
   const toDate=toVal?new Date(toVal+'T23:59:59'):null;
 
   const filtered=allGastos.filter(g=>{
+    // IMPORTANT: never show compra_inventario gastos here - they were legacy entries
+    // that caused double-counting. They are hidden from the gastos UI.
+    if(g.tipo==='compra_inventario') return false;
     if(cajaFil&&g.caja!==cajaFil) return false;
     if(fromDate||toDate){
       const gd=g.fecha?new Date(g.fecha):null; if(!gd) return false;
@@ -3204,6 +3259,8 @@ function renderGastos(){
     }
     return true;
   });
+  // Also count compra_inventario entries (hidden but count them separately for info)
+  const gastosInventario=allGastos.filter(g=>g.tipo==='compra_inventario');
 
   const totalFil=sum(filtered,monto);
   const summaryBar=filtered.length?`<tr style="background:var(--accent-bg);"><td colspan="4" style="font-weight:700;font-size:13px;color:var(--gold-dark);padding:10px 13px;">📊 ${filtered.length} gasto${filtered.length!==1?'s':''} filtrado${filtered.length!==1?'s':''}</td><td style="font-weight:700;color:var(--red);font-size:13px;padding:10px 13px;">${fp(totalFil)}</td></tr>`:'';
@@ -3778,87 +3835,10 @@ window.showSection = function(id, el){
 
 // ─── DASH PERIOD SELECTOR ───
 let currentDashPeriod = 'hoy';
-// ── DASHBOARD DROPDOWN FILTER SYSTEM ──
-window.onDashPeriodoChange = function(){
-  const sel = document.getElementById('dash-periodo-sel');
-  const period = sel?.value || 'mes';
-  const customDiv = document.getElementById('dash-custom-dates');
-  if(customDiv) customDiv.style.display = (period === 'custom') ? 'flex' : 'none';
-  if(period === 'custom'){
-    const ff=document.getElementById('filter-from');
-    const ft=document.getElementById('filter-to');
-    const today=todayDate();
-    if(ff&&!ff.value) ff.value=today;
-    if(ft&&!ft.value) ft.value=today;
-  }
-  applyDashFilter();
-};
-window.applyDashFilter = function(){ renderDashboard(); };
-// Legacy compat
-window.applyFilter = window.applyDashFilter;
-window.resetFilter = function(){ 
-  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='hoy';
-  onDashPeriodoChange();
-};
-window.filterWeek = function(){ 
-  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='sem';
-  onDashPeriodoChange();
-};
-window.filterMonth = function(){ 
-  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='mes';
-  onDashPeriodoChange();
-};
-window.filterYear = function(){ 
-  const s=document.getElementById('dash-periodo-sel'); if(s) s.value='anio';
-  onDashPeriodoChange();
-};
-// Legacy pill buttons (kept for compat)
-window.setDashPeriod = function(period, el) {
-  const s=document.getElementById('dash-periodo-sel'); if(s) s.value=period;
-  onDashPeriodoChange();
-};
+// dash period system moved to renderDashboard block
 
-// Override renderDashboard stats to use period selector
-const _origRenderDashboard_period = window.renderDashboard || (()=>{});
-function updatePeriodStats(){
-  const now=new Date();
-  const hoyStr=todayDate();
-  const lunes=new Date(now); lunes.setDate(now.getDate()-now.getDay()+1); lunes.setHours(0,0,0,0);
-  const mesStart=new Date(now.getFullYear(),now.getMonth(),1);
-  const anioStart=new Date(now.getFullYear(),0,1);
-  // Read from dropdown selector
-  const period=(document.getElementById('dash-periodo-sel')?.value)||'mes';
-  
-  let fromDate, toDate=null, labelText, labelShort;
-  if(period==='hoy'){ fromDate=new Date(hoyStr); labelText='Hoy'; labelShort='Ingresos de hoy'; }
-  else if(period==='sem'){ fromDate=lunes; labelText='Esta semana'; labelShort='Esta semana'; }
-  else if(period==='mes'){ fromDate=mesStart; labelText='Este mes'; labelShort='Este mes'; }
-  else if(period==='anio'){ fromDate=anioStart; labelText='Este año'; labelShort='Este año'; }
-  else { 
-    const ff=document.getElementById('filter-from')?.value||hoyStr;
-    const ft=document.getElementById('filter-to')?.value||hoyStr;
-    fromDate=new Date(ff); toDate=new Date(ft+'T23:59:59');
-    labelText=ff===ft?ff:ff+' → '+ft; labelShort='Período: '+ff.slice(5);
-  }
 
-  const periodVentas=allVentas.filter(v=>{
-    if(v.estado==='cancelada'||v.estado==='reembolsada')return false;
-    const d=v.fecha?.toDate?v.fecha.toDate():new Date(v.fecha||0);
-    if(d<fromDate)return false;
-    if(toDate&&d>toDate)return false;
-    return true;
-  });
-  const periodTotal=periodVentas.reduce((s,v)=>s+(v.total||0),0);
-
-  const lbl=document.getElementById('sg-period-label');
-  const val=document.getElementById('sg-period-val');
-  const n=document.getElementById('sg-period-n');
-  const pll=document.getElementById('dash-period-label-text');
-  if(lbl) lbl.textContent=labelShort;
-  if(val) val.textContent=fp(periodTotal);
-  if(n) n.textContent=periodVentas.length+(periodVentas.length===1?' venta':' ventas');
-  if(pll) pll.textContent=labelText;
-}
+// updatePeriodStats removed — merged into renderDashboard
 
 // ─── HISTORIAL DATE QUICK FILTERS ───
 window.histFiltroHoy=function(){
