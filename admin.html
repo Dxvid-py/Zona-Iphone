@@ -1620,6 +1620,7 @@ async function initAdmin(){
     if(snap.exists()){
       store={...defaultStore,...snap.data()};
       renderProducts();renderOtros();renderClients();renderEvents();renderVideo();renderDescuentos();
+      renderDashboard(); // keep dashboard in sync when store config changes
     }
   });
 }
@@ -1793,12 +1794,18 @@ function renderDashboard(){
   // ── Ingresos totales ──
   const totalIngresos=ventas.reduce((s,v)=>s+(v.total||0),0);
 
-  // ── Costo e inversion: precio_costo × cantidad por cada producto vendido ──
+  // ── Costo real: primero usa el costo guardado en la venta (más confiable)
+  // Si no hay costo guardado, busca en inventario activo y archivo
   let costoTotal=0;
   ventas.forEach(v=>{
     (v.productos||[]).forEach(prod=>{
       const cant=Number(prod.cantidad)||1;
-      const precioUnit=Number(prod.precio)||(Number(prod.subtotal)||0)/cant;
+      // Use stored cost if available (new ventas have it)
+      if(prod.costo!=null&&prod.costo!==undefined){
+        costoTotal+=Number(prod.costo)*cant;
+        return;
+      }
+      // Fallback: look up current inventory
       let costoUnit=0;
       const inv=(store.products||[]).find(p=>p.name===prod.nombre||prod.nombre.startsWith(p.name+' ')||prod.nombre===p.name);
       if(inv){
@@ -2160,15 +2167,33 @@ window.finalizarVenta=async function(){
 
   // Stock validation
   for(const p of productos){
-    const prod=store.products.find(x=>x.name===p.nombre);
+    const prod=store.products.find(x=>x.name===p.nombre||p.nombre.startsWith(x.name+' ')||p.nombre===x.name);
     if(prod&&prod.stock!==undefined&&prod.stock<p.cantidad){showToast(`⚠️ Sin stock suficiente: ${p.nombre} (disponible: ${prod.stock})`,'error');return;}
   }
 
   const total=productos.reduce((s,p)=>s+p.subtotal,0);
   const factNum=store.nextFactura||1;
+
+  // Enrich productos with cost at time of sale (for accurate dashboard)
+  const productosConCosto=productos.map(p=>{
+    let costoUnit=0;
+    const inv=(store.products||[]).find(x=>x.name===p.nombre||p.nombre.startsWith(x.name+' ')||p.nombre===x.name);
+    if(inv){
+      costoUnit=Number(inv.cost)||0;
+      if(inv.storageVariants&&inv.storageVariants.length){
+        const sv=inv.storageVariants.find(sv=>p.nombre.includes(sv.gb));
+        if(sv&&sv.costo)costoUnit=Number(sv.costo);
+      }
+    } else {
+      const arch=(store.vendidosArchive||[]).find(a=>a.nombre===p.nombre||p.nombre.startsWith(a.nombre));
+      if(arch)costoUnit=Number(arch.costo)||0;
+    }
+    return {...p,costo:costoUnit,ganancia:(p.precio-costoUnit)*(p.cantidad||1)};
+  });
+
   const venta={
     cliente:nombre,telefono:document.getElementById('v-telefono').value.trim(),cedula:cedula||null,
-    productos,total,tipoPago:currentPayment,caja:currentCaja,
+    productos:productosConCosto,total,tipoPago:currentPayment,caja:currentCaja,
     facturaNum:factNum,fecha:Timestamp.now(),
     observaciones:document.getElementById('v-obs').value.trim()||null
   };
